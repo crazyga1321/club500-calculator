@@ -82,12 +82,12 @@
 
 <div class="form-group">
     <label>Порог для взимания абонплаты ($)</label>
-    <input type="text" value="5000" readonly style="pointer-events: none;">
+    <input id="threshold" type="number" value="5000" min="0" step="1">
 </div>
 
 <div class="form-group">
     <label>Потолок абонплаты ($)</label>
-    <input type="text" value="5000" readonly style="pointer-events: none;">
+    <input id="threshold" type="number" value="5000" min="0" step="1">
 </div>
 
         <div class="row" style="margin-top:12px">
@@ -292,6 +292,7 @@
 </script>
 </body>
 </html>
+
 
 
 
