@@ -76,24 +76,21 @@
         </label>
 
         <label>Абонплата (% от баланса конца года)
-          <input type="text" value="Абон. плата 10%" readonly>
+       <div class="partner-info">
 
-        </label>
+    <label>Абонентская плата:</label>
+    <input type="text" value="10%" readonly class="locked-field">
 
-        <label>Порог для взимания абонплаты ($)
-          <input type="text" value="Абон. плата 5000$" readonly>
-        </label>
+    <label>Порог для взимания платы:</label>
+    <input type="text" value="—" readonly class="locked-field">
 
-        <label>Потолок абонплаты ($)
-                  </label>
-<label>Абонентская плата:</label>
-<input type="text" value="10%" readonly>
+    <label>Потолок абонентской платы:</label>
+    <input type="text" value="—" readonly class="locked-field">
 
-<label>Порог для взимания платы:</label>
-<input type="text" value="5000$" readonly>
+</div>
 
-<label>Потолок абонентской платы:</label>
-<input type="text" value="5000$" readonly>
+
+
 
         <div class="row" style="margin-top:12px">
           <button class="btn" id="calcBtn">Посчитать</button>
@@ -297,6 +294,7 @@
 </script>
 </body>
 </html>
+
 
 
 
