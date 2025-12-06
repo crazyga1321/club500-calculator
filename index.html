@@ -75,17 +75,20 @@
           </select>
         </label>
 
-        <label>Абонплата (% от баланса конца года)
-          <input id="feePct" type="number" value="10" min="0" step="0.1">
-        </label>
+        <div class="form-group">
+    <label>Абонплата (% от баланса конца года)</label>
+    <input type="text" value="10" readonly style="pointer-events: none;">
+</div>
 
-        <label>Порог для взимания абонплаты ($)
-          <input id="threshold" type="number" value="5000" min="0" step="1">
-        </label>
+<div class="form-group">
+    <label>Порог для взимания абонплаты ($)</label>
+    <input type="text" value="5000" readonly style="pointer-events: none;">
+</div>
 
-        <label>Потолок абонплаты ($)
-          <input id="cap" type="number" value="5000" min="0" step="1">
-        </label>
+<div class="form-group">
+    <label>Потолок абонплаты ($)</label>
+    <input type="text" value="5000" readonly style="pointer-events: none;">
+</div>
 
         <div class="row" style="margin-top:12px">
           <button class="btn" id="calcBtn">Посчитать</button>
@@ -289,6 +292,7 @@
 </script>
 </body>
 </html>
+
 
 
 
