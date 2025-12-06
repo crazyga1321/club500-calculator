@@ -41,7 +41,7 @@
     <div class="logo">CL</div>
     <div>
       <h1>CLUB500 — Калькулятор роста депозита</h1>
-      <p class="lead">Рост.</p>
+      <p class="lead">Рост → затем абонплата в конце года (если депозит после роста ≥ порог). Покажи партнёрам красивую версию.</p>
     </div>
   </header>
 
@@ -76,21 +76,16 @@
         </label>
 
         <label>Абонплата (% от баланса конца года)
-       <div class="partner-info">
+          <input id="feePct" type="number" value="10" min="0" step="0.1">
+        </label>
 
-    <label>Абонентская плата:</label>
-    <input type="text" value="10%" readonly class="locked-field">
+        <label>Порог для взимания абонплаты ($)
+          <input id="threshold" type="number" value="5000" min="0" step="1">
+        </label>
 
-    <label>Порог для взимания платы:</label>
-    <input type="text" value="—" readonly class="locked-field">
-
-    <label>Потолок абонентской платы:</label>
-    <input type="text" value="—" readonly class="locked-field">
-
-</div>
-
-
-
+        <label>Потолок абонплаты ($)
+          <input id="cap" type="number" value="5000" min="0" step="1">
+        </label>
 
         <div class="row" style="margin-top:12px">
           <button class="btn" id="calcBtn">Посчитать</button>
@@ -294,18 +289,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
