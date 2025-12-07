@@ -76,16 +76,20 @@
         </label>
 
         <label>Абонплата (% от баланса конца года)
-            <input type="number" id="feePct" class="form-control" value="10">
-        </label>
+  <div class="fake-input">10%</div>
+  <input id="feePct" type="hidden" value="10">
+</label>
 
-        <label>Порог для взимания абонплаты ($)
-          <input id="threshold" type="number" value="5000" min="0" step="1">
-        </label>
+<label>Порог для взимания абонплаты ($)
+  <div class="fake-input">$5000</div>
+  <input id="threshold" type="hidden" value="5000">
+</label>
 
-        <label>Потолок абонплаты ($)
-          <input id="cap" type="number" value="5000" min="0" step="1">
-        </label>
+<label>Потолок абонплаты ($)
+  <div class="fake-input">$5000</div>
+  <input id="cap" type="hidden" value="5000">
+</label>
+
 
         <div class="row" style="margin-top:12px">
           <button class="btn" id="calcBtn">Посчитать</button>
@@ -289,6 +293,7 @@
 </script>
 </body>
 </html>
+
 
 
 
