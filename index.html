@@ -5,54 +5,87 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>CLUB500 — Калькулятор + Сводка сделок</title>
 <style>
+  /* ===== THEME & LAYOUT ===== */
   :root{
-    --bg:#0b0f1a; --card:#0f1724; --accent:#10b981; --muted:#94a3b8; --glass:rgba(255,255,255,0.03); --text:#e6eef8;
+    --bg:#070912;
+    --card:#0d1220;
+    --accent1:#8b5cf6; /* violet */
+    --accent2:#06b6d4; /* cyan */
+    --neon:#10b981;    /* green accent */
+    --muted:#94a3b8;
+    --glass:rgba(255,255,255,0.03);
+    --text:#e6eef8;
   }
-  html,body{height:100%;margin:0;font-family:Inter,system-ui,Roboto,Arial;background:linear-gradient(180deg,var(--bg),#071024);color:var(--text);}
-  .wrap{max-width:1100px;margin:26px auto;padding:20px}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Roboto,Arial;background:linear-gradient(180deg,var(--bg),#071024);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  .wrap{max-width:1100px;margin:24px auto;padding:18px}
   header{display:flex;gap:12px;align-items:center;margin-bottom:12px}
-  .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+  .logo{font-weight:800;padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#021;box-shadow:0 6px 20px rgba(139,92,246,0.12);letter-spacing:1px}
   h1{margin:0;font-size:18px}
   .lead{color:var(--muted);font-size:13px}
-  .tabs{display:flex;gap:8px;margin-bottom:14px}
+
+  /* tabs */
+  .tabs{display:flex;gap:8px;margin:14px 0}
   .tabBtn{padding:8px 12px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);cursor:pointer;font-weight:600}
-  .tabBtn.active{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(16,185,129,0.12)}
+  .tabBtn.active{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#021;box-shadow:0 8px 30px rgba(139,92,246,0.08)}
+
+  /* grid */
   .grid{display:grid;grid-template-columns:1fr 420px;gap:18px}
-  .card{background:var(--card);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);box-shadow:0 6px 24px rgba(2,6,23,0.6)}
+  @media(max-width:980px){ .grid{grid-template-columns:1fr} }
+
+  /* card */
+  .card{background:var(--card);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 8px 40px rgba(2,6,23,0.6);animation:fadeUp .45s ease both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px);filter:blur(3px)}to{opacity:1;transform:none;filter:blur(0)}}
+
   label{display:block;color:var(--muted);font-size:13px;margin-top:12px}
-  input[type="number"], select, input[type="text"]{width:100%;padding:8px;border-radius:8px;margin-top:6px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:var(--text)}
+  input[type="number"], select, input[type="text"]{width:100%;padding:8px;border-radius:8px;margin-top:6px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:var(--text);font-size:14px}
   .row{display:flex;gap:10px;margin-top:12px}
-  .btn{background:var(--accent);color:white;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+  .btn{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#021;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700;box-shadow:0 8px 30px rgba(139,92,246,0.08)}
   .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
   .muted{color:var(--muted);font-size:13px}
   table{width:100%;border-collapse:collapse;margin-top:12px}
   th,td{padding:8px 10px;text-align:center;border-bottom:1px dashed rgba(255,255,255,0.03)}
-  th{font-size:13px;color:#fff;background:linear-gradient(90deg,rgba(255,255,255,0.02),transparent)}
+  th{font-size:13px;color:#fff;background:linear-gradient(90deg,rgba(255,255,255,0.03),transparent)}
   td.small{font-size:13px;color:var(--muted)}
-  .result{font-size:20px;font-weight:700;color:var(--accent)}
-  .chartWrap{height:320px;margin-top:12px;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(16,185,129,0.04), rgba(6,182,212,0.02));display:flex;flex-direction:column}
-  .chartArea{flex:1;border-radius:8px;overflow:hidden}
-  .fake-input{width:100%;padding:8px 10px;margin-top:6px;border-radius:8px;background:var(--glass);border:1px solid rgba(255,255,255,0.04);color:var(--text)}
-  .scanBadge{position:relative;display:inline-block;padding:12px 22px;border-radius:12px;background:rgba(16,185,129,0.12);color:#10b981;font-weight:700;border:1px solid rgba(16,185,129,0.45);overflow:hidden;text-transform:uppercase;letter-spacing:0.5px;box-shadow:0 0 14px rgba(16,185,129,0.35)}
-  .scanBadge::after{content:"";position:absolute;top:0;left:-120%;width:50%;height:100%;background:linear-gradient(120deg,transparent,rgba(16,185,129,0.4),transparent);animation:scanMove 2.6s infinite}
+  .result{font-size:20px;font-weight:700;color:var(--neon)}
+
+  /* chart */
+  .chartWrap{height:320px;margin-top:12px;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(140,75,255,0.04), rgba(6,182,212,0.02));display:flex;flex-direction:column}
+  .chartArea{flex:1;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+
+  /* scan badge */
+  .scanBadge{position:relative;display:inline-block;padding:10px 18px;border-radius:10px;background:rgba(16,185,129,0.08);color:var(--neon);font-weight:700;border:1px solid rgba(16,185,129,0.25);overflow:hidden;letter-spacing:0.5px}
+  .scanBadge::after{content:"";position:absolute;top:0;left:-120%;width:45%;height:100%;background:linear-gradient(120deg,transparent,rgba(16,185,129,0.35),transparent);animation:scanMove 3s infinite}
   @keyframes scanMove{0%{left:-120%}50%{left:120%}100%{left:-120%}}
-  /* TAG (style B: dark with green border) */
-  .tagWrap{display:flex;align-items:center;gap:6px;justify-content:center}
-  .tagDisplay{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.12);border:1px solid rgba(16,185,129,0.45);color:#10b981;font-weight:700}
-  .tagDisplay .remove{cursor:pointer;padding:2px 6px;border-radius:6px;background:transparent;color:#10b981;border:0;font-weight:700}
+
+  /* tag style (B improved) */
+  .tagWrap{display:flex;align-items:center;gap:8px;justify-content:flex-start}
+  .tagDisplay{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:linear-gradient(180deg, rgba(0,0,0,0.16), rgba(0,0,0,0.06));border:1px solid rgba(16,185,129,0.45);color:var(--neon);font-weight:700}
+  .tagDisplay .remove{cursor:pointer;padding:2px 6px;border-radius:6px;background:transparent;color:var(--neon);border:0;font-weight:700}
   .assetEntry{border:0;background:transparent;color:var(--text);outline:none;padding:6px}
   .deals-input{width:100%;padding:6px;border-radius:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:var(--text)}
   .small-muted{font-size:12px;color:var(--muted)}
-  @media(max-width:980px){ .grid{grid-template-columns:1fr} .chartWrap{height:260px} }
+
+  /* notification */
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#0b1220;border:1px solid rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,0.6);display:none;z-index:9999}
+  .toast.show{display:block;animation:toastIn .38s ease}
+  @keyframes toastIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+
+  /* responsive tweaks */
+  @media(max-width:720px){
+    .grid{grid-template-columns:1fr}
+    .chartWrap{height:220px}
+    .tagDisplay{font-size:13px;padding:5px 8px}
+    .btn{width:100%}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-    <div class="logo">CL</div>
+  <header>
+    <div class="logo">CLUB500</div>
     <div style="flex:1">
       <h1>CLUB500 — Калькулятор роста депозита</h1>
-      <div class="lead">Рост → затем абонплата. Сводка сделок — для партнёров.</div>
+      <div class="lead">Рост → проверка порога → взимание абонплаты. Партнёрская сводка внутри.</div>
     </div>
     <button class="btn" id="shareBtn" style="height:40px">Скопировать ссылку</button>
   </header>
@@ -62,20 +95,20 @@
     <button class="tabBtn" data-tab="dealsTab">Сводка сделок</button>
   </div>
 
-  <!-- CALC TAB -->
   <div id="calcTab" class="tabContent" style="display:block;">
     <div class="grid">
+      <!-- left -->
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div>
             <div class="muted">Параметры расчёта</div>
-            <div style="font-weight:700;margin-top:4px">Настрой параметры</div>
+            <div style="font-weight:700;margin-top:6px">Настрой и рендери</div>
           </div>
         </div>
 
-        <div style="margin-top:12px">
+        <div style="margin-top:12px" class="inputs">
           <label>Начальный депозит ($)
-            <input id="S0" type="number" value="100" min="0" step="1">
+            <input id="S0" type="number" value="4000" min="0" step="1">
           </label>
 
           <label>Годовая доходность (%) — например 200 = +200%
@@ -84,15 +117,11 @@
 
           <label>Лет
             <select id="years">
-              <option value="3" selected>3</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
+              <option value="3" selected>3</option><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="5">5</option>
             </select>
           </label>
 
-          <label>Абонплата (%)
+          <label>Абонплата (%) — <span class="small-muted">фиксировано</span>
             <div class="fake-input" id="displayFee">10%</div>
             <input id="feePct" type="hidden" value="10">
           </label>
@@ -107,9 +136,9 @@
             <input id="cap" type="hidden" value="5000">
           </label>
 
-          <div class="row">
+          <div class="row" style="margin-top:12px">
             <button class="btn" id="calcBtn">Посчитать</button>
-            <button class="btn ghost" id="resetBtn" style="background:#111827">Сброс</button>
+            <button id="resetBtn" class="btn ghost" style="background:#111827;color:#fff;border-radius:8px;padding:10px 12px">Сброс</button>
           </div>
         </div>
 
@@ -122,6 +151,7 @@
         </div>
       </div>
 
+      <!-- right -->
       <div>
         <div class="card">
           <div class="muted">Краткая сводка</div>
@@ -138,12 +168,13 @@
 
           <div class="chartWrap" style="margin-top:12px">
             <div style="display:flex;justify-content:space-between;align-items:center">
-              <div class="muted">График (Neon TradingView)</div>
+              <div class="muted">График (mini-TradingView)</div>
               <div class="muted small-muted" id="chartSummary">—</div>
             </div>
             <div class="chartArea" id="chartArea">
               <svg id="chartSvg" width="100%" height="100%" viewBox="0 0 900 360" preserveAspectRatio="none"></svg>
             </div>
+            <div class="power-text" style="margin-top:12px;text-align:center;color:#fff;text-shadow:0 0 8px rgba(255,255,255,0.75)">CLUB 500 — сила сложного процента</div>
           </div>
         </div>
 
@@ -165,16 +196,16 @@
         <div style="font-weight:700">Ввод и анализ (точно 20 строк)</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn" id="downloadExcel" style="background:#06b6d4">Скачать Excel</button>
+        <button class="btn" id="downloadExcel" style="background:linear-gradient(90deg,var(--accent2),var(--neon))">Скачать Excel</button>
       </div>
     </div>
 
     <div class="card">
-      <p class="small-muted">В одной строке — один актив. Вводи актив и нажимай Enter → получишь тег. Повторный ввод запрещён (покажем сообщение).</p>
+      <p class="small-muted">В одной строке — один актив (Enter чтобы сохранить актив в тег). Повторный ввод запрещён.</p>
       <div style="overflow:auto;margin-top:8px">
         <table id="dealsTable" style="width:100%;border-collapse:collapse">
           <thead>
-            <tr><th>#</th><th>Актив</th><th>Вход ($)</th><th>Выход ($)</th><th>%</th></tr>
+            <tr><th>#</th><th style="text-align:left">Актив</th><th>Вход ($)</th><th>Выход ($)</th><th>%</th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -183,17 +214,13 @@
       <div style="margin-top:12px;display:flex;gap:10px">
         <button class="btn" id="calcDealsBtn">Рассчитать доходность</button>
         <button class="btn ghost" id="clearDealsBtn" style="background:#111827">Очистить</button>
-        <button class="btn" id="useInCalcBtn" style="background:#06b6d4">Использовать в калькуляторе</button>
+        <button class="btn" id="useInCalcBtn" style="background:linear-gradient(90deg,var(--accent2),var(--neon))">Использовать в калькуляторе</button>
       </div>
 
       <div style="margin-top:16px;display:flex;gap:14px;align-items:center">
         <div>
           <div class="muted">Средняя доходность по сделкам</div>
           <div id="avgDealPct" class="result">0.00%</div>
-        </div>
-        <div>
-          <div class="muted">CAGR (года)</div>
-          <div id="cagrDeal" class="result">0.00%</div>
         </div>
       </div>
     </div>
@@ -202,13 +229,17 @@
   <div style="text-align:center;margin-top:18px"><div class="scanBadge">CLUB500 • Авторская модель Ygnivenko</div></div>
 </div>
 
+<!-- toast -->
+<div id="toast" class="toast"></div>
+
 <script>
-/* Helpers */
+/* ===== Helpers ===== */
 const $ = id => document.getElementById(id);
 const parseSafe = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
 function money(n){ return '$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function showToast(txt, ms=2200){ const t=$('toast'); t.innerText=txt; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), ms); }
 
-/* Tabs */
+/* ===== Tabs ===== */
 document.querySelectorAll('.tabBtn').forEach(btn=>{
   btn.addEventListener('click', ()=> {
     document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
@@ -220,7 +251,7 @@ document.querySelectorAll('.tabBtn').forEach(btn=>{
   });
 });
 
-/* Compute */
+/* ===== Compute logic (fee applied at year end if after >= threshold) ===== */
 function compute(params){
   let S = parseSafe(params.S0);
   const r = parseSafe(params.r);
@@ -241,11 +272,11 @@ function compute(params){
   return {rows, final:S, totalFees};
 }
 
-/* Draw table and chart (same as before) */
+/* ===== Draw table & chart ===== */
 function drawTable(rows){
   const tbody = document.querySelector('#table tbody'); tbody.innerHTML = '';
   rows.forEach(r=>{
-    const tr = document.createElement('tr');
+    const tr=document.createElement('tr');
     tr.innerHTML = `<td class="small">${r.year}</td>
                     <td>${money(r.start)}</td>
                     <td>${money(r.after)}</td>
@@ -255,28 +286,24 @@ function drawTable(rows){
   });
 }
 
-/* Chart helpers */
+/* Chart (smooth line + glow) */
 function catmullRom2bezier(points){
   const d=[]; for(let i=0;i<points.length-1;i++){
     const p0=points[i-1]||points[i], p1=points[i], p2=points[i+1], p3=points[i+2]||p2;
-    d.push([
-      p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6,
-      p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6,
-      p2[0], p2[1]
-    ]);
+    d.push([ p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6, p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6, p2[0], p2[1] ]);
   } return d;
 }
 function drawChart(rows){
-  const svg = $('chartSvg'); svg.innerHTML=''; const w=900,h=360,pad=50; svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const svg = $('chartSvg'); svg.innerHTML=''; const w=900,h=360,pad=44; svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   if(!rows || rows.length===0) return;
   const values = rows.map(r=>r.end); const max=Math.max(...values), min=Math.min(...values); const range=(max-min)||1;
-  const pts = rows.map((r,i)=>{ const x=pad+(i/(rows.length-1||1))*(w-pad*2); const y=h-pad-((r.end-min)/range)*(h-pad*2); return [x,y]; });
+  const pts = rows.map((r,i)=>{ const x=pad + (i/(rows.length-1||1))*(w-pad*2); const y=h-pad - ((r.end-min)/range)*(h-pad*2); return [x,y]; });
   let path = `M ${pts[0][0]} ${pts[0][1]}`; if(pts.length>1){ const beziers = catmullRom2bezier(pts); beziers.forEach(b=> path += ` C ${b[0]} ${b[1]}, ${b[2]} ${b[3]}, ${b[4]} ${b[5]}`); }
   const areaD = path + ` L ${pts[pts.length-1][0]} ${h-pad} L ${pts[0][0]} ${h-pad} Z`;
   let grid=''; const rowsGrid=4; for(let i=0;i<=rowsGrid;i++){ const gy = pad + i*((h-pad*2)/rowsGrid); grid += `<line x1="${pad}" x2="${w-pad}" y1="${gy}" y2="${gy}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`; }
   const defs = `<defs>
-    <linearGradient id="gLine" x1="0" x2="1"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient>
-    <linearGradient id="gFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#10b981" stop-opacity="0.18"/><stop offset="100%" stop-color="#06b6d4" stop-opacity="0.02"/></linearGradient>
+    <linearGradient id="gLine" x1="0" x2="1"><stop offset="0%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--neon')||'#10b981'}"/><stop offset="100%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--accent2')||'#06b6d4'}"/></linearGradient>
+    <linearGradient id="gFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--neon')||'#10b981'}" stop-opacity="0.16"/><stop offset="100%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--accent2')||'#06b6d4'}" stop-opacity="0.03"/></linearGradient>
     <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>`;
   let dots='', xlabels='', ylabels=''; pts.forEach((p,i)=>{ dots += `<circle cx="${p[0]}" cy="${p[1]}" r="${i===pts.length-1?4:3}" fill="#fff" opacity="${i===pts.length-1?1:0.9}"></circle>`; xlabels += `<text x="${p[0]}" y="${h-pad+18}" font-size="11" fill="${getComputedStyle(document.documentElement).getPropertyValue('--muted')||'#94a3b8'}" text-anchor="middle">${rows[i].year}</text>`; });
@@ -285,9 +312,10 @@ function drawChart(rows){
   $('chartSummary').innerText = `Итог: ${money(rows[rows.length-1].end)}`;
 }
 
-/* Recalc */
+/* ===== Recalc and events ===== */
 function recalc(){
   const params = { S0:$('S0').value, r:$('r').value, years:$('years').value, feePct:$('feePct').value, threshold:$('threshold').value, cap:$('cap').value };
+  saveParams(); // autosave params each recalc
   const res = compute(params);
   drawTable(res.rows);
   $('final').innerText = money(res.final);
@@ -295,12 +323,27 @@ function recalc(){
   drawChart(res.rows);
   return res;
 }
-
-/* Events */
 $('calcBtn').addEventListener('click', recalc);
-$('resetBtn').addEventListener('click', ()=>{ $('S0').value=4000; $('r').value=200; $('years').value=3; recalc(); });
 
-/* Deals table with single-tag asset per row */
+/* ===== Reset behaviour (clears all localStorage) ===== */
+$('resetBtn').addEventListener('click', ()=>{
+  if(confirm('Сбросить все настройки и очистить сохранённые данные?')) {
+    localStorage.removeItem('club500_params');
+    localStorage.removeItem('club500_deals');
+    // rebuild UI
+    loadParamsToUI(); createDealsTable(); showToast('Данные сброшены');
+    recalc();
+  }
+});
+
+/* ===== Share link ===== */
+$('shareBtn').addEventListener('click', ()=>{
+  const params = new URLSearchParams({ S0:$('S0').value, r:$('r').value, years:$('years').value, feePct:$('feePct').value, threshold:$('threshold').value, cap:$('cap').value });
+  const link = location.href.split('?')[0] + '?' + params.toString();
+  navigator.clipboard.writeText(link).then(()=> showToast('Ссылка скопирована в буфер обмена'));
+});
+
+/* ====== DEALS TABLE ====== */
 function createDealsTable(){
   const tbody = document.querySelector('#dealsTable tbody');
   tbody.innerHTML='';
@@ -310,26 +353,27 @@ function createDealsTable(){
       <td style="text-align:left">
         <div class="tagWrap" data-row="${i}">
           <span class="tagDisplay" style="display:none"></span>
-          <input type="text" class="assetEntry" placeholder="введите актив (нажмите Enter)" />
+          <input type="text" class="assetEntry" placeholder="введите актив (Enter)" />
         </div>
       </td>
-      <td><input class="deals-input in" type="number" step="0.01" /></td>
-      <td><input class="deals-input out" type="number" step="0.01" /></td>
+      <td><input class="deals-input in" type="number" step="0.01" data-in="${i}" /></td>
+      <td><input class="deals-input out" type="number" step="0.01" data-out="${i}" /></td>
       <td class="small deal-pct">0%</td>`;
     tbody.appendChild(tr);
   }
 
-  // add listeners for entries
+  // listeners
   document.querySelectorAll('.tagWrap').forEach(w=>{
     const input = w.querySelector('.assetEntry');
     const display = w.querySelector('.tagDisplay');
+
+    // if enter -> set tag (one tag only)
     input.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter'){
         const val = input.value.trim();
         if(!val) return;
         if(display.innerText.trim() !== '') {
-          // already has a tag
-          alert('В сделке может быть только один актив');
+          showToast('В сделке может быть только один актив');
           input.value = '';
           return;
         }
@@ -337,30 +381,47 @@ function createDealsTable(){
         display.innerHTML = `<span class="tagText">${up}</span><button class="remove" title="удалить">✕</button>`;
         display.style.display = 'inline-flex';
         input.style.display = 'none';
+        saveDeals();
         // remove handler
         display.querySelector('.remove').addEventListener('click', ()=>{
           display.innerHTML = '';
           display.style.display = 'none';
           input.style.display = 'inline-block';
           input.value = '';
+          saveDeals();
           input.focus();
         });
       }
     });
   });
-}
-createDealsTable();
 
-/* Calc deals */
-document.getElementById('calcDealsBtn').addEventListener('click', ()=>{
+  // input listeners for in/out to autosave and realtime pct
+  document.querySelectorAll('.deals-input.in, .deals-input.out').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      updateDealPctRow(inp.closest('tr'));
+      saveDeals();
+    });
+  });
+}
+
+/* update single row percent */
+function updateDealPctRow(tr){
+  if(!tr) return;
+  const inInp = tr.querySelector('.in');
+  const outInp = tr.querySelector('.out');
+  const pctCell = tr.querySelector('.deal-pct');
+  const a = parseSafe(inInp.value), b = parseSafe(outInp.value);
+  if(a>0 && b>0){
+    const pct = (b / a - 1) * 100;
+    pctCell.innerText = pct.toFixed(2) + '%';
+  } else pctCell.innerText = '0%';
+}
+
+/* calculate all deals -> averages */
+$('calcDealsBtn').addEventListener('click', ()=>{
   const ins = Array.from(document.querySelectorAll('.in')).map(x=>parseSafe(x.value));
   const outs = Array.from(document.querySelectorAll('.out')).map(x=>parseSafe(x.value));
   const pctCells = document.querySelectorAll('.deal-pct');
-  const assets = Array.from(document.querySelectorAll('.tagWrap')).map(t=>{
-    const disp = t.querySelector('.tagDisplay');
-    const txt = disp && disp.querySelector('.tagText') ? disp.querySelector('.tagText').innerText : '';
-    return txt;
-  });
   const pcts=[];
   for(let i=0;i<ins.length;i++){
     const iVal = ins[i], oVal = outs[i];
@@ -374,35 +435,27 @@ document.getElementById('calcDealsBtn').addEventListener('click', ()=>{
   }
   const avg = pcts.length ? pcts.reduce((a,b)=>a+b,0)/pcts.length : 0;
   $('avgDealPct').innerText = avg.toFixed(2) + '%';
-
-  // CAGR: first non-empty in / last non-empty out (periods = index difference or 1)
-  const insArr = ins, outsArr = outs;
-  const firstIdx = insArr.findIndex(v=>v>0);
-  let lastIdx = -1;
-  for(let i=outsArr.length-1;i>=0;i--){ if(outsArr[i]>0){ lastIdx = i; break; } }
-  let cagr = 0;
-  if(firstIdx >= 0 && lastIdx > firstIdx){
-    const startVal = insArr[firstIdx]; const endVal = outsArr[lastIdx]; const periods = Math.max(1, lastIdx - firstIdx);
-    cagr = (Math.pow(endVal / Math.max(1,startVal), 1/periods) - 1) * 100;
-  }
-  $('cagrDeal').innerText = isFinite(cagr) ? cagr.toFixed(2) + '%' : '0.00%';
+  showToast('Доходность по сделкам рассчитана');
 });
 
-/* Clear deals */
+/* clear deals UI & storage */
 $('clearDealsBtn').addEventListener('click', ()=>{
+  if(!confirm('Очистить все сделки?')) return;
   document.querySelectorAll('.in').forEach(i=>i.value='');
   document.querySelectorAll('.out').forEach(i=>i.value='');
   document.querySelectorAll('.deal-pct').forEach(d=>d.innerText='0%');
   document.querySelectorAll('.tagDisplay').forEach(d=>{ d.innerHTML=''; d.style.display='none'; d.parentElement.querySelector('.assetEntry').style.display='inline-block'; });
-  $('avgDealPct').innerText='0.00%'; $('cagrDeal').innerText='0.00%';
+  localStorage.removeItem('club500_deals');
+  $('avgDealPct').innerText='0.00%';
+  showToast('Сводка сделок очищена');
 });
 
-/* Use avg in calc */
+/* use average in calc */
 $('useInCalcBtn').addEventListener('click', ()=>{
   const avgText = $('avgDealPct').innerText || '0%';
   const avg = parseFloat(avgText.replace('%','')) || 0;
   $('r').value = avg.toFixed(2);
-  alert('Средняя доходность добавлена в поле "Годовая доходность (%)".');
+  showToast('Средняя доходность применена в калькуляторе');
   // switch to calc tab
   document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
   document.querySelector('.tabBtn[data-tab="calcTab"]').classList.add('active');
@@ -411,14 +464,13 @@ $('useInCalcBtn').addEventListener('click', ()=>{
   recalc();
 });
 
-/* Copy link */
-$('shareBtn').addEventListener('click', ()=>{
-  const params = new URLSearchParams({ S0:$('S0').value, r:$('r').value, years:$('years').value, feePct:$('feePct').value, threshold:$('threshold').value, cap:$('cap').value });
-  const link = location.href.split('?')[0] + '?' + params.toString();
-  navigator.clipboard.writeText(link).then(()=> alert('Ссылка скопирована в буфер обмена'));
+/* ===== Excel export (SpreadsheetML simple) ===== */
+$('downloadExcel').addEventListener('click', ()=>{
+  const xml = generateExcelXml();
+  const blob = new Blob([xml],{type:'application/vnd.ms-excel'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'club500_deals.xlsx'; a.click(); URL.revokeObjectURL(url);
 });
-
-/* Generate Excel (SpreadsheetML) with Asset column */
 function generateExcelXml(){
   const ins = Array.from(document.querySelectorAll('.in')).map(x=>parseSafe(x.value));
   const outs = Array.from(document.querySelectorAll('.out')).map(x=>parseSafe(x.value));
@@ -428,16 +480,7 @@ function generateExcelXml(){
     if(assets[i] || ins[i] || outs[i]) rows.push({asset:assets[i], in:ins[i], out:outs[i], pct:(ins[i]>0 && outs[i]>0)?((outs[i]/ins[i]-1)*100):0});
   }
   const avg = rows.length ? (rows.reduce((s,r)=>s + r.pct,0)/rows.length) : 0;
-  let cagr = 0;
-  if(rows.length >= 2){
-    const first = rows.find(r=>r.in>0);
-    const last = [...rows].reverse().find(r=>r.out>0);
-    if(first && last){
-      const start = first.in, end = last.out, periods = Math.max(1, rows.indexOf(last) - rows.indexOf(first) || 1);
-      cagr = (Math.pow(end / Math.max(1,start), 1/periods) - 1) * 100;
-    }
-  }
-
+  // SpreadsheetML
   const header = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">`;
   const styles = `<Styles><Style ss:ID="h"><Font ss:Bold="1" ss:Color="#ffffff"/></Style><Style ss:ID="money"><NumberFormat ss:Format="\\u0022$\\u0022#,##0.00"/></Style></Styles>`;
   let dealsRows = `<Row><Cell ss:StyleID="h"><Data ss:Type="String">#</Data></Cell><Cell ss:StyleID="h"><Data ss:Type="String">Актив</Data></Cell><Cell ss:StyleID="h"><Data ss:Type="String">Вход ($)</Data></Cell><Cell ss:StyleID="h"><Data ss:Type="String">Выход ($)</Data></Cell><Cell ss:StyleID="h"><Data ss:Type="String">Доходность %</Data></Cell></Row>`;
@@ -445,36 +488,108 @@ function generateExcelXml(){
   const dealsSheet = `<Worksheet ss:Name="Deals"><Table>${dealsRows}</Table></Worksheet>`;
   const summaryRows = `<Row><Cell ss:StyleID="h"><Data ss:Type="String">Показатель</Data></Cell><Cell ss:StyleID="h"><Data ss:Type="String">Значение</Data></Cell></Row>
     <Row><Cell><Data ss:Type="String">Средняя доходность (%)</Data></Cell><Cell><Data ss:Type="Number">${avg.toFixed(4)}</Data></Cell></Row>
-    <Row><Cell><Data ss:Type="String">CAGR (%)</Data></Cell><Cell><Data ss:Type="Number">${cagr.toFixed(4)}</Data></Cell></Row>
     <Row><Cell><Data ss:Type="String">Исходный депозит ($)</Data></Cell><Cell ss:StyleID="money"><Data ss:Type="Number">${parseSafe($('S0').value)}</Data></Cell></Row>
     <Row><Cell><Data ss:Type="String">Годовая доходность (%)</Data></Cell><Cell><Data ss:Type="Number">${parseSafe($('r').value).toFixed(4)}</Data></Cell></Row>`;
   const summarySheet = `<Worksheet ss:Name="Summary"><Table>${summaryRows}</Table></Worksheet>`;
-  const xml = header + styles + dealsSheet + summarySheet + `</Workbook>`;
-  return xml;
+  return header + styles + dealsSheet + summarySheet + `</Workbook>`;
 }
 
-$('downloadExcel').addEventListener('click', ()=>{
-  const xml = generateExcelXml();
-  const blob = new Blob([xml],{type:'application/vnd.ms-excel'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'club500_deals.xlsx'; a.click(); URL.revokeObjectURL(url);
-});
+/* ===== AUTOSAVE (localStorage) ===== */
+function saveParams(){
+  const p = { S0:$('S0').value, r:$('r').value, years:$('years').value, feePct:$('feePct').value, threshold:$('threshold').value, cap:$('cap').value };
+  localStorage.setItem('club500_params', JSON.stringify(p));
+}
+function loadParamsToUI(){
+  const s = localStorage.getItem('club500_params');
+  if(!s) return;
+  try{
+    const p = JSON.parse(s);
+    if(p.S0) $('S0').value = p.S0;
+    if(p.r) $('r').value = p.r;
+    if(p.years) $('years').value = p.years;
+    if(p.feePct) $('feePct').value = p.feePct;
+    if(p.threshold) $('threshold').value = p.threshold;
+    if(p.cap) $('cap').value = p.cap;
+  }catch(e){}
+}
 
-/* Load from params */
-(function loadFromParams(){
-  const p = new URLSearchParams(location.search);
-  if(p.has('S0')) $('S0').value = p.get('S0');
-  if(p.has('r')) $('r').value = p.get('r');
-  if(p.has('years')) $('years').value = p.get('years');
-  recalc();
+/* deals save/load: we save only non-empty rows (variant A) */
+function saveDeals(){
+  const rows = [];
+  const trs = document.querySelectorAll('#dealsTable tbody tr');
+  trs.forEach((tr,i)=>{
+    const assetSpan = tr.querySelector('.tagDisplay .tagText');
+    const asset = assetSpan ? assetSpan.innerText : '';
+    const inV = parseSafe(tr.querySelector('.in').value);
+    const outV = parseSafe(tr.querySelector('.out').value);
+    if(asset || inV || outV){
+      rows.push({row:i+1, asset:asset, in:inV, out:outV});
+    }
+  });
+  localStorage.setItem('club500_deals', JSON.stringify(rows));
+}
+function loadDeals(){
+  const s = localStorage.getItem('club500_deals');
+  if(!s) return;
+  try{
+    const rows = JSON.parse(s);
+    rows.forEach(item=>{
+      const tr = document.querySelector(`#dealsTable tbody tr[data-row="${item.row}"]`) || document.querySelectorAll('#dealsTable tbody tr')[item.row-1];
+      if(!tr) return;
+      const display = tr.querySelector('.tagDisplay');
+      const input = tr.querySelector('.assetEntry');
+      if(item.asset){
+        display.innerHTML = `<span class="tagText">${item.asset}</span><button class="remove" title="удалить">✕</button>`;
+        display.style.display='inline-flex';
+        input.style.display='none';
+        // attach remove handler
+        display.querySelector('.remove').addEventListener('click', ()=>{
+          display.innerHTML=''; display.style.display='none'; input.style.display='inline-block'; input.value=''; saveDeals();
+        });
+      }
+      tr.querySelector('.in').value = item.in || '';
+      tr.querySelector('.out').value = item.out || '';
+      updateDealPctRow(tr);
+    });
+  }catch(e){}
+}
+
+/* attach data-row attr for easy selection */
+function markDealRows(){
+  const trs = document.querySelectorAll('#dealsTable tbody tr');
+  trs.forEach((tr,i)=> tr.setAttribute('data-row', i+1));
+}
+
+/* ===== Init ===== */
+(function init(){
+  // load params if present from url or storage
+  const pUrl = new URLSearchParams(location.search);
+  if(pUrl.has('S0')) $('S0').value = pUrl.get('S0');
+  if(pUrl.has('r')) $('r').value = pUrl.get('r');
+  if(pUrl.has('years')) $('years').value = pUrl.get('years');
+
+  loadParamsToUI();
+  createDealsTable();
+  markDealRows();
+  loadDeals();
+
+  // attach in/out listeners (already done in createDealsTable for input), but ensure we save params on change
+  document.querySelectorAll('#calcTab input, #calcTab select').forEach(el=>{
+    el.addEventListener('input', ()=> { saveParams(); });
+  });
+
+  // initial recalc
+  setTimeout(recalc,100);
 })();
 
-/* Responsive redraw */
+/* responsive redraw */
 let resizeTimer; window.addEventListener('resize', ()=>{ clearTimeout(resizeTimer); resizeTimer = setTimeout(()=> recalc(),160); });
 
-/* Init */
-recalc();
+/* ===== toast quick helper show on load and actions ===== */
+function showToastMessageOnce(){
+  // nothing on load for now
+}
+showToastMessageOnce();
 </script>
 </body>
 </html>
-
