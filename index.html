@@ -1173,6 +1173,50 @@ function createDealsTable(){
       <td class="small deal-pnl">$0.00</td>`;
     tbody.appendChild(tr);
   }
+function loadDeals(){
+  const raw = localStorage.getItem('club500_deals');
+  if(!raw) return;
+
+  const data = JSON.parse(raw);
+
+  // стартовый капитал
+  if(data.startCapital !== undefined){
+    $('startCapital').value = data.startCapital;
+  }
+
+  const rows = document.querySelectorAll('#dealsTable tbody tr');
+
+  data.deals.forEach((d, i)=>{
+    if(!rows[i]) return;
+
+    // актив
+    const input = rows[i].querySelector('.assetEntry');
+    const display = rows[i].querySelector('.tagDisplay');
+
+    if(d.asset){
+      display.innerHTML = `<span class="tagText">${d.asset}</span><button class="remove">✕</button>`;
+      display.style.display = 'inline-flex';
+      input.style.display = 'none';
+
+      display.querySelector('.remove').addEventListener('click', ()=>{
+        display.innerHTML='';
+        display.style.display='none';
+        input.style.display='inline-block';
+        input.value='';
+        saveDeals();
+      });
+    }
+
+    // in / out
+    rows[i].querySelector('.in').value = d.in;
+    rows[i].querySelector('.out').value = d.out;
+
+    updateDealPctRow(rows[i]);
+  });
+
+  recalcEndCapital();
+  updatePassiveTab();
+}
 
    //listeners
   document.querySelectorAll('.tagWrap').forEach(w=>{
@@ -1327,7 +1371,7 @@ function generateExcelXml(){
   return header + styles + dealsSheet + summarySheet + `</Workbook>`;
 }
 
-/* ===== AUTOSAVE (localStorage) ===== */
+/* ===== AUTOSAVE (localStorage) =====*/
 function saveParams(){
   const p = { S0:$('S0').value, r:$('r').value, years:$('years').value, feePct:$('feePct').value, threshold:$('threshold').value, cap:$('cap').value };
   localStorage.setItem('club500_params', JSON.stringify(p));
@@ -1610,6 +1654,8 @@ document.addEventListener('input', (e)=>{
 /* стартовый пересчёт */
 setTimeout(recalcAvailableCapital, 100);
 createDealsTable();
+loadDeals();
+
 function clearDeals(){
   const rows = document.querySelectorAll('#dealsTable tbody tr');
 
@@ -1696,7 +1742,7 @@ clearDealsBtn?.addEventListener('click', () => {
   document.querySelectorAll('#dealsTable tbody tr').forEach(tr => {
 
     // все инпуты
-    tr.querySelectorAll('input').forEach(i => i.value =0);
+    tr.querySelectorAll('input').forEach(i => i.value ="");
 
     // PnL
     const pnl = tr.querySelector('.deal-pnl');
