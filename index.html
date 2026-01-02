@@ -580,47 +580,83 @@ th:first-child, td:first-child { text-align: left; }
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-/* ===== DEALS: CAPITAL ROW ===== */
-
-.deals-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  align-items: end;
-}
-
-.capitalField {
+/* ===== ONE COLUMN FOR CAPITAL ===== */
+.deals-row.single {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
+  gap: 10px;
+  max-width: 360px; /* красиво и под мобилку */
 }
 
-.deals-input {
-  height: 56px;
-  padding: 0 14px;
-  font-size: 16px;
+/* ===== CAPITAL VISUAL BLOCK ===== */
+.capital-visual {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    rgba(34,211,238,0.12),
+    rgba(16,185,129,0.05)
+  );
+  border: 1px solid rgba(34,211,238,0.35);
+  box-shadow: 0 0 22px rgba(34,211,238,0.25);
 }
 
-.deals-balance {
-  height: 56px;
+/* верхняя строка */
+.capital-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-
-  padding: 0 16px;
-  border-radius: 10px;
-}
-
-.deals-balance .muted {
+  gap: 8px;
   font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--accent2);
+  margin-bottom: 6px;
 }
 
-.deals-balance .result {
-  font-size: 22px;
-  line-height: 1;
+/* точка */
+.cap-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent2);
+  box-shadow: 0 0 10px rgba(34,211,238,0.9);
 }
 
+/* цифра */
+.capital-value {
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(90deg, var(--neon), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 16px rgba(16,185,129,0.45);
+}
+/* ===== NEGATIVE CAPITAL STATE ===== */
+.capital-visual.negative {
+  border-color: rgba(239, 68, 68, 0.55);
+  background: linear-gradient(
+    180deg,
+    rgba(239, 68, 68, 0.18),
+    rgba(239, 68, 68, 0.04)
+  );
+  box-shadow: 0 0 22px rgba(239, 68, 68, 0.45);
+}
+
+.capital-visual.negative .capital-top {
+  color: #ef4444;
+}
+
+.capital-visual.negative .cap-dot {
+  background: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.9);
+}
+
+.capital-visual.negative .capital-value {
+  background: linear-gradient(90deg, #ef4444, #f97316);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 18px rgba(239, 68, 68, 0.65);
+}
+ 
 </style>
 
 </head>
@@ -664,7 +700,7 @@ th:first-child, td:first-child { text-align: left; }
 
           <label>Лет
             <select id="years">
-     <option value="3" selected>3</option><option value="1">1</option><option value="2">2</option><option value="4">4
+     <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4
             </select>
           </label>
 
@@ -752,20 +788,25 @@ th:first-child, td:first-child { text-align: left; }
         <button class="btn" id="downloadExcel" style="background:linear-gradient(90deg,var(--accent2),var(--neon))">Скачать Excel</button>
       </div>
     </div>
-      <div class="deals-row">
+<div class="deals-row single">
+
+  <!-- Начальный капитал -->
   <label class="capitalField">
     Начальный капитал ($)
     <input id="startCapital" type="number" class="deals-input">
   </label>
 
-  <div class="card deals-balance">
-    <div class="muted">Доступный капитал</div>
-    <div id="availableCapital" class="result">$0</div>
+  <!-- Доступный капитал (визуальный) -->
+  <div class="capital-visual">
+    <div class="capital-top">
+      <span class="cap-dot"></span>
+      <span class="capital-title">Доступный капитал</span>
+    </div>
+
+    <div id="availableCapital" class="capital-value">$0</div>
   </div>
+
 </div>
-
-
-
 
       <p class="small-muted">В одной строке — один актив (Enter чтобы сохранить актив в тег). Повторный ввод запрещён.</p>
       <div style="overflow:auto;margin-top:8px">
@@ -1240,20 +1281,19 @@ $('clearDealsBtn').addEventListener('click', ()=>{
   updatePassiveTab();
 });
 
-/* use average in calc */
+/* use real capital growth in calc */
 $('useInCalcBtn').addEventListener('click', ()=>{
-  const avgText = $('avgDealPct').innerText || '0%';
-  const avg = parseFloat(avgText.replace('%','')) || 0;
-  $('r').value = avg.toFixed(2);
-  // set S0 from startCapital (as requested)
-  const startCap = parseSafe($('startCapital')?.value) || 0;
-  if(startCap > 0) $('S0').value = startCap;
-  showToast('Средняя доходность и начальный капитал применены в калькуляторе');
-  // switch to calc tab
-  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
-  document.querySelector('.tabBtn[data-tab="calcTab"]').classList.add('active');
-  document.querySelectorAll('.tabContent').forEach(c=>c.style.display='none');
-  document.getElementById('calcTab').style.display='block';
+  const startCap = parseFloat($('startCapital').value) || 0;
+  const finalCap = parseFloat($('finalCapital').innerText) || 0;
+
+  if(startCap <= 0 || finalCap <= 0){
+    alert('Недостаточно данных для передачи в калькулятор');
+    return;
+  }
+
+  const growthPct = ((finalCap / startCap) - 1) * 100;
+
+  $('r').value = growthPct.toFixed(2);
   recalc();
 });
 
@@ -1542,6 +1582,16 @@ function recalcAvailableCapital(){
 
   const box = document.getElementById('availableCapital');
   box.innerText = money(available);
+const capitalEl = document.getElementById('availableCapital');
+const capitalBox = capitalEl.closest('.capital-visual');
+
+const value = parseFloat(capitalEl.textContent.replace(/[^0-9.-]/g, ''));
+
+if (value < 0) {
+  capitalBox.classList.add('negative');
+} else {
+  capitalBox.classList.remove('negative');
+}
 
   // цвет: если минус — красный
   box.style.color = available < 0 ? '#ef4444' : '';
@@ -1646,7 +1696,7 @@ clearDealsBtn?.addEventListener('click', () => {
   document.querySelectorAll('#dealsTable tbody tr').forEach(tr => {
 
     // все инпуты
-    tr.querySelectorAll('input').forEach(i => i.value = 0);
+    tr.querySelectorAll('input').forEach(i => i.value =0);
 
     // PnL
     const pnl = tr.querySelector('.deal-pnl');
@@ -1744,48 +1794,62 @@ updatePassiveTab();
 // ===== ИСПОЛЬЗОВАТЬ В КАЛЬКУЛЯТОРЕ (ЖЕЛЕЗОБЕТОН) =====
 document.getElementById('useInCalcBtn')?.addEventListener('click', () => {
 
-  let totalIn = 0;
-  let pcts = [];
-
-  document.querySelectorAll('#dealsTable tbody tr').forEach(tr => {
-    const inVal = parseFloat(tr.querySelector('.in')?.value) || 0;
-    const outVal = parseFloat(tr.querySelector('.out')?.value) || 0;
-
-    if (inVal > 0 && outVal > 0) {
-      totalIn += inVal;
-      const pct = (outVal / inVal - 1) * 100;
-      pcts.push(pct);
-    }
-  });
-
-  if (pcts.length === 0) {
-    alert('Нет рассчитанных сделок');
+  const startCapital = parseFloat(document.getElementById('startCapital')?.value) || 0;
+  if (startCapital <= 0) {
+    alert('Укажи стартовый капитал');
     return;
   }
 
-  const avgPct = pcts.reduce((a,b)=>a+b,0) / pcts.length;
+  let totalPnL = 0;
 
-  // 👉 подставляем в калькулятор
-  const rInput = document.getElementById('r');
-  const s0Input = document.getElementById('S0');
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr => {
+    const inVal  = parseFloat(tr.querySelector('.in')?.value) || 0;
+    const outVal = parseFloat(tr.querySelector('.out')?.value) || 0;
 
-  if (rInput) rInput.value = avgPct.toFixed(2);
-  if (s0Input) s0Input.value = totalIn.toFixed(2);
+    if (inVal > 0 && outVal > 0) {
+      totalPnL += (outVal - inVal);
+    }
+  });
 
-  // 👉 переключаемся на вкладку калькулятора
+  const endCapital = startCapital + totalPnL;
+
+  if (endCapital <= 0) {
+    alert('Капитал стал отрицательным');
+    return;
+  }
+
+  const growthPct = ((endCapital / startCapital) - 1) * 100;
+
+  document.getElementById('S0').value = startCapital.toFixed(2);
+  document.getElementById('r').value  = growthPct.toFixed(2);
+
   document.querySelectorAll('.tabBtn').forEach(b => b.classList.remove('active'));
   document.querySelector('[data-tab="calcTab"]')?.classList.add('active');
-
   document.querySelectorAll('.tabContent').forEach(c => c.style.display = 'none');
   document.getElementById('calcTab').style.display = 'block';
 
-  // 👉 разблокируем и считаем
   if (typeof unlockCalc === 'function') unlockCalc();
   if (typeof recalc === 'function') recalc();
 
-  showToast('Данные из сделок применены в калькуляторе');
+  showToast('В калькулятор передан реальный рост капитала');
 });
 
+function updateDealCount(count) {
+    const dealCountEl = document.getElementById('dealCount');
+    const dealSummaryEl = document.getElementById('dealSummary');
+    
+    dealCountEl.textContent = count;
+
+    if(count === 0) {
+      dealSummaryEl.classList.add('alert-zero'); // включаем мигание
+    } else {
+      dealSummaryEl.classList.remove('alert-zero'); // выключаем
+    }
+  }
+
+   пример
+  //updateDealCount(0); // рамка будет мигать красным
+  // updateDealCount(5);// рамка вернётся к обычной
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
