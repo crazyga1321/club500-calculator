@@ -449,13 +449,26 @@ th:first-child, td:first-child { text-align: left; }
 }
 
 .summary-badge {
+
+  cursor: pointer;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.35), 0 10px 25px rgba(16,185,129,0.45);
+  transform: translateY(0);
+  transition: transform .15s ease, box-shadow .15s ease;
   font-size: 10px;
   padding: 4px 10px;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--neon), var(--accent2));
   color: #021;
   font-weight: 800;
+
+  border: 0;
+  cursor: pointer;
+  outline: none;
 }
+
+.summary-badge:hover{transform:translateY(-2px);box-shadow:0 8px 0 rgba(0,0,0,0.35),0 16px 32px rgba(16,185,129,0.55);} 
+.summary-badge:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.45);} 
+
 .summary-divider {
   height: 1px;
   background: rgba(255,255,255,0.08);
@@ -657,7 +670,92 @@ th:first-child, td:first-child { text-align: left; }
   text-shadow: 0 0 18px rgba(239, 68, 68, 0.65);
 }
  
+
+
+/* ===== TOAST ===== */
+.toast{
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(2,6,23,0.92);
+  border: 1px solid rgba(255,255,255,0.10);
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+  z-index: 9999;
+}
+.toast.show{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== ASSET TAG ===== */
+.tagDisplay{
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(16,185,129,0.08);
+}
+.tagDisplay .remove{
+  border: 0;
+  background: transparent;
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+
+
+
+/* ===== CALC SUMMARY EMPHASIS ===== */
+.final-capital{
+  padding: 22px;
+  border-radius: 28px;
+  background:
+    radial-gradient(700px 260px at 30% 0%, rgba(16,185,129,0.18), transparent 60%),
+    radial-gradient(700px 260px at 70% 0%, rgba(6,182,212,0.14), transparent 60%),
+    rgba(2,6,23,0.55);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+#final{
+  font-size: 48px;
+  line-height: 1.05;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 26px rgba(16,185,129,0.55);
+}
+.summary-badge{
+  font-size: 11px;
+  padding: 6px 12px;
+}
+
+/* ===== FOOTER ===== */
+.app-footer{
+  margin-top: 22px;
+  padding: 12px 0 6px;
+  text-align: center;
+  opacity: 0.9;
+}
+.app-footer .scanBadge{
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
 </style>
+
+
+
+
+
+
+
 
 </head>
 <body>
@@ -691,22 +789,26 @@ th:first-child, td:first-child { text-align: left; }
 
         <div style="margin-top:12px" class="inputs">
           <label>Начальный депозит ($)
-            <input id="S0" type="number" value="100" min="0" step="1">
+            <input id="S0" type="number" value="0" min="0" step="1">
           </label>
 
           <label>Годовая доходность (%) — например 200 = +200%
-            <input id="r" type="number" value="200" step="0.1" min="0">
+            <input id="r" type="number" value="0" step="0.1" min="0">
           </label>
 
           <label>Лет
             <select id="years">
-     <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
             </select>
           </label>
 
           <label>Абонплата (%) — <span class="small-muted">фиксировано</span>
-            <div class="fake-input" id="displayFee">10%</div>
-            <input id="feePct" type="hidden" value="10">
+            <div class="fake-input" id="displayFee">0%</div>
+            <input id="feePct" type="hidden" value="0">
           </label>
 
           <label>Порог для взимания абонплаты ($)
@@ -739,7 +841,7 @@ th:first-child, td:first-child { text-align: left; }
 <div class="card final-capital neon-card">
   <div class="summary-header">
     <div class="summary-title">Краткая сводка</div>
-    <div class="summary-badge">RESULT</div>
+    <button class="summary-badge" id="sendResultToDeals" type="button" title="Передать итоговый капитал в «Сводка сделок»">RESULT</button>
   </div>
 
   <div class="capital-main">
@@ -778,6 +880,7 @@ th:first-child, td:first-child { text-align: left; }
     <!-- DEALS TAB -->
   <div id="dealsTab" class="tabContent" style="display:none;">
 <div class="deals-inner">
+  <div class="card" style="padding:18px; border-radius:22px;">
 
     <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
       <div style="flex:1">
@@ -810,7 +913,7 @@ th:first-child, td:first-child { text-align: left; }
 
       <p class="small-muted">В одной строке — один актив (Enter чтобы сохранить актив в тег). Повторный ввод запрещён.</p>
       <div style="overflow:auto;margin-top:8px">
-        <table id="dealsTable" style="width:50%;border-collapse:collapse">
+        <table id="dealsTable" style="width:100%;border-collapse:collapse">
           <thead>
   <tr>
     <th>#</th>
@@ -819,6 +922,7 @@ th:first-child, td:first-child { text-align: left; }
     <th>Выход ($)</th>
     <th>%</th>
     <th>PnL ($)</th>
+    <th style=\"text-align:center\">Удалить</th>
   </tr>
 </thead>
           <tbody></tbody>
@@ -834,123 +938,187 @@ th:first-child, td:first-child { text-align: left; }
       <div style="margin-top:16px;display:flex;gap:14px;align-items:center">
         <div>
           <div class="muted">Средняя доходность по сделкам</div>
-          <div id="avgDealPct" class="result">0.00%</div>
+          <div id="avgDealPct" class="result">—</div>
         </div>
       </div>
+  </div>
     </div>
   </div>
-
-<!-- Passive Income Tab -->
+<!-- Пассив вкладка -->
 <div id="passiveTab" class="tabContent" style="display:none;">
-  <label>Средняя доходность: <span id="pd_avgReturn">10%</span></label>
-  <input type="range" id="pd_returnRange" min="9" max="11.7" step="0.1" value="10">
-  <br><br>
+  <div id="passiveIncomeTab" style="padding:20px; max-width:900px; margin:auto;">
 
-  <div>Стартовый капитал: <span id="pd_currentCapital"></span></div>
-  <div>Доход выбранной ставки: <span id="pd_selected"></span></div>
+    <h2 style="text-align:center; margin:6px 0 18px;">Пассивный доход и цель</h2>
 
-  <div>Прогресс к цели:</div>
-  <div style="background:#eee;width:100%;height:20px;border-radius:10px;">
-    <div id="goalProgress" style="background:#4caf50;height:100%;width:0%;border-radius:10px;"></div>
-  </div>
-  <div>Остаток до цели: <span id="pd_left"></span></div>
-  <div>Прогноз достижения цели: <span id="pd_eta"></span></div>
+    <!-- Карточка 1: Текущий капитал и цель -->
+    <div class="card" style="padding:18px; border-radius:22px; box-shadow:0 2px 18px rgba(0,0,0,0.25); margin-bottom:14px;">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <label style="flex:1; min-width:240px;">
+          Текущий капитал
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="number" id="pd_currentCapital" value="0" style="width:160px;" />
+            <button class="btn ghost" id="pd_syncCapital" type="button" style="padding:8px 10px;">Из сводки</button>
+          </div>
+          <div class="small-muted" style="margin-top:6px;">Кнопка «Из сводки» подставляет текущий капитал из вкладки «Сводка сделок».</div>
+        </label>
 
-  <div>
-    Цель (капитал): <input type="number" id="goalCapital" value="1000000">
-  </div>
-</div>
+        <label style="flex:1; min-width:240px;">
+          Цель по капиталу
+          <input type="number" id="pd_goalCapital" value="500000" style="width:160px;" />
+        </label>
+      </div>
 
-  
- <!-- STATS TAB -->
-<div id="statsTab" class="tabContent" style="display:none;">
-  <div class="card">
-    <div class="muted">Статистика доходности</div>
-    <div style="font-weight:700;margin-top:6px">
-      Учет итогов по годам (ручное добавление)
-    </div>
-
-    <div style="margin-top:14px">
-      <button class="btn" id="addToStatsBtn">
-        Добавить текущий итог
-      </button>
-    </div>
-
-    <table id="statsTable">
-   <thead>
-        <tr>
-          <th>Год</th>
-          <th>Итог ($)</th>
-          <th>Доходность (%)</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <div style="margin-top:14px;display:flex;gap:24px">
-      <div>
-        <div class="muted">Средняя доходность</div>
-        <div id="avgStatPct" class="result">0.00%</div>
+      <div style="margin-top:14px; background:#0b1220; border:1px solid #1f2937; border-radius:12px; height:22px; overflow:hidden;">
+        <div id="pd_progressBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--neon), var(--accent2)); text-align:center; color:#001; font-size:12px; line-height:22px; font-weight:800;">0%</div>
       </div>
     </div>
+
+    <!-- Карточка 2: Добавление активов с ручным доходом и стоимостью -->
+    <div class="card" style="padding:18px; border-radius:22px; box-shadow:0 2px 18px rgba(0,0,0,0.25); margin-bottom:14px;">
+      <h3 style="margin:0 0 12px;">Добавить актив</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <input type="text" id="pd_assetName" placeholder="Название актива" style="flex:1; min-width:180px;" />
+        <input type="number" id="pd_assetPrice" placeholder="Стоимость" style="width:160px;" />
+        <input type="number" id="pd_assetIncome" placeholder="Месячный доход" style="width:160px;" />
+        <button class="btn" id="pd_addAssetBtn" type="button">Добавить</button>
+      </div>
+
+      <ul id="pd_assetsList" style="margin-top:14px; padding-left:18px;"></ul>
+    </div>
+
+    <!-- Итоговый пассивный доход и прогноз за год -->
+    <div class="card" style="padding:18px; border-radius:22px; box-shadow:0 2px 18px rgba(0,0,0,0.25); text-align:center;">
+      <h3 style="margin:0 0 10px;">Итоговый месячный пассивный доход</h3>
+      <div id="pd_totalIncome" style="font-size:28px; font-weight:900; color:var(--neon);">0 ₽</div>
+      <div style="height:10px"></div>
+      <h3 style="margin:0 0 10px;">Прогноз дохода за 12 месяцев</h3>
+      <div id="pd_yearlyIncome" style="font-size:22px; font-weight:800; color:var(--accent2);">0 ₽</div>
+    </div>
+
   </div>
 </div>
-<!-- PASSIVE TAB -->
-  <div id="passiveTab" class="tabContent" style="display:none;">
-    <div class="card passiveCard">
-      <h2>Пассивный доход и цель</h2>
-      <div class="passiveRow">
-        <div>
-          <div class="muted">Текущий капитал</div>
-          <div id="pd_currentCapital" class="result">$0.00</div>
-        </div>
-        <div>
-          <label class="capitalField">Цель по капиталу ($)
-            <input id="goalCapital" class="passiveInput" type="number" step="0.01" placeholder="100000">
-          </label>
-        </div>
+  
+ <!-- Статистика вкладка -->
+<div id="statsTab" class="tabContent" style="display:none;">
+  <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:14px;align-items:start;">
+
+    <!-- Карточка 1: текущая статистика (как было) -->
+    <div class="card" style="padding:18px; border-radius:22px;">
+      <div class="muted">Статистика доходности</div>
+      <div style="font-weight:700;margin-top:6px">Учет итогов по годам (ручное добавление)</div>
+
+      <div style="margin-top:14px">
+        <button class="btn" id="addToStatsBtn">Добавить текущий итог</button>
+      </div>
+
+      <table id="statsTable">
+        <thead>
+          <tr>
+            <th>Год</th>
+            <th>Итог ($)</th>
+            <th>Доходность (%)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div style="margin-top:14px;display:flex;gap:24px">
         <div>
           <div class="muted">Средняя доходность</div>
-          <div id="pd_avgReturn" class="result">0.00%</div>
+          <div id="avgStatPct" class="result">0.00%</div>
         </div>
       </div>
+    </div>
 
-           <div class="passiveBlock">
-        <div class="muted">Пассивный доход</div>
-        <div id="pd_incomes">
-          <div class="passiveIncomeBox"><div>5% годовых</div><div id="pd_5">— / мес</div></div>
-          <div class="passiveIncomeBox"><div>7% годовых</div><div id="pd_7">— / мес</div></div>
-          <div class="passiveIncomeBox"><div>10% годовых</div><div id="pd_10">— / мес</div></div>
-        </div>
+    <!-- Карточка 2: внесенные средства -->
+    <div class="card" style="padding:18px; border-radius:22px;">
+      <div class="muted">Внесённые средства</div>
+      <div style="font-weight:700;margin-top:6px">Ручной учёт пополнений</div>
+
+      <div style="margin-top:14px;display:grid;grid-template-columns:1fr;gap:12px;">
+        <label>Внесено всего (USD)
+          <input id="cashInUsd" type="number" value="0" min="0" step="0.01">
+        </label>
+        <label>Внесено всего (RUB)
+          <input id="cashInRub" type="number" value="0" min="0" step="1">
+        </label>
       </div>
 
-      <div class="passiveBlock">
-        <div class="muted">Прогресс</div>
-        <div class="progressContainer">
-          <div id="goalProgress" class="progressBar" style="width:0%"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:8px">
-          <div class="small-muted">Осталось</div>
-          <div id="pd_left" class="small-muted">—</div>
-        </div>
+      <div class="small-muted" style="margin-top:10px;line-height:1.4;">
+        Используется только для аналитики. На сделки и расчёты калькулятора не влияет.
       </div>
     
-      <div class="passiveBlock">
-        <div class="muted">Прогноз по достижению цели</div>
-        <div id="pd_eta">—</div>
+    <!-- Карточка 3: статистика по завершённым сделкам (авто) -->
+    <div class="card" style="padding:18px; border-radius:22px; margin-top:14px;">
+      <div class="muted">Статистика сделок</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px"><div style="font-weight:700">Завершённые сделки (вход + выход)</div><button id="dealStats_clearBtn" type="button" class="btn ghost" style="padding:8px 12px;border-radius:14px;">Очистить статистику</button></div>
+
+      <div style="margin-top:14px;display:flex;gap:24px;flex-wrap:wrap;">
+        <div style="min-width:180px">
+          <div class="muted">Всего сделок</div>
+          <div id="dealStats_total" class="result">0</div>
+        </div>
+        <div style="min-width:220px">
+          <div class="muted">Средняя доходность (вариант A)</div>
+          <div id="dealStats_avgPct" class="result">0.00%</div>
+        </div>
       </div>
 
-      <div class="motivationText" id="pd_motivation">Двигайся к цели — каждый шаг важен!</div>
+      <div style="margin-top:14px">
+        <div class="muted">Часто используемые активы (2+ раз)</div>
+        <div class="small-muted" style="margin-top:6px;line-height:1.4;">
+          Показывает, какие активы встречались чаще — удобно отличать долгосрок от краткосрока.
+        </div>
+        <ul id="dealStats_assets" style="margin-top:10px; padding-left:18px;"></ul>
+      </div>
+    </div>
+</div>
+
+  </div>
+</div>
     </div>
   </div>
-
-  <div style="text-align:center;margin-top:18px"><div class="scanBadge">CLUB500 • Авторская модель Ygnivenko</div>
-
-<!-- toast -->
-<div id="toast" class="toast"></div>
+</div>
+  
+  <footer class="app-footer">
+    <div class="scanBadge">CLUB500 • Авторская модель Ygnivenko</div>
+  </footer>
+  <div id="toast" class="toast" aria-live="polite"></div>
 
 <script>
 /* ===== Helpers ===== */
+const $ = (id)=>document.getElementById(id);
+const parseSafe = (v)=>{ const n=parseFloat(v); return Number.isFinite(n)?n:0; };
+const money = (n)=>'$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function showToast(txt, ms=2200){
+  const t = $('toast');
+  if(!t) return;
+  t.textContent = txt;
+  t.classList.add('show');
+  window.clearTimeout(showToast._t);
+  showToast._t = window.setTimeout(()=>t.classList.remove('show'), ms);
+}
+
+/* ===== Tabs ===== */
+document.querySelectorAll('.tabBtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.tabContent').forEach(c=>c.style.display='none');
+    const pane = document.getElementById(tab);
+    if(pane) pane.style.display='block';
+
+    if(tab==='calcTab') recalcCalc();
+    if(tab==='dealsTab') recalcAvailableCapital();
+    if(tab==='passiveTab') updatePassiveTab();
+    if(tab==='statsTab') renderStats();
+  });
+});
+
+/* ===== Calculator ===== */
 let calcLocked = false;
 
 function lockCalc(){
@@ -958,945 +1126,900 @@ function lockCalc(){
   document.querySelectorAll('#calcTab input, #calcTab select').forEach(el=>{
     if(el.id !== 'resetBtn'){
       el.disabled = true;
-      el.style.opacity = '0.6';
-      el.style.cursor = 'not-allowed';
+      el.style.opacity='0.6';
+      el.style.cursor='not-allowed';
     }
   });
-
-  const btn = $('calcBtn');
-  btn.innerText = 'Изменить параметры';
+  $('calcBtn').innerText = 'Изменить параметры';
 }
 
 function unlockCalc(){
   calcLocked = false;
   document.querySelectorAll('#calcTab input, #calcTab select').forEach(el=>{
     el.disabled = false;
-    el.style.opacity = '1';
-    el.style.cursor = 'default';
+    el.style.opacity='1';
+    el.style.cursor='default';
   });
-
-  const btn = $('calcBtn');
-  btn.innerText = 'Посчитать';
+  $('calcBtn').innerText = 'Посчитать';
 }
 
-const $ = id => document.getElementById(id);
-const parseSafe = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
-function money(n){ return '$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function showToast(txt, ms=2200){ const t=$('toast'); t.innerText=txt; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), ms); }
+function computeCalc({S0,r,years,feePct,threshold,cap}){
+  let S = parseSafe(S0);
+  const R = parseSafe(r);
+  const Y = Math.max(1, Math.floor(parseSafe(years)));
+  const fee = parseSafe(feePct)/100;
+  const thr = parseSafe(threshold);
+  const capAbs = parseSafe(cap);
 
-/* ===== Tabs ===== */
-document.querySelectorAll('.tabBtn').forEach(btn=>{
-  btn.addEventListener('click', ()=> {
-    document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    const tab = btn.dataset.tab;
-    document.querySelectorAll('.tabContent').forEach(c=>c.style.display='none');
-    document.getElementById(tab).style.display='block';
-    if(tab==='calcTab') recalc();
-
-  });
-});
-
-/* ===== Compute logic (fee applied at year end if after >= threshold) ===== */
-function compute(params){
-  let S = parseSafe(params.S0);
-  const r = parseSafe(params.r);
-  const years = Math.max(1, Math.floor(parseSafe(params.years)));
-  const feePct = parseSafe(params.feePct)/100;
-  const threshold = parseSafe(params.threshold);
-  const cap = parseSafe(params.cap);
-  const rows = []; let totalFees = 0;
-  for(let i=1;i<=years;i++){
-    const start = S;
-    const after = start * (1 + r/100);
-    let fee = 0;
-    if(after >= threshold) fee = Math.min(after * feePct, cap);
-    const end = after - fee;
-    rows.push({year:i,start,after,fee,end});
-    totalFees += fee; S = end;
+  const rows=[]; let totalFees=0;
+  for(let i=1;i<=Y;i++){
+    const start=S;
+    const after = start * (1 + R/100);
+    let f=0;
+    if(after >= thr) f = Math.min(after*fee, capAbs);
+    const end = after - f;
+    rows.push({year:i,start,after,fee:f,end});
+    totalFees += f;
+    S=end;
   }
   return {rows, final:S, totalFees};
 }
 
-/* ===== Draw table & chart ===== */
-const thresholdEl = document.getElementById('threshold');
-const thresholdVal = thresholdEl ? parseSafe(thresholdEl.value) : Infinity;
 function drawTable(rows){
   const tbody = document.querySelector('#table tbody');
-  tbody.innerHTML = '';
+  if(!tbody) return;
+  tbody.innerHTML='';
+  const thr = parseSafe($('threshold')?.value);
 
   rows.forEach(r=>{
-    const tr = document.createElement('tr');
-
-    if(r.fee > 0){
-      tr.classList.add('fee-row');
-    }
-
+    const tr=document.createElement('tr');
     tr.innerHTML = `
       <td class="small">${r.year}</td>
       <td>${money(r.start)}</td>
-      <td>
-  ${money(r.after)}
-  ${r.after >= parseSafe($('threshold').value)
-    ? '<span class="threshold-badge">Порог достигнут</span>'
-    : ''}
-</td>
-
-      <td>
-        ${money(r.fee)}
-        ${r.fee > 0 ? '<span class="fee-badge">fee</span>' : ''}
-      </td>
+      <td>${money(r.after)}${r.after>=thr?'<span class="threshold-badge">Порог достигнут</span>':''}</td>
+      <td>${money(r.fee)}${r.fee>0?'<span class="fee-badge">fee</span>':''}</td>
       <td style="font-weight:700">${money(r.end)}</td>
     `;
-
     tbody.appendChild(tr);
   });
 }
 
-/* Chart (smooth line + glow) */
 function catmullRom2bezier(points){
-  const d=[]; for(let i=0;i<points.length-1;i++){
+  const d=[];
+  for(let i=0;i<points.length-1;i++){
     const p0=points[i-1]||points[i], p1=points[i], p2=points[i+1], p3=points[i+2]||p2;
-    d.push([ p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6, p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6, p2[0], p2[1] ]);
-  } return d;
+    d.push([
+      p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6,
+      p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6,
+      p2[0], p2[1]
+    ]);
+  }
+  return d;
 }
+
 function drawChart(rows){
-  const svg = $('chartSvg'); svg.innerHTML=''; const w=900,h=360,pad=44; svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  const svg=$('chartSvg');
+  if(!svg) return;
+  svg.innerHTML='';
+  const w=900,h=360,pad=44;
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
   if(!rows || rows.length===0) return;
-  const values = rows.map(r=>r.end); const max=Math.max(...values), min=Math.min(...values); const range=(max-min)||1;
-  const pts = rows.map((r,i)=>{ const x=pad + (i/(rows.length-1||1))*(w-pad*2); const y=h-pad - ((r.end-min)/range)*(h-pad*2); return [x,y]; });
-  let path = `M ${pts[0][0]} ${pts[0][1]}`; if(pts.length>1){ const beziers = catmullRom2bezier(pts); beziers.forEach(b=> path += ` C ${b[0]} ${b[1]}, ${b[2]} ${b[3]}, ${b[4]} ${b[5]}`); }
+
+  const vals=rows.map(r=>r.end);
+  const max=Math.max(...vals), min=Math.min(...vals);
+  const range=(max-min)||1;
+  const pts=rows.map((r,i)=>{
+    const x=pad + (i/(rows.length-1||1))*(w-pad*2);
+    const y=h-pad - ((r.end-min)/range)*(h-pad*2);
+    return [x,y];
+  });
+
+  let path=`M ${pts[0][0]} ${pts[0][1]}`;
+  if(pts.length>1){
+    const beziers=catmullRom2bezier(pts);
+    beziers.forEach(b=>{ path += ` C ${b[0]} ${b[1]}, ${b[2]} ${b[3]}, ${b[4]} ${b[5]}`; });
+  }
   const areaD = path + ` L ${pts[pts.length-1][0]} ${h-pad} L ${pts[0][0]} ${h-pad} Z`;
-  let grid=''; const rowsGrid=4; for(let i=0;i<=rowsGrid;i++){ const gy = pad + i*((h-pad*2)/rowsGrid); grid += `<line x1="${pad}" x2="${w-pad}" y1="${gy}" y2="${gy}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`; }
-  const defs = `<defs>
-    <linearGradient id="gLine" x1="0" x2="1"><stop offset="0%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--neon')||'#10b981'}"/><stop offset="100%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--accent2')||'#06b6d4'}"/></linearGradient>
-    <linearGradient id="gFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--neon')||'#10b981'}" stop-opacity="0.16"/><stop offset="100%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--accent2')||'#06b6d4'}" stop-opacity="0.03"/></linearGradient>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  </defs>`;
- let dots = '';
 
-pts.forEach((p, i)=>{
- const hasFee = Number(rows[i].fee) > 0;
+  let grid='';
+  for(let i=0;i<=4;i++){
+    const gy = pad + i*((h-pad*2)/4);
+    grid += `<line x1="${pad}" x2="${w-pad}" y1="${gy}" y2="${gy}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`;
+  }
 
+  const neon = getComputedStyle(document.documentElement).getPropertyValue('--neon')?.trim() || '#10b981';
+  const accent2 = getComputedStyle(document.documentElement).getPropertyValue('--accent2')?.trim() || '#06b6d4';
 
-  dots += `
-    <circle
-      cx="${p[0]}"
-      cy="${p[1]}"
-      r="${hasFee ? 6 : 3}"
-      fill="${hasFee ? '#a78bfa' : '#ffffff'}"
-      opacity="${hasFee ? 1 : 0.85}"
-      ${hasFee ? 'filter="url(#glow)"' : ''}
-    ></circle>
-  `;
-});
-svg.innerHTML = `
-  ${defs}
-  ${grid}
-  <path d="${areaD}" fill="url(#gFill)"></path>
-  <path d="${path}" fill="none" stroke="url(#gLine)" stroke-width="3" filter="url(#glow)"></path>
-  ${dots}
-`;
+  const defs = `
+    <defs>
+      <linearGradient id="gLine" x1="0" x2="1"><stop offset="0%" stop-color="${neon}"/><stop offset="100%" stop-color="${accent2}"/></linearGradient>
+      <linearGradient id="gFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${neon}" stop-opacity="0.16"/><stop offset="100%" stop-color="${accent2}" stop-opacity="0.03"/></linearGradient>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="6" result="g"/>
+        <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>`;
+
+  let dots='';
+  pts.forEach((p,i)=>{
+    const hasFee = Number(rows[i].fee) > 0;
+    dots += `<circle cx="${p[0]}" cy="${p[1]}" r="${hasFee?6:3}" fill="${hasFee?'#a78bfa':'#ffffff'}" opacity="${hasFee?1:0.85}" ${hasFee?'filter="url(#glow)"':''}></circle>`;
+  });
+
+  svg.innerHTML = `${defs}${grid}<path d="${areaD}" fill="url(#gFill)"></path><path d="${path}" fill="none" stroke="url(#gLine)" stroke-width="3" filter="url(#glow)"></path>${dots}`;
 }
 
-/* ===== Recalc and events ===== */
-function recalc(){
+function saveCalcParams(){
+  // Demo-mode: calculator params are NOT persisted
+}
+
+function loadCalcParams(){
+  // Demo-mode defaults (no persistence)
+  if($('S0')) $('S0').value = 0;
+  if($('r')) $('r').value = 0;
+  if($('years')) $('years').value = '1';
+}
+
+function recalcCalc(){
   const params = { S0:$('S0').value, r:$('r').value, years:$('years').value, feePct:$('feePct').value, threshold:$('threshold').value, cap:$('cap').value };
-  saveParams(); // autosave params each recalc
-  const res = compute(params);
+  saveCalcParams();
+  const res = computeCalc(params);
   drawTable(res.rows);
   $('final').innerText = money(res.final);
-  $('final').style.transform = 'scale(1.05)';
-$('final').animate(
-  [
-    { transform: 'scale(0.95)', opacity: 0.6 },
-    { transform: 'scale(1.05)', opacity: 1 },
-    { transform: 'scale(1)', opacity: 1 }
-  ],
-  { duration: 420, easing: 'ease-out' }
-);
-
-setTimeout(()=> $('final').style.transform = 'scale(1)', 300);
-
   $('totalFees').innerText = money(res.totalFees);
   drawChart(res.rows);
   return res;
 }
-$('calcBtn').addEventListener('click', ()=>{
+
+$('calcBtn')?.addEventListener('click', ()=>{
   if(!calcLocked){
-    recalc();
+    recalcCalc();
     lockCalc();
- 
   } else {
     unlockCalc();
     showToast('Можно изменить параметры');
   }
 });
 
-/* ===== Reset behaviour (clears all localStorage) ===== */
-$('resetBtn').addEventListener('click', ()=>{
-  if(confirm('Сбросить все настройки и очистить сохранённые данные?')) {
-    localStorage.removeItem('club500_params');
-    localStorage.removeItem('club500_deals');
-    localStorage.removeItem('club500_capitals');
-    localStorage.removeItem('club500_goal');
-    // rebuild UI
-    loadParamsToUI(); createDealsTable(); showToast('Данные сброшены');
-    unlockCalc();
- recalc();
+
+
+// RESULT -> передать итоговый капитал в «Сводка сделок» (стартовый капитал)
+$('sendResultToDeals')?.addEventListener('click', ()=>{
+  const finalText = ($('final')?.innerText || '$0').replace('$','').replace(/,/g,'');
+  const finalSum = parseFloat(finalText);
+  if(!Number.isFinite(finalSum) || finalSum <= 0){
+    showToast('Сначала посчитай итог в калькуляторе');
+    return;
   }
+  const sc = $('startCapital');
+  if(!sc){
+    showToast('Не найдено поле «Начальный капитал»');
+    return;
+  }
+  sc.value = finalSum.toFixed(2);
+  saveDeals();
+  recalcAvailableCapital();
+  updatePassiveTab();
+
+  // переключиться на вкладку «Сводка сделок»
+  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-tab="dealsTab"]').classList.add('active');
+  document.querySelectorAll('.tabContent').forEach(c=>c.style.display='none');
+  $('dealsTab').style.display='block';
+
+  showToast('Итоговый капитал передан в «Сводка сделок»');
+});
+$('resetBtn')?.addEventListener('click', ()=>{
+  if(!confirm('Сбросить все настройки и очистить сохранённые данные?')) return;
+  localStorage.removeItem('club500_deals');
+  localStorage.removeItem('club500_stats');
+  // legacy passive goal
+  localStorage.removeItem('club500_goal');
+  // passive income (assets)
+  localStorage.removeItem('club500_pd_assets');
+  localStorage.removeItem('club500_pd_goal');
+  // cash-in
+  localStorage.removeItem('club500_cash_in_usd');
+  localStorage.removeItem('club500_cash_in_rub');
+  loadCalcParams();
+  createDealsTable();
+  renderStats();
+  unlockCalc();
+  recalcCalc();
+  showToast('Данные сброшены');
 });
 
-/* ===== Share link ===== */
-$('shareBtn').addEventListener('click', ()=>{
-  const params = new URLSearchParams({ S0:$('S0').value, r:$('r').value, years:$('years').value, feePct:$('feePct').value, threshold:$('threshold').value, cap:$('cap').value });
-  const link = location.href.split('?')[0] + '?' + params.toString();
-  navigator.clipboard.writeText(link).then(()=> showToast('Ссылка скопирована в буфер обмена'));
-});
+/* ===== Deals ===== */
+let dealsCalculated = false;
 
-/* ====== DEALS TABLE ====== */
+function clearDealMetrics(tr){
+  if(!tr) return;
+  const pctEl = tr.querySelector('.deal-pct');
+  const pnlEl = tr.querySelector('.deal-pnl');
+  if(pctEl) pctEl.textContent = '—';
+  if(pnlEl){
+    pnlEl.textContent = '$0.00';
+    pnlEl.style.color = '';
+  }
+}
+
+function defaultDealsState(){
+  return { startCapital: '', deals: Array.from({length:20}, ()=>({asset:'', in:'', out:''})) };
+}
+
+function saveDeals(){
+  const state = { startCapital: $('startCapital')?.value ?? '', deals: [] };
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+    const asset = tr.querySelector('.tagDisplay .tagText')?.textContent || '';
+    const inv = tr.querySelector('.in')?.value ?? '';
+    const outv = tr.querySelector('.out')?.value ?? '';
+    state.deals.push({asset, in:inv, out:outv});
+  });
+  localStorage.setItem('club500_deals', JSON.stringify(state));
+}
+
+function loadDeals(){
+  const raw = localStorage.getItem('club500_deals');
+  if(!raw) return;
+  try{
+    const state = JSON.parse(raw);
+    if(state.startCapital!=null && $('startCapital')) $('startCapital').value = state.startCapital;
+
+    const trs = document.querySelectorAll('#dealsTable tbody tr');
+    (state.deals||[]).slice(0,20).forEach((d,i)=>{
+      const tr = trs[i];
+      if(!tr) return;
+
+      const input = tr.querySelector('.assetEntry');
+      const display = tr.querySelector('.tagDisplay');
+
+      if(d.asset){
+        display.innerHTML = `<span class="tagText">${String(d.asset).toUpperCase()}</span><button class="remove" title="удалить">✕</button>`;
+        display.style.display = 'inline-flex';
+        input.style.display = 'none';
+        display.querySelector('.remove')?.addEventListener('click', ()=> removeAssetTag(tr));
+      }
+
+      tr.querySelector('.in').value = d.in ?? '';
+      tr.querySelector('.out').value = d.out ?? '';
+      clearDealMetrics(tr);
+    });
+  }catch(_){ }
+}
+
 function createDealsTable(){
   const tbody = document.querySelector('#dealsTable tbody');
+  if(!tbody) return;
   tbody.innerHTML='';
+
   for(let i=1;i<=20;i++){
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="small">${i}</td>
+    tr.innerHTML = `
+      <td class="small">${i}</td>
       <td style="text-align:left">
         <div class="tagWrap" data-row="${i}">
           <span class="tagDisplay" style="display:none"></span>
           <input type="text" class="assetEntry" placeholder="введите актив (Enter)" />
         </div>
       </td>
-      <td><input class="deals-input in" type="number" step="0.01" data-in="${i}" /></td>
-      <td><input class="deals-input out" type="number" step="0.01" data-out="${i}" /></td>
-      <td class="small deal-pct">0%</td>
-      <td class="small deal-pnl">$0.00</td>`;
+      <td><input class="deals-input in" type="number" step="0.01" /></td>
+      <td><input class="deals-input out" type="number" step="0.01" /></td>
+      <td class="small deal-pct">—</td>
+      <td class="small deal-pnl">$0.00</td>
+      <td style="text-align:center">
+        <button type="button" class="btn ghost dealDel" style="padding:6px 10px;border-radius:10px;color:#ef4444;">✕</button>
+      </td>
+    `;
     tbody.appendChild(tr);
   }
-function loadDeals(){
-  const raw = localStorage.getItem('club500_deals');
-  if(!raw) return;
 
-  const data = JSON.parse(raw);
+  // Asset tag handlers (Enter)
+  tbody.querySelectorAll('.assetEntry').forEach(inp=>{
+    inp.addEventListener('keydown', (e)=>{
+      if(e.key !== 'Enter') return;
+      e.preventDefault();
+      const tr = inp.closest('tr');
+      const valRaw = inp.value.trim();
+      if(!tr || !valRaw) return;
 
-  // стартовый капитал
-  if(data.startCapital !== undefined){
-    $('startCapital').value = data.startCapital;
-  }
-
-  const rows = document.querySelectorAll('#dealsTable tbody tr');
-
-  data.deals.forEach((d, i)=>{
-    if(!rows[i]) return;
-
-    // актив
-    const input = rows[i].querySelector('.assetEntry');
-    const display = rows[i].querySelector('.tagDisplay');
-
-    if(d.asset){
-      display.innerHTML = `<span class="tagText">${d.asset}</span><button class="remove">✕</button>`;
-      display.style.display = 'inline-flex';
-      input.style.display = 'none';
-
-      display.querySelector('.remove').addEventListener('click', ()=>{
-        display.innerHTML='';
-        display.style.display='none';
-        input.style.display='inline-block';
-        input.value='';
-        saveDeals();
-      });
-    }
-
-    // in / out
-    rows[i].querySelector('.in').value = d.in;
-    rows[i].querySelector('.out').value = d.out;
-
-    updateDealPctRow(rows[i]);
+      const val = valRaw.toUpperCase();
+      if(isAssetUsedElsewhere(val, tr)){
+        showToast('Этот актив уже добавлен в другой строке');
+        inp.value='';
+        return;
+      }
+      dealsCalculated = false;
+      setAssetTag(tr, val);
+      saveDeals();
+      // не считаем до нажатия кнопки
+      if($('avgDealPct')) $('avgDealPct').textContent = '—';
+      recalcAvailableCapital();
+      updatePassiveTab();
+    });
   });
 
-  recalcEndCapital();
+  // Inputs handlers
+  tbody.querySelectorAll('.in, .out').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const tr = inp.closest('tr');
+      dealsCalculated = false;
+      clearDealMetrics(tr);
+      saveDeals();
+      // не считаем до нажатия кнопки
+      if($('avgDealPct')) $('avgDealPct').textContent = '—';
+      recalcAvailableCapital();
+      updatePassiveTab();
+    });
+  });
+
+  // Start capital handlers
+  $('startCapital')?.addEventListener('input', ()=>{
+    saveDeals();
+    dealsCalculated = false;
+    if($('avgDealPct')) $('avgDealPct').textContent = '—';
+    recalcAvailableCapital();
+    updatePassiveTab();
+  });
+
+  // Delete row handlers (clears row but keeps 20 lines)
+  tbody.querySelectorAll('.dealDel').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const tr = btn.closest('tr');
+      if(!tr) return;
+      // clear asset tag + inputs
+      removeAssetTag(tr);
+      tr.querySelector('.in').value = '';
+      tr.querySelector('.out').value = '';
+      dealsCalculated = false;
+      clearDealMetrics(tr);
+      saveDeals();
+      recalcAvailableCapital();
+      updatePassiveTab();
+      if($('avgDealPct')) $('avgDealPct').textContent = '—';
+      showToast('Сделка удалена');
+    });
+  });
+}
+
+
+function setAssetTag(tr, asset){
+  const input = tr.querySelector('.assetEntry');
+  const display = tr.querySelector('.tagDisplay');
+  display.innerHTML = `<span class="tagText">${asset}</span><button class="remove" title="удалить">✕</button>`;
+  display.style.display='inline-flex';
+  input.style.display='none';
+  input.value='';
+  display.querySelector('.remove')?.addEventListener('click', ()=> removeAssetTag(tr));
+}
+
+function removeAssetTag(tr){
+  const input = tr.querySelector('.assetEntry');
+  const display = tr.querySelector('.tagDisplay');
+  dealsCalculated = false;
+  display.innerHTML='';
+  display.style.display='none';
+  input.style.display='inline-block';
+  input.value='';
+  saveDeals();
+  recalcDealsSummary();
+  recalcAvailableCapital();
   updatePassiveTab();
 }
 
-   //listeners
-  document.querySelectorAll('.tagWrap').forEach(w=>{
-    const input = w.querySelector('.assetEntry');
-    const display = w.querySelector('.tagDisplay');
-
-    // if enter -> set tag (one tag only)
-input.addEventListener('keydown', (e)=>{
-      if(e.key === 'Enter'){
-        const val = input.value.trim();
-        if(!val) return;
-        if(display.innerText.trim() !== '') {
-          showToast('В сделке может быть только один актив');
-          input.value = '';
-          return;
-        }
-        const up = val.toUpperCase();
-        display.innerHTML = `<span class="tagText">${up}</span><button class="remove" title="удалить">✕</button>`;
-        display.style.display = 'inline-flex';
-        input.style.display = 'none';
-        saveDeals();
-        // remove handler
-        display.querySelector('.remove').addEventListener('click', ()=>{
-          display.innerHTML = '';
-          display.style.display = 'none';
-          input.style.display = 'inline-block';
-          input.value = '';
-          saveDeals();
-          input.focus();
-        });
-      }
-    });
-  });
-
-  // input listeners for in/out to autosave and realtime pct
-  document.querySelectorAll('.deals-input.in, .deals-input.out').forEach(inp=>{
-    inp.addEventListener('input', ()=>{
-      updateDealPctRow(inp.closest('tr'));
-      saveDeals();
-       // recalc end capital on every input
-      recalcEndCapital();
-    });
-  });
+function isAssetUsedElsewhere(asset, currentTr){
+  const trs = document.querySelectorAll('#dealsTable tbody tr');
+  for(const tr of trs){
+    if(tr === currentTr) continue;
+    const a = tr.querySelector('.tagDisplay .tagText')?.textContent?.trim();
+    if(a && a.toUpperCase() === asset) return true;
+  }
+  return false;
 }
 
-/* update single row percent */
-function updateDealPctRow(tr){
+function updateDealRow(tr){
   if(!tr) return;
+  const entry = parseSafe(tr.querySelector('.in')?.value);
+  const exit = parseSafe(tr.querySelector('.out')?.value);
+  const pctEl = tr.querySelector('.deal-pct');
+  const pnlEl = tr.querySelector('.deal-pnl');
 
-  const inInp  = tr.querySelector('.in');
-  const outInp = tr.querySelector('.out');
-  const pctEl  = tr.querySelector('.deal-pct');
-  const pnlEl  = tr.querySelector('.deal-pnl');
-
-  const entry = parseSafe(inInp.value);
-  const exit  = parseSafe(outInp.value);
-
-  if(entry > 0 && exit > 0){
-    const pct = (exit / entry - 1) * 100;
+  if(entry>0 && exit>0){
+    const pct = (exit/entry - 1)*100;
     const pnl = exit - entry;
-
-    pctEl.innerText = pct.toFixed(2) + '%';
-    pnlEl.innerText = money(pnl);
-    pnlEl.style.color = pnl >= 0 ? 'var(--neon)' : 'var(--bad)';
+    pctEl.textContent = pct.toFixed(2) + '%';
+    pnlEl.textContent = money(pnl);
+    pnlEl.style.color = pnl>=0 ? 'var(--neon)' : 'var(--bad)';
   } else {
-    pctEl.innerText = '0%';
-    pnlEl.innerText = '$0.00';
+    pctEl.textContent = '0%';
+    pnlEl.textContent = '$0.00';
     pnlEl.style.color = '';
   }
 }
 
-/* calculate all deals -> averages */
-$('calcDealsBtn').addEventListener('click', ()=>{
-  const ins = Array.from(document.querySelectorAll('.in')).map(x=>parseSafe(x.value));
-  const outs = Array.from(document.querySelectorAll('.out')).map(x=>parseSafe(x.value));
-  const pctCells = document.querySelectorAll('.deal-pct');
-  const pcts=[];
-  for(let i=0;i<ins.length;i++){
-    const iVal = ins[i], oVal = outs[i];
-    if(iVal>0 && oVal>0){
-      const pct = (oVal / iVal - 1) * 100;
-      pctCells[i].innerText = pct.toFixed(2) + '%';
-      pcts.push(pct);
-    } else {
-      pctCells[i].innerText = '0%';
-    }
+function recalcDealsSummary(){
+  if(!dealsCalculated){
+    if($('avgDealPct')) $('avgDealPct').textContent = '—';
+    return 0;
   }
-  const avg = pcts.length ? pcts.reduce((a,b)=>a+b,0)/pcts.length : 0;
-  $('avgDealPct').innerText = avg.toFixed(2) + '%';
-  showToast('Доходность по сделкам рассчитана');
-  // update passive tab values
-  updatePassiveTab();
-});
-
-/* clear deals UI & storage */
-$('clearDealsBtn').addEventListener('click', ()=>{
-  if(!confirm('Очистить все сделки?')) return;
-  document.querySelectorAll('.in').forEach(i=>i.value='');
-  document.querySelectorAll('.out').forEach(i=>i.value='');
-  document.querySelectorAll('.deal-pct').forEach(d=>d.innerText='0%');
-  document.querySelectorAll('.tagDisplay').forEach(d=>{ d.innerHTML=''; d.style.display='none'; d.parentElement.querySelector('.assetEntry').style.display='inline-block'; });
-  localStorage.removeItem('club500_deals');
-  $('avgDealPct').innerText='0.00%';
-  showToast('Сводка сделок очищена');
-  recalcEndCapital();
-  updatePassiveTab();
-});
-
-/* use real capital growth in calc */
-$('useInCalcBtn').addEventListener('click', ()=>{
-  const startCap = parseFloat($('startCapital').value) || 0;
-  const finalCap = parseFloat($('finalCapital').innerText) || 0;
-
-  if(startCap <= 0 || finalCap <= 0){
-    alert('Недостаточно данных для передачи в калькулятор');
-    return;
-  }
-
-  const growthPct = ((finalCap / startCap) - 1) * 100;
-
-  $('r').value = growthPct.toFixed(2);
-  recalc();
-});
-
-/* ===== Excel export (SpreadsheetML simple) ===== */
-$('downloadExcel').addEventListener('click', ()=>{
-  const xml = generateExcelXml();
-  const blob = new Blob([xml],{type:'application/vnd.ms-excel'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'club500_deals.xlsx'; a.click(); URL.revokeObjectURL(url);
-});
-function generateExcelXml(){
-  const ins = Array.from(document.querySelectorAll('.in')).map(x=>parseSafe(x.value));
-  const outs = Array.from(document.querySelectorAll('.out')).map(x=>parseSafe(x.value));
-  const assets = Array.from(document.querySelectorAll('.tagWrap')).map(t=>{ const d=t.querySelector('.tagDisplay'); return d && d.querySelector('.tagText')? d.querySelector('.tagText').innerText : ''; });
-  const rows=[];
-  for(let i=0;i<ins.length;i++){
-    if(assets[i] || ins[i] || outs[i]) rows.push({asset:assets[i], in:ins[i], out:outs[i], pct:(ins[i]>0 && outs[i]>0)?((outs[i]/ins[i]-1)*100):0});
-  }
-  const avg = rows.length ? (rows.reduce((s,r)=>s + r.pct,0)/rows.length) : 0;
-  // SpreadsheetML
-  const header = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">`;
-  const styles = `<Styles><Style ss:ID="h"><Font ss:Bold="1" ss:Color="#ffffff"/></Style><Style ss:ID="money"><NumberFormat ss:Format="\\u0022$\\u0022#,##0.00"/></Style></Styles>`;
-  let dealsRows = `<Row><Cell ss:StyleID="h"><Data ss:Type="String">#</Data></Cell><Cell ss:StyleID="h"><Data ss:Type="String">Актив</Data></Cell><Cell ss:StyleID="h"><Data ss:Type="String">Вход ($)</Data></Cell><Cell ss:StyleID="h"><Data ss:Type="String">Выход ($)</Data></Cell><Cell ss:StyleID="h"><Data ss:Type="String">Доходность %</Data></Cell></Row>`;
-  rows.forEach((r,i)=>{ dealsRows += `<Row><Cell><Data ss:Type="Number">${i+1}</Data></Cell><Cell><Data ss:Type="String">${r.asset}</Data></Cell><Cell ss:StyleID="money"><Data ss:Type="Number">${r.in}</Data></Cell><Cell ss:StyleID="money"><Data ss:Type="Number">${r.out}</Data></Cell><Cell><Data ss:Type="Number">${r.pct.toFixed(4)}</Data></Cell></Row>`; });
-  const dealsSheet = `<Worksheet ss:Name="Deals"><Table>${dealsRows}</Table></Worksheet>`;
-  const summaryRows = `<Row><Cell ss:StyleID="h"><Data ss:Type="String">Показатель</Data></Cell><Cell ss:StyleID="h"><Data ss:Type="String">Значение</Data></Cell></Row>
-    <Row><Cell><Data ss:Type="String">Средняя доходность (%)</Data></Cell><Cell><Data ss:Type="Number">${avg.toFixed(4)}</Data></Cell></Row>
-    <Row><Cell><Data ss:Type="String">Исходный депозит ($)</Data></Cell><Cell ss:StyleID="money"><Data ss:Type="Number">${parseSafe($('S0').value)}</Data></Cell></Row>
-    <Row><Cell><Data ss:Type="String">Годовая доходность (%)</Data></Cell><Cell><Data ss:Type="Number">${parseSafe($('r').value).toFixed(4)}</Data></Cell></Row>`;
-  const summarySheet = `<Worksheet ss:Name="Summary"><Table>${summaryRows}</Table></Worksheet>`;
-  return header + styles + dealsSheet + summarySheet + `</Workbook>`;
-}
-
-/* ===== AUTOSAVE (localStorage) =====*/
-function saveParams(){
-  const p = { S0:$('S0').value, r:$('r').value, years:$('years').value, feePct:$('feePct').value, threshold:$('threshold').value, cap:$('cap').value };
-  localStorage.setItem('club500_params', JSON.stringify(p));
-}
-function loadParamsToUI(){
-  const s = localStorage.getItem('club500_params');
-  if(!s) return;
-  try{
-    const p = JSON.parse(s);
-    if(p.S0) $('S0').value = p.S0;
-    if(p.r) $('r').value = p.r;
-    if(p.years) $('years').value = p.years;
-    if(p.feePct) $('feePct').value = p.feePct;
-    if(p.threshold) $('threshold').value = p.threshold;
-    if(p.cap) $('cap').value = p.cap;
-  }catch(e){}
-}
-
-/* deals save/load: we save only non-empty rows (variant A) */
-function saveDeals(){
-  const rows = [];
-  const trs = document.querySelectorAll('#dealsTable tbody tr');
-  trs.forEach((tr,i)=>{
-    const assetSpan = tr.querySelector('.tagDisplay .tagText');
-    const asset = assetSpan ? assetSpan.innerText : '';
-    const inV = parseSafe(tr.querySelector('.in').value);
-    const outV = parseSafe(tr.querySelector('.out').value);
-    if(asset || inV || outV){
-      rows.push({row:i+1, asset:asset, in:inV, out:outV});
+  let totalEntry=0, totalPnL=0;
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+    const entry=parseSafe(tr.querySelector('.in')?.value);
+    const exit=parseSafe(tr.querySelector('.out')?.value);
+    if(entry>0 && exit>0){
+      totalEntry += entry;
+      totalPnL += (exit-entry);
     }
   });
-  localStorage.setItem('club500_deals', JSON.stringify(rows));
+  const avgPct = totalEntry>0 ? (totalPnL/totalEntry)*100 : 0;
+  if($('avgDealPct')) $('avgDealPct').textContent = avgPct.toFixed(2) + '%';
+  return avgPct;
 }
-function loadDeals(){
-  const s = localStorage.getItem('club500_deals');
-  if(!s) return;
+
+/* ===== Deals Stats (Completed Deals) ===== */
+
+function getDealsHistory(){
+  try{ return JSON.parse(localStorage.getItem('club500_deals_history') || '[]'); }
+  catch(_){ return []; }
+}
+
+function saveDealsHistory(arr){
+  localStorage.setItem('club500_deals_history', JSON.stringify(arr || []));
+}
+
+function dealSig(d){
+  const a = (d.asset || '').toUpperCase();
+  const e = Number(d.entry || 0).toFixed(4);
+  const x = Number(d.exit || 0).toFixed(4);
+  return `${a}|${e}|${x}`;
+}
+
+function getCurrentCompletedDeals(){
+  const out = [];
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+    const entry = parseSafe(tr.querySelector('.in')?.value);
+    const exit = parseSafe(tr.querySelector('.out')?.value);
+    if(entry > 0 && exit > 0){
+      const pct = (exit/entry - 1) * 100;
+      const asset = tr.querySelector('.tagDisplay .tagText')?.textContent?.trim().toUpperCase() || '';
+      out.push({ asset, entry, exit, pct, ts: Date.now() });
+    }
+  });
+  return out;
+}
+
+function mergeDeals(history, current){
+  const map = new Map();
+  (history || []).forEach(d=> map.set(dealSig(d), d));
+  (current || []).forEach(d=>{
+    const sig = dealSig(d);
+    if(!map.has(sig)) map.set(sig, d);
+  });
+  return Array.from(map.values());
+}
+
+function appendToHistory(deal){
+  if(!deal) return;
+  const hist = getDealsHistory();
+  const sig = dealSig(deal);
+  if(!hist.some(x => dealSig(x) === sig)){
+    hist.push(deal);
+    saveDealsHistory(hist);
+  }
+}
+
+function computeCompletedDealsStats(){
+  const history = getDealsHistory();
+  const current = getCurrentCompletedDeals();
+  const all = mergeDeals(history, current);
+
+  const count = all.length;
+  let sumPct = 0;
+  const byAsset = {}; // {ASSET:{count,sumPct}}
+
+  all.forEach(d=>{
+    const pct = Number(d.pct || 0);
+    sumPct += pct;
+    const a = (d.asset || '').toUpperCase();
+    if(a){
+      if(!byAsset[a]) byAsset[a] = {count:0, sumPct:0};
+      byAsset[a].count += 1;
+      byAsset[a].sumPct += pct;
+    }
+  });
+
+  const avgPct = count > 0 ? (sumPct / count) : 0;
+
+  const frequent = Object.entries(byAsset)
+    .filter(([_, v]) => v.count >= 2)
+    .map(([name, v]) => ({name, count: v.count, avgPct: v.sumPct / v.count}))
+    .sort((a,b)=> (b.count - a.count) || (a.name.localeCompare(b.name)));
+
+  return { count, avgPct, frequent };
+}
+
+
+function saveCompletedDealsStats(stats){
+  localStorage.setItem('club500_completed_deals_stats', JSON.stringify(stats));
+}
+
+function loadCompletedDealsStats(){
   try{
-    const rows = JSON.parse(s);
-    rows.forEach(item=>{
-      const tr = document.querySelector(`#dealsTable tbody tr[data-row="${item.row}"]`) || document.querySelectorAll('#dealsTable tbody tr')[item.row-1];
-      if(!tr) return;
-      const display = tr.querySelector('.tagDisplay');
-      const input = tr.querySelector('.assetEntry');
-      if(item.asset){
-        display.innerHTML = `<span class="tagText">${item.asset}</span><button class="remove" title="удалить">✕</button>`;
-        display.style.display='inline-flex';
-        input.style.display='none';
-        // attach remove handler
-        display.querySelector('.remove').addEventListener('click', ()=>{
-          display.innerHTML=''; display.style.display='none'; input.style.display='inline-block'; input.value=''; saveDeals();
-        });
-      }
-      tr.querySelector('.in').value = item.in || '';
-      tr.querySelector('.out').value = item.out || '';
-      updateDealPctRow(tr);
-    });
-  }catch(e){}
+    return JSON.parse(localStorage.getItem('club500_completed_deals_stats') || 'null');
+  }catch(_){
+    return null;
+  }
 }
 
-/* attach data-row attr for easy selection */
-function markDealRows(){
-  const trs = document.querySelectorAll('#dealsTable tbody tr');
-  trs.forEach((tr,i)=> tr.setAttribute('data-row', i+1));
-}
+function renderCompletedDealsStats(){
+  const totalEl = $('dealStats_total');
+  const avgEl = $('dealStats_avgPct');
+  const listEl = $('dealStats_assets');
+  if(!totalEl || !avgEl || !listEl) return;
 
-/* ==== Custom Capitals Save/Load ==== */
-function saveCapitals(){
-  const startCap = parseSafe($('startCapital')?.value);
-  const endCap = parseSafe($('endCapital')?.value);
-  localStorage.setItem('club500_capitals', JSON.stringify({start:startCap, end:endCap}));
-}
-function loadCapitals(){
-  const s = localStorage.getItem('club500_capitals');
-  if(!s) return;
-  try{
-    const cap = JSON.parse(s);
-    if($('startCapital')) $('startCapital').value = cap.start || '';
-    if($('endCapital')) $('endCapital').value = cap.end || '';
-  }catch(e){}
-}
-
-/* ==== recalcEndCapital: calculates endCapital = startCapital - sum(in) ==== */
-function recalcEndCapital(){
-  const startCap = parseSafe($('startCapital')?.value) || 0;
-  if(startCap <= 0){
-    if($('endCapital')) $('endCapital').value = '';
+  const data = loadCompletedDealsStats();
+  if(!data){
+    totalEl.textContent = '0';
+    avgEl.textContent = '0.00%';
+    listEl.innerHTML = '<li class="small-muted">Пока нет данных. Нажми «Рассчитать доходность» во вкладке «Сводка сделок».</li>';
     return;
   }
-  const ins = Array.from(document.querySelectorAll('.in')).map(x => parseSafe(x.value));
-  const totalIn = ins.reduce((a,b)=>a+b, 0);
-  const endCap = Math.max(startCap - totalIn, 0);
-  if($('endCapital')) $('endCapital').value = endCap.toFixed(2);
-  saveCapitals();
+
+  totalEl.textContent = String(data.count ?? 0);
+  avgEl.textContent = (Number(data.avgPct ?? 0)).toFixed(2) + '%';
+
+  const freq = Array.isArray(data.frequent) ? data.frequent : [];
+  if(freq.length === 0){
+    listEl.innerHTML = '<li class="small-muted">Нет активов, которые использовались 2+ раза.</li>';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  freq.forEach(item=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<strong>${item.name}</strong> — ${Number(item.count).toFixed(0)} сделк., средняя: ${Number(item.avgPct).toFixed(2)}%`;
+    listEl.appendChild(li);
+  });
 }
 
-/* attach delegation: when table inputs change, recalc end capital */
-function attachInListeners(){
-  const tbody = document.querySelector('#dealsTable tbody');
-  if(!tbody) return;
-  // use event delegation
-  tbody.removeEventListener('input', onDealsInput);
-  tbody.addEventListener('input', onDealsInput);
+function computeEndCapital(){
+  const start = parseSafe($('startCapital')?.value);
+  let totalPnL=0;
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+    const entry=parseSafe(tr.querySelector('.in')?.value);
+    const exit=parseSafe(tr.querySelector('.out')?.value);
+    if(entry>0 && exit>0) totalPnL += (exit-entry);
+  });
+  return { start, end: start + totalPnL, totalPnL };
 }
-function onDealsInput(e){
-  const target = e.target;
-  if(target && target.classList && target.classList.contains('in')){
-    const tr = target.closest('tr');
-    if(tr) updateDealPctRow(tr);
-    saveDeals();
-    recalcEndCapital();
+
+function recalcAvailableCapital(){
+  const start = parseSafe($('startCapital')?.value);
+  let sumIn = 0, sumOut = 0;
+
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+    sumIn += parseSafe(tr.querySelector('.in')?.value);
+    sumOut += parseSafe(tr.querySelector('.out')?.value);
+  });
+
+  // Деньги возвращаются в работу после закрытия сделки (выход)
+  const available = start - sumIn + sumOut;
+
+  const el = $('availableCapital');
+  if(!el) return;
+  el.textContent = money(available);
+
+  const box = el.closest('.capital-visual');
+  if(box){
+    if(available < 0) box.classList.add('negative');
+    else box.classList.remove('negative');
   }
 }
 
-/* passive tab logic */
-function formatMoney(n){ return '$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+$('calcDealsBtn')?.addEventListener('click', ()=>{
+  dealsCalculated = true;
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=> updateDealRow(tr));
+  recalcDealsSummary();
+  recalcAvailableCapital();
+  updatePassiveTab();
+  
+  // авто-статистика по завершённым сделкам (вариант A)
+  const ds = computeCompletedDealsStats();
+  saveCompletedDealsStats(ds);
+showToast('Доходность по сделкам рассчитана');
+});
+
+$('clearDealsBtn')?.addEventListener('click', ()=>{
+  if(!confirm('Очистить все сделки?')) return;
+  localStorage.removeItem('club500_deals');
+  createDealsTable();
+  $('avgDealPct').textContent='—';
+  recalcAvailableCapital();
+  updatePassiveTab();
+  showToast('Сводка сделок очищена');
+});
+
+$('useInCalcBtn')?.addEventListener('click', ()=>{
+  const {start,end} = computeEndCapital();
+  if(start<=0){ alert('Укажи стартовый капитал'); return; }
+  if(end<=0){ alert('Капитал стал отрицательным'); return; }
+
+  const growthPct = ((end/start)-1)*100;
+  $('S0').value = start.toFixed(2);
+  $('r').value = growthPct.toFixed(2);
+
+  // switch to calc tab
+  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-tab="calcTab"]').classList.add('active');
+  document.querySelectorAll('.tabContent').forEach(c=>c.style.display='none');
+  $('calcTab').style.display='block';
+
+  unlockCalc();
+  recalcCalc();
+  showToast('В калькулятор передан реальный рост капитала');
+});
+
+/* ===== Calc → Deals: RESULT button ===== */
+$('sendResultToDeals')?.addEventListener('click', ()=>{
+  // Берём итоговый капитал из калькулятора
+  const finalText = ($('final')?.innerText || '$0').replace('$','').replace(/,/g,'');
+  const finalSum = parseFloat(finalText);
+  if(!finalSum || finalSum<=0){
+    showToast('Сначала посчитай калькулятор, чтобы появился итог');
+    return;
+  }
+
+  if($('startCapital')) $('startCapital').value = finalSum.toFixed(2);
+
+  // обновляем расчёты/визуал в сделках
+  saveDeals();
+  recalcAvailableCapital();
+  updatePassiveTab();
+
+  // переключаемся на вкладку «Сводка сделок»
+  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-tab="dealsTab"]').classList.add('active');
+  document.querySelectorAll('.tabContent').forEach(c=>c.style.display='none');
+  $('dealsTab').style.display='block';
+
+  showToast('Итоговый капитал передан в «Сводка сделок»');
+});
+
+
+/* ===== Passive Income (Assets) ===== */
+let pd_assets = [];
+let pd_prevTotalIncome = 0;
+
+function pd_formatNumber(num){
+  const n = Number(num);
+  return Number.isFinite(n) ? n.toLocaleString('ru-RU',{maximumFractionDigits:2}) : '0';
+}
+
+
+function pd_load(){
+  try{ pd_assets = JSON.parse(localStorage.getItem('club500_pd_assets') || '[]'); }
+  catch(_){ pd_assets = []; }
+
+  const goal = localStorage.getItem('club500_pd_goal');
+  if(goal!=null && $('pd_goalCapital')) $('pd_goalCapital').value = goal;
+
+  // load current passive capital
+  const savedCap = localStorage.getItem('club500_pd_current_capital');
+  if(savedCap!=null && $('pd_currentCapital')) $('pd_currentCapital').value = savedCap;
+}
+
+function pd_save(){
+  localStorage.setItem('club500_pd_assets', JSON.stringify(pd_assets));
+  if($('pd_goalCapital')) localStorage.setItem('club500_pd_goal', $('pd_goalCapital').value);
+}
+
+function pd_updateProgress(){
+  const current = parseSafe($('pd_currentCapital')?.value);
+  const goal = parseSafe($('pd_goalCapital')?.value) || 1;
+  const percent = Math.min((current/goal)*100, 100);
+  const bar = $('pd_progressBar');
+  if(!bar) return;
+  bar.style.transition = 'width 0.5s ease';
+  bar.style.width = percent + '%';
+  bar.textContent = percent.toFixed(1) + '%';
+}
+
+function pd_renderAssets(){
+  const list = $('pd_assetsList');
+  const totalDiv = $('pd_totalIncome');
+  const yearlyDiv = $('pd_yearlyIncome');
+  if(!list || !totalDiv || !yearlyDiv) return;
+
+  list.innerHTML = '';
+  let totalIncome = 0;
+
+  pd_assets.forEach((a, idx)=>{
+    const li = document.createElement('li');
+    li.style.marginBottom = '10px';
+    li.innerHTML = `
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div style="flex:1;min-width:220px;">
+          <strong>${String(a.name||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</strong><br>
+          <span class="small-muted">Стоимость:</span> ${pd_formatNumber(a.price)} ₽
+          <span class="small-muted">| Доход:</span> ${pd_formatNumber(a.income)} ₽ / мес
+        </div>
+        <button class="btn ghost" type="button" data-pd-remove="${idx}" style="padding:8px 10px;border-radius:12px;color:#ef4444;">Удалить</button>
+      </div>
+    `;
+    list.appendChild(li);
+    totalIncome += parseSafe(a.income);
+  });
+
+  // подсветка изменения
+  if(totalIncome > pd_prevTotalIncome) totalDiv.style.color = 'var(--neon)';
+  else if(totalIncome < pd_prevTotalIncome) totalDiv.style.color = 'var(--bad)';
+  else totalDiv.style.color = '#fff';
+  pd_prevTotalIncome = totalIncome;
+
+  totalDiv.textContent = pd_formatNumber(totalIncome) + ' ₽';
+  yearlyDiv.textContent = pd_formatNumber(totalIncome*12) + ' ₽';
+
+  // делегирование удаления
+  list.querySelectorAll('[data-pd-remove]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i = parseInt(btn.getAttribute('data-pd-remove'),10);
+      if(Number.isFinite(i)){
+        pd_assets.splice(i,1);
+        pd_save();
+        pd_renderAssets();
+        showToast('Актив удалён');
+      }
+    });
+  });
+}
+
+function pd_syncCapitalFromDeals(){
+  const inp = $('pd_currentCapital');
+  if(!inp) return;
+  const { end } = computeEndCapital();
+  if(end>0){
+    inp.value = Math.round(end);
+    localStorage.setItem('club500_pd_current_capital', String(Math.round(end)));
+    pd_updateProgress();
+    showToast('Капитал подставлен из сводки');
+  } else {
+    showToast('Нет данных капитала — проверь «Сводка сделок»');
+  }
+}
 
 function updatePassiveTab(){
-  const end = parseSafe($('endCapital')?.value) || 0;
-  const s0 = parseSafe($('S0')?.value) || 0;
-  const current = end > 0 ? end : s0;
-  if($('pd_currentCapital')) $('pd_currentCapital').innerText = formatMoney(current);
-
-  const avgText = $('avgDealPct') ? $('avgDealPct').innerText : '0%';
-  const avg = parseFloat(avgText.replace('%',''))/100 || 0;
-  if($('pd_avgReturn')) $('pd_avgReturn').innerText = (avg*100).toFixed(2) + '%';
-
-  const goal = parseSafe($('goalCapital')?.value) || 0;
-  const left = Math.max(goal - current, 0);
-  if($('pd_left')) $('pd_left').innerText = goal ? formatMoney(left) : '—';
-
-  const pct = goal ? Math.min(100, (current/goal)*100) : 0;
-  if($('goalProgress')) $('goalProgress').style.width = pct + '%';
-
-  const income5 = current * 0.05 / 12;
-  const income7 = current * 0.07 / 12;
-  const income10 = current * 0.10 / 12;
-  if($('pd_5')) $('pd_5').innerText = income5>0 ? (formatMoney(income5) + ' / мес') : '—';
-  if($('pd_7')) $('pd_7').innerText = income7>0 ? (formatMoney(income7) + ' / мес') : '—';
-  if($('pd_10')) $('pd_10').innerText = income10>0 ? (formatMoney(income10) + ' / мес') : '—';
-
-  if(goal && current > 0 && avg > 0){
-    try{
-      const years = Math.log(goal / current) / Math.log(1 + avg);
-      const yearsRounded = years > 0 ? years : 0;
-      if($('pd_eta')) $('pd_eta').innerText = yearsRounded.toFixed(2) + ' лет';
-    }catch(e){ if($('pd_eta')) $('pd_eta').innerText = '—'; }
-  } else { if($('pd_eta')) $('pd_eta').innerText = '—'; }
-
-  let msg = 'Двигайся к цели — каждый шаг важен!';
-  if(pct >= 80) msg = 'Почти у цели! Отлично идёшь!';
-  if(pct >= 100) msg = 'Цель достигнута — поздравляю!';
-  if($('pd_motivation')) $('pd_motivation').innerText = msg;
+  // вызывается при переключении на вкладку
+  pd_updateProgress();
+  pd_renderAssets();
 }
 
-/* attach listeners for passive inputs and tab show */
-(function(){
-  const goalEl = $('goalCapital');
-  if(goalEl) goalEl.addEventListener('input', ()=> { updatePassiveTab(); localStorage.setItem('club500_goal', goalEl.value); });
-  try{ const g = localStorage.getItem('club500_goal'); if(g && $('goalCapital')) $('goalCapital').value = g; }catch(e){}
-  // when tab is shown, update
-  document.querySelectorAll('.tabBtn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if(btn.dataset.tab === 'passiveTab') updatePassiveTab();
-    });
+// init passive assets UI
+pd_load();
+pd_renderAssets();
+pd_updateProgress();
+
+$('pd_addAssetBtn')?.addEventListener('click', ()=>{
+  const name = ($('pd_assetName')?.value || '').trim();
+  const price = parseSafe($('pd_assetPrice')?.value);
+  const income = parseSafe($('pd_assetIncome')?.value);
+
+  if(!name){ showToast('Укажи название актива'); return; }
+  if(price<=0){ showToast('Укажи стоимость'); return; }
+  if(income===0){ showToast('Укажи месячный доход'); return; }
+
+  pd_assets.push({name, price, income});
+  pd_save();
+
+  if($('pd_assetName')) $('pd_assetName').value='';
+  if($('pd_assetPrice')) $('pd_assetPrice').value='';
+  if($('pd_assetIncome')) $('pd_assetIncome').value='';
+
+  pd_renderAssets();
+  showToast('Актив добавлен');
+});
+
+$('pd_currentCapital')?.addEventListener('input', ()=>{
+  localStorage.setItem('club500_pd_current_capital', String(parseSafe($('pd_currentCapital').value)));
+  pd_updateProgress();
+});
+$('pd_goalCapital')?.addEventListener('input', ()=>{ pd_save(); pd_updateProgress(); });
+$('pd_syncCapital')?.addEventListener('click', pd_syncCapitalFromDeals);
+
+/* ===== Statistics ===== */
+let stats = [];
+function loadStats(){
+  try{ stats = JSON.parse(localStorage.getItem('club500_stats') || '[]'); }catch(_){ stats=[]; }
+}
+function saveStats(){
+  localStorage.setItem('club500_stats', JSON.stringify(stats));
+}
+
+// Cash-in (manual deposits)
+function loadCashIn(){
+  const usd = localStorage.getItem('club500_cash_in_usd');
+  const rub = localStorage.getItem('club500_cash_in_rub');
+  if($('cashInUsd')) $('cashInUsd').value = usd!=null ? usd : 0;
+  if($('cashInRub')) $('cashInRub').value = rub!=null ? rub : 0;
+}
+function bindCashIn(){
+  $('cashInUsd')?.addEventListener('input', ()=>{
+    localStorage.setItem('club500_cash_in_usd', String(parseSafe($('cashInUsd').value)));
   });
-
-  // update periodically and on load
-  setInterval(updatePassiveTab, 1200);
-  window.addEventListener('load', ()=>{ loadParamsToUI(); loadCapitals(); createDealsTable(); markDealRows(); loadDeals(); attachInListeners(); recalcEndCapital(); updatePassiveTab(); setTimeout(recalc,120); });
-
-  // ensure createDealsTable wrapper attaches recalc
-  const originalCreate = window.createDealsTable;
-  if(typeof originalCreate === 'function'){
-    window.createDealsTable = function(){
-      originalCreate();
-      attachInListeners();
-      recalcEndCapital();
-      updatePassiveTab();
-    }
-  }
-})();
-
-/* ===== toast quick helper show on load and actions ===== */
-function showToastMessageOnce(){ }
-showToastMessageOnce();
-
-/* ===== STATISTICS ===== */
-let stats = JSON.parse(localStorage.getItem('club500_stats') || '[]');
+  $('cashInRub')?.addEventListener('input', ()=>{
+    localStorage.setItem('club500_cash_in_rub', String(parseSafe($('cashInRub').value)));
+  });
+}
 
 function renderStats(){
   const tbody = document.querySelector('#statsTable tbody');
-  tbody.innerHTML = '';
+  if(!tbody) return;
+  tbody.innerHTML='';
+  if(!stats.length){
+    $('avgStatPct') && ($('avgStatPct').textContent='0.00%');
+  } else {
 
-  if(stats.length === 0){
-    $('avgStatPct').innerText = '0.00%';
-    return;
+  const pcts=[];
+  stats.forEach((row,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${i+1}</td><td>${money(row.sum)}</td><td>${Number(row.pct||0).toFixed(2)}%</td>`;
+    tbody.appendChild(tr);
+    pcts.push(Number(row.pct||0));
+  });
+  const avg = pcts.reduce((a,b)=>a+b,0)/pcts.length;
+  $('avgStatPct') && ($('avgStatPct').textContent = avg.toFixed(2) + '%');
   }
 
-  let pcts = [];
-
-  stats.forEach((row, i)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${money(row.sum)}</td>
-      <td>${row.pct.toFixed(2)}%</td>
-    `;
-    tbody.appendChild(tr);
-    pcts.push(row.pct);
-  });
-
-  const avg = pcts.reduce((a,b)=>a+b,0) / pcts.length;
-  $('avgStatPct').innerText = avg.toFixed(2) + '%';
+  // авто-статистика по завершённым сделкам
+  renderCompletedDealsStats();
 }
 
-$('addToStatsBtn').addEventListener('click', ()=>{
-  const finalText = $('final').innerText.replace('$','').replace(/,/g,'');
+$('addToStatsBtn')?.addEventListener('click', ()=>{
+  const finalText = ($('final')?.innerText || '$0').replace('$','').replace(/,/g,'');
   const finalSum = parseFloat(finalText);
+  if(!finalSum || finalSum<=0){ showToast('Сначала посчитай калькулятор'); return; }
 
-  if(!finalSum || finalSum <= 0){
-    showToast('Сначала посчитай калькулятор');
-    return;
-  }
+  const base = parseSafe($('S0')?.value);
+  const pct = base>0 ? ((finalSum/base)-1)*100 : 0;
 
-  const base = parseSafe($('S0').value);
-  const pct = base > 0 ? ((finalSum / base - 1) * 100) : 0;
-
-  stats.push({
-    sum: finalSum,
-    pct: pct
-  });
-
-  localStorage.setItem('club500_stats', JSON.stringify(stats));
+  stats.push({sum: finalSum, pct});
+  saveStats();
   renderStats();
   showToast('Добавлено в статистику');
 });
 
-renderStats();
+/* ===== Init ===== */
+window.addEventListener('load', ()=>{
+  loadCalcParams();
+  loadStats();
+  loadCashIn();
+  bindCashIn();
 
-</script>
-<script>
-/* ===== STEP 2: Available Capital Logic ===== */
-function recalcAvailableCapital(){
-  const start = parseSafe(document.getElementById('startCapital').value);
-
-  let used = 0;
-  document.querySelectorAll('.deals-input.in').forEach(inp=>{
-    used += parseSafe(inp.value);
-  });
-
-  const available = start - used;
-
-  const box = document.getElementById('availableCapital');
-  box.innerText = money(available);
-const capitalEl = document.getElementById('availableCapital');
-const capitalBox = capitalEl.closest('.capital-visual');
-
-const value = parseFloat(capitalEl.textContent.replace(/[^0-9.-]/g, ''));
-
-if (value < 0) {
-  capitalBox.classList.add('negative');
-} else {
-  capitalBox.classList.remove('negative');
-}
-
-  // цвет: если минус — красный
-  box.style.color = available < 0 ? '#ef4444' : '';
-}
-
-/* пересчёт при любом вводе */
-document.addEventListener('input', (e)=>{
-  if(
-    e.target.id === 'startCapital' ||
-    e.target.classList.contains('in')
-  ){
-    recalcAvailableCapital();
+  // legacy migration: old key "club500_goal" -> new passive goal "club500_pd_goal"
+  const legacyGoal = localStorage.getItem('club500_goal');
+  const newGoal = localStorage.getItem('club500_pd_goal');
+  if(legacyGoal!=null && (newGoal==null || newGoal==='')){
+    localStorage.setItem('club500_pd_goal', legacyGoal);
   }
-});
 
-/* стартовый пересчёт */
-setTimeout(recalcAvailableCapital, 100);
-createDealsTable();
-loadDeals();
+  createDealsTable();
+  loadDeals();
 
-function clearDeals(){
-  const rows = document.querySelectorAll('#dealsTable tbody tr');
-
-  rows.forEach(tr=>{
-    tr.querySelector('.assetEntry') && (tr.querySelector('.assetEntry').value = '');
-    tr.querySelector('.in') && (tr.querySelector('.in').value = '');
-    tr.querySelector('.out') && (tr.querySelector('.out').value = '');
-    tr.querySelector('.deal-pct') && (tr.querySelector('.deal-pct').innerText = '0%');
-    tr.querySelector('.deal-pnl') && (tr.querySelector('.deal-pnl').innerText = '$0.00');
-    tr.style.background = '';
-  });
-
-  localStorage.removeItem('club500_deals');
-}
-// ===============================
-// КНОПКИ: СВОДКА СДЕЛОК (FIX)
-// ===============================
-
-const calcDealsBtn  = document.getElementById('calcDealsBtn');
-const clearDealsBtn = document.getElementById('clearDealsBtn');
-const useInCalcBtn  = document.getElementById('useInCalcBtn');		
-
-function recalcDealsSummary() {
-  const rows = document.querySelectorAll('#dealsTable tbody tr');
-
-  let totalEntry = 0;
-  let totalPnL   = 0;
-
-  rows.forEach(tr => {
-    const entry = parseFloat(tr.querySelector('.in')?.value);
-    const exit  = parseFloat(tr.querySelector('.out')?.value);
-
-    if (!isNaN(entry) && !isNaN(exit) && entry > 0) {
-      updateDealPctRow(tr);
-
-      totalEntry += entry;
-      totalPnL   += (exit - entry);
-    }
-  });
-
-  const avgPct = totalEntry > 0 ? (totalPnL / totalEntry) * 100 : 0;
-  document.getElementById('avgDealPct').innerText = avgPct.toFixed(2) + '%';
-
-  if (typeof saveDeals === 'function') saveDeals();
-  if (typeof recalcEndCapital === 'function') recalcEndCapital();
-
-  return avgPct;
-}
-function calcTotalInvested(){
-  let total = 0;
-
-  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
-    const val = parseSafe(tr.querySelector('.in')?.value);
-    if(val > 0) total += val;
-  });
-
-  return total;
-}
-
-// --- Рассчитать доходность ---
-calcDealsBtn?.addEventListener('click', () => {
   recalcDealsSummary();
+  recalcAvailableCapital();
+  updatePassiveTab();
+
+  recalcCalc();
+  renderStats();
 });
 
-// --- Очистить ---
-clearDealsBtn?.addEventListener('click', () => {
-  const rows = document.querySelectorAll('#dealsTable tbody tr');
-
-  rows.forEach(tr => {
-    tr.querySelectorAll('input').forEach(i => i.value = '');
-    tr.querySelector('.deal-pct') && (tr.querySelector('.deal-pct').innerText = '0%');
-    tr.querySelector('.deal-pnl') && (tr.querySelector('.deal-pnl').innerText = '$0.00');
-  });
-
-  document.getElementById('avgDealPct').innerText = '0.00%';
-  localStorage.removeItem('club500_deals');
+// Очистка статистики (история завершённых сделок)
+$('dealStats_clearBtn')?.addEventListener('click', ()=>{
+  localStorage.removeItem('club500_deals_history');
+  localStorage.removeItem('club500_completed_deals_stats');
+  showToast('Статистика очищена');
+  renderCompletedDealsStats();
 });
 
-// --- Использовать в калькуляторе ---
-// --- Очистить ВСЁ ---
-clearDealsBtn?.addEventListener('click', () => {
-
-  // ===== 1. Таблица сделок =====
-  document.querySelectorAll('#dealsTable tbody tr').forEach(tr => {
-
-    // все инпуты
-    tr.querySelectorAll('input').forEach(i => i.value ="");
-
-    // PnL
-    const pnl = tr.querySelector('.deal-pnl');
-    if (pnl) {
-      pnl.innerText = '0';
-      pnl.style.color = '#ffffff';
-    }
-
-    // Актив (если есть input / tag)
-    const asset = tr.querySelector('.deal-asset');
-    if (asset && asset.tagName === 'INPUT') {
-      asset.value = '';
-    }
-  });
-
-  // ===== 2. Сводка сделок =====
-  const avg = document.getElementById('avgDealPct');
-  if (avg) avg.innerText = '0.00%';
-
-  const avail = document.getElementById('availableCapital');
-  if (avail) avail.innerText = '$0';
-
-  // ===== 3. Начальный капитал =====
-  const startCap = document.getElementById('startCapital');
-  if (startCap) startCap.value = 0;
-
-  // ===== 4. Очистка связанного состояния =====
-  localStorage.removeItem('club500_deals');
-
-  // если ты используешь флаги
-  if (typeof S0_fromDeals !== 'undefined') {
-    S0_fromDeals = false;
-  }
-
-  showToast('Все данные очищены');
-});
-
-
-/* ===== Passive Income Tab with Slider ===== */
-let pdCurrent = $('pd_currentCapital');
-let pdAvgReturn = $('pd_avgReturn');
-let pdSelected = $('pd_selected');
-let goalProgress = $('goalProgress');
-let pdLeft = $('pd_left');
-let pdEta = $('pd_eta');
-let goalCapitalInput = $('goalCapital');
-let returnRange = $('pd_returnRange');
-
-function calcPassiveIncome(capital, rate){
-  return capital * (rate/100) / 12;
-}
-
-function updatePassiveTab(){
-  let capital = parseSafe($('startCapital').value);
-  pdCurrent.innerText = money(capital);
-
-  // Выбранная ставка с ползунка
-  let avgReturn = parseFloat(returnRange.value);
-  pdAvgReturn.innerText = avgReturn.toFixed(1) + '%';
-
-  pdSelected.innerText = money(calcPassiveIncome(capital,avgReturn)) + ' / мес';
-
-  let goal = parseSafe(goalCapitalInput.value);
-  if(goal > 0){
-    let percent = Math.min(100, (capital/goal)*100);
-    goalProgress.style.width = percent + '%';
-    pdLeft.innerText = money(Math.max(0, goal - capital));
-
-    let monthsToGoal = calcPassiveIncome(capital, avgReturn) > 0
-      ? (goal - capital)/calcPassiveIncome(capital, avgReturn)
-      : Infinity;
-    let eta = monthsToGoal===Infinity ? '—' : Math.ceil(monthsToGoal/12) + ' лет';
-    pdEta.innerText = eta;
-  } else {
-    goalProgress.style.width = '0%';
-    pdLeft.innerText = '—';
-    pdEta.innerText = '—';
-  }
-}
-
-// События
-$('startCapital').addEventListener('input', updatePassiveTab);
-goalCapitalInput.addEventListener('input', updatePassiveTab);
-returnRange.addEventListener('input', updatePassiveTab);
-
-// Обновление при переключении вкладки
-document.querySelectorAll('.tabBtn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    if(btn.dataset.tab==='passiveTab') updatePassiveTab();
-  });
-});
-
-// Инициализация
-updatePassiveTab();
-// ===== ИСПОЛЬЗОВАТЬ В КАЛЬКУЛЯТОРЕ (ЖЕЛЕЗОБЕТОН) =====
-document.getElementById('useInCalcBtn')?.addEventListener('click', () => {
-
-  const startCapital = parseFloat(document.getElementById('startCapital')?.value) || 0;
-  if (startCapital <= 0) {
-    alert('Укажи стартовый капитал');
-    return;
-  }
-
-  let totalPnL = 0;
-
-  document.querySelectorAll('#dealsTable tbody tr').forEach(tr => {
-    const inVal  = parseFloat(tr.querySelector('.in')?.value) || 0;
-    const outVal = parseFloat(tr.querySelector('.out')?.value) || 0;
-
-    if (inVal > 0 && outVal > 0) {
-      totalPnL += (outVal - inVal);
-    }
-  });
-
-  const endCapital = startCapital + totalPnL;
-
-  if (endCapital <= 0) {
-    alert('Капитал стал отрицательным');
-    return;
-  }
-
-  const growthPct = ((endCapital / startCapital) - 1) * 100;
-
-  document.getElementById('S0').value = startCapital.toFixed(2);
-  document.getElementById('r').value  = growthPct.toFixed(2);
-
-  document.querySelectorAll('.tabBtn').forEach(b => b.classList.remove('active'));
-  document.querySelector('[data-tab="calcTab"]')?.classList.add('active');
-  document.querySelectorAll('.tabContent').forEach(c => c.style.display = 'none');
-  document.getElementById('calcTab').style.display = 'block';
-
-  if (typeof unlockCalc === 'function') unlockCalc();
-  if (typeof recalc === 'function') recalc();
-
-  showToast('В калькулятор передан реальный рост капитала');
-});
-
-function updateDealCount(count) {
-    const dealCountEl = document.getElementById('dealCount');
-    const dealSummaryEl = document.getElementById('dealSummary');
-    
-    dealCountEl.textContent = count;
-
-    if(count === 0) {
-      dealSummaryEl.classList.add('alert-zero'); // включаем мигание
-    } else {
-      dealSummaryEl.classList.remove('alert-zero'); // выключаем
-    }
-  }
-
-   пример
-  //updateDealCount(0); // рамка будет мигать красным
-  // updateDealCount(5);// рамка вернётся к обычной
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </body>
 </html>
