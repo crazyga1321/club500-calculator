@@ -4,7 +4,11 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>CLUB500 — Калькулятор + Сводка сделок + Пассивный доход</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
+
 :root {
   --bg: #0b1220;
   --card: #111827;
@@ -13,77 +17,109 @@
   --accent2: #06b6d4;
   --bad: #ef4444;
 }
-/* ===== NEON SCAN BADGE ===== */
-
-.scanBadge {
+/* ===== BRAND ANIM (CLUB 500 • BY YGNIVENKO) ===== */
+.scanBadge{
   position: relative;
-  display: inline-block;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: revert-layer;
-  color: rgba(16,185,129,0.45);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Space Grotesk', Inter, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 3.2px;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 10px 26px rgba(0,0,0,0.30),
+    inset 0 0 0 1px rgba(255,255,255,0.04);
   overflow: hidden;
 }
 
-/* неоновая скан-линия */
-.scanBadge::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: -50%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    120deg,
-    transparent,
-    rgba(16,185,129,0.9),
-    rgba(6,182,212,0.9),
-    transparent
-  );
-  animation: scanMove 3.8s linear infinite;
-  pointer-events: none;
+/* gradient text */
+.scanBadge .scanText{
+  background: linear-gradient(90deg, rgba(16,185,129,1), rgba(6,182,212,1), rgba(139,92,246,1), rgba(16,185,129,1));
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 18px rgba(16,185,129,0.18);
+  animation: neonShift 4.2s ease-in-out infinite, neonFlicker 5.6s linear infinite;
 }
 
-/* движение справа → налево */
-@keyframes scanMove {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-260%);
-  }
+.scanBadge .scanSep{
+  opacity: 0.55;
+  color: rgba(148,163,184,0.9);
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
-
-/* неоновая скан-линия */
-.scanBadge::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: -50%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    120deg,
-    transparent,
-    rgba(16,185,129,0.9),
-    rgba(6,182,212,0.9),
-    transparent
-  );
-  animation: scanMove 3.8s linear infinite;
-  pointer-events: none;
+.scanBadge .scanBy{
+  background: linear-gradient(90deg, rgba(148,163,184,0.95), rgba(255,255,255,0.92), rgba(148,163,184,0.95));
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0.92;
+  animation: byShift 4.8s ease-in-out infinite;
 }
 
-/* движение справа → налево */
-@keyframes scanMove {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-260%);
-  }
+/* shimmer sweep */
+.scanBadge::after{
+  content:'';
+  position:absolute;
+  inset:-40% -30%;
+  background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.10) 48%, rgba(255,255,255,0.03) 58%, transparent 70%);
+  transform: translateX(-40%);
+  animation: shimmer 3.6s linear infinite;
+  pointer-events:none;
 }
+
+/* subtle underline pulse */
+.scanBadge::before{
+  content:'';
+  position:absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 4px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(16,185,129,0.65), rgba(6,182,212,0.55), transparent);
+  opacity: 0.55;
+  filter: blur(0.2px);
+  animation: underlinePulse 2.8s ease-in-out infinite;
+  pointer-events:none;
+}
+
+@keyframes neonShift{
+  0%{ background-position: 0% 50%; }
+  50%{ background-position: 100% 50%; }
+  100%{ background-position: 0% 50%; }
+}
+@keyframes byShift{
+  0%{ background-position: 0% 50%; }
+  50%{ background-position: 100% 50%; }
+  100%{ background-position: 0% 50%; }
+}
+@keyframes shimmer{
+  0%{ transform: translateX(-45%) rotate(0.001deg); }
+  100%{ transform: translateX(45%) rotate(0.001deg); }
+}
+@keyframes underlinePulse{
+  0%,100%{ opacity: 0.40; }
+  50%{ opacity: 0.85; }
+}
+@keyframes neonFlicker{
+  0%, 100%{ filter: drop-shadow(0 0 8px rgba(16,185,129,0.20)); }
+  92%{ filter: drop-shadow(0 0 10px rgba(16,185,129,0.24)); }
+  93%{ filter: drop-shadow(0 0 4px rgba(16,185,129,0.10)); }
+  94%{ filter: drop-shadow(0 0 12px rgba(6,182,212,0.22)); }
+  95%{ filter: drop-shadow(0 0 7px rgba(139,92,246,0.18)); }
+}
+
 
 /* ===== GLOBAL ===== */
 * { box-sizing: border-box; }
@@ -163,6 +199,7 @@ header { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
 }
 .grid {
   display: grid;
+  align-items: start;
   grid-template-columns: 1.2fr 1fr;
   gap: 14px;
 }
@@ -259,129 +296,189 @@ th:first-child, td:first-child { text-align: left; }
   100% { transform: scale(1); opacity: 0.9; }
 }
 
-/* ===== CLUB 500 HEADER ===== */
-.brand-header {
-  padding: 40px 20px;
-  margin-bottom: 20px;
-  text-align: center;
+/* ===== CLUB 500 HERO + RESPONSIVE LAYOUT ===== */
+:root{
+  --container: 1200px;
+  --radius: 22px;
+  --topbarH: 260px; /* will be updated by JS */
+  --pad: 16px;
 }
 
-/* ===== ПУЗЫРЬ ===== */
-.brand-bubble {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.wrap { max-width: var(--container); margin: 20px auto; padding: 0 var(--pad); }
 
-  padding: 20px 600px;
-  border-radius: 999px;
+.topbar{ position: relative; }
 
-  border: 1px solid rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.02);
-
+.hero{
+  display:flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 20px 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    radial-gradient(900px 420px at 10% -10%, rgba(31,41,55,0.85), transparent 60%),
+    radial-gradient(760px 420px at 95% 10%, rgba(15,118,110,0.45), transparent 55%),
+    rgba(2,6,23,0.55);
+  backdrop-filter: blur(10px);
   box-shadow:
-    0 0 14px rgba(255,255,255,0.25),
-    0 0 36px rgba(255,255,255,0.18),
-    inset 0 0 18px rgba(255,255,255,0.15);
-
-  overflow: hidden; /* важно для сканера */
-  cursor: pointer;
-
-  transition: transform .4s ease, box-shadow .4s ease;
+    0 14px 40px rgba(0,0,0,0.35),
+    inset 0 0 0 1px rgba(255,255,255,0.03);
+  margin-bottom: 12px;
 }
 
-/* ===== ТЕКСТ ===== */
-.brand-title {
+.hero-main{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 20px;
+}
+
+.hero-left{ max-width: 760px; text-align: left; }
+.hero-kicker{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.hero h1{
   font-family: 'Space Grotesk', system-ui, sans-serif;
-  font-size: 44px;
+  font-size: 46px;
+  line-height: 1.06;
+  margin: 10px 0 8px;
+  letter-spacing: 1px;
+  color: #eafff7;
+  text-shadow: 0 0 18px rgba(16,185,129,0.22), 0 0 44px rgba(6,182,212,0.12), 0 0 90px rgba(139,92,246,0.08);
+  animation: titleGlow 3.2s ease-in-out infinite;
+}
+
+@keyframes titleGlow{
+  0%,100%{ text-shadow: 0 0 14px rgba(16,185,129,0.20), 0 0 34px rgba(6,182,212,0.10), 0 0 80px rgba(139,92,246,0.06); }
+  50%{ text-shadow: 0 0 22px rgba(16,185,129,0.30), 0 0 52px rgba(6,182,212,0.16), 0 0 120px rgba(139,92,246,0.10); }
+}
+
+.hero p{
+  margin: 0;
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.hero-actions{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.hero-actions .btn{
+  padding: 12px 16px;
+  border-radius: 14px;
+  min-height: 44px;
+}
+.hero-actions .btn.ghost{
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.hero-meta{
+  margin-top: 12px;
+  font-size: 12px;
+  color: rgba(148,163,184,0.9);
+}
+
+.hero-right{ display:flex; align-items:center; justify-content:center; }
+
+/* Logo bubble — compact + responsive */
+.brand-bubble{
+  padding: 14px 22px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.02);
+  box-shadow:
+    0 0 14px rgba(255,255,255,0.18),
+    0 0 36px rgba(255,255,255,0.12),
+    inset 0 0 18px rgba(255,255,255,0.10);
+  max-width: 240px;
+}
+.brand-title{
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 22px;
   font-weight: 800;
   letter-spacing: 2.5px;
-  color: #ffffff;
-
-
-
-
-  text-shadow:
-    0 0 6px rgba(255,255,255,0.8),
-    0 0 14px rgba(255,255,255,0.55),
-    0 0 30px rgba(255,255,255,0.35),
-    0 12px 36px rgba(0,0,0,0.9);
-
-  transition: text-shadow .4s ease, transform .4s ease;
 }
 
-/* ===== СКАНЕР ПО КРАЮ ===== */
-.bubble-scan {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
+/* Tabs aligned to hero width + mobile-friendly */
+.tabs{
+  position: sticky;
+  top: 10px;
+  z-index: 60;
+  display:flex;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(31,41,55,0.9);
+  background: rgba(2,6,23,0.72);
+  backdrop-filter: blur(12px);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.tabs::-webkit-scrollbar{ height: 6px; }
+.tabs::-webkit-scrollbar-thumb{ background: rgba(148,163,184,0.25); border-radius: 999px; }
 
-  background:
-    linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255,255,255,0.9) 50%,
-      transparent 100%
-    );
-
-  background-size: 200% 100%;
-  animation: bubbleScan 4.5s linear infinite;
-
-  mask:
-    radial-gradient(transparent 62%, black 64%);
-  -webkit-mask:
-    radial-gradient(transparent 62%, black 64%);
+.tabBtn{
+  white-space: nowrap;
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 700;
 }
 
-/* движение сканера */
-@keyframes bubbleScan {
-  from { background-position: -100% 0; }
-  to   { background-position: 100% 0; }
+/* Cards: unify radius (was too big) */
+.card{ border-radius: var(--radius); }
+
+/* Tab panels: consistent height relative to top area */
+.tabContent{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px 20px;
+  min-height: calc(100vh - var(--topbarH));
 }
 
-/* ===== ДЫХАНИЕ НЕОНА ===== */
-.neon-animate {
-  animation: neonPulse 5.5s ease-in-out infinite;
+/* Layout tweaks */
+.grid{ grid-template-columns: 1.15fr 0.85fr; }
+input, select{ min-height: 44px; font-size: 14px; }
+
+/* ===== Mobile / Tablet ===== */
+@media (max-width: 980px){
+  .hero{ padding: 22px 18px; }
+  .hero h1{ font-size: 40px; }
 }
 
-@keyframes neonPulse {
-  0% {
-    box-shadow:
-      0 0 12px rgba(255,255,255,0.22),
-      0 0 28px rgba(255,255,255,0.15),
-      inset 0 0 16px rgba(255,255,255,0.12);
+@media (max-width: 860px){
+  :root{ --radius: 18px; --pad: 12px; }
+  .wrap{ margin: 12px auto; }
+  .hero{
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
   }
-  50% {
-    box-shadow:
-      0 0 26px rgba(255,255,255,0.45),
-      0 0 58px rgba(255,255,255,0.3),
-      inset 0 0 26px rgba(255,255,255,0.22);
-  }
-  100% {
-    box-shadow:
-      0 0 12px rgba(255,255,255,0.22),
-      0 0 28px rgba(255,255,255,0.15),
-      inset 0 0 16px rgba(255,255,255,0.12);
-  }
+  .hero-right{ justify-content: flex-start; }
+  .hero h1{ font-size: 34px; }
+  .hero p{ font-size: 15px; }
+  .tabs{ top: 8px; padding: 8px; border-radius: 16px; }
+  .grid{ grid-template-columns: 1fr; }
+  table{ font-size: 12px; }
 }
 
-/* ===== HOVER ===== */
-.brand-bubble:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow:
-    0 0 34px rgba(255,255,255,0.65),
-    0 0 76px rgba(255,255,255,0.5),
-    inset 0 0 32px rgba(255,255,255,0.3);
+@media (max-width: 520px){
+  .hero h1{ font-size: 30px; }
+  .hero-actions{ gap: 8px; }
+  .hero-actions .btn{ width: 100%; justify-content: center; }
+  input, select{ font-size: 16px; } /* prevent iOS zoom */
+  table{ display:block; overflow-x:auto; }
 }
 
-.brand-bubble:hover .brand-title {
-  text-shadow:
-    0 0 12px rgba(255,255,255,1),
-    0 0 32px rgba(255,255,255,0.85),
-    0 0 64px rgba(255,255,255,0.6),
-    0 16px 44px rgba(0,0,0,0.95);
-}
 /* ===== NEON SUMMARY CARD ===== */
 
 .neon-card {
@@ -671,7 +768,6 @@ th:first-child, td:first-child { text-align: left; }
 }
  
 
-
 /* ===== TOAST ===== */
 .toast{
   position: fixed;
@@ -712,9 +808,6 @@ th:first-child, td:first-child { text-align: left; }
   font-weight: 900;
 }
 
-
-
-
 /* ===== CALC SUMMARY EMPHASIS ===== */
 .final-capital{
   padding: 22px;
@@ -748,32 +841,1703 @@ th:first-child, td:first-child { text-align: left; }
   letter-spacing: 2px;
 }
 
+/* ===== PERF: trim animations in Calculator tab ===== */
+/* отключаем анимации только на карточке с вводом параметров (чтобы не лагало) */
+#calcTab .card.inputs.neon-card,
+#calcTab .card.inputs.neon-card *{
+  animation: none !important;
+  transition: none !important;
+}
+#calcTab .card.inputs.neon-card:hover{ transform:none !important; }
+
+/* оставляем микро-анимацию только для RESULT / краткой сводки */
+#calcTab .summary-badge,
+#calcTab .summary-badge *{
+  transition: transform .22s ease, box-shadow .22s ease, opacity .22s ease !important;
+}
+#calcTab .resultPulse{ animation: resultPulse 0.6s ease !important; }
+@keyframes resultPulse{
+  0%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.02);opacity:1}
+  100%{transform:scale(1);opacity:1}
+}
+
+/* ===== Deals summary: smooth micro-animations ===== */
+#dealsTab .capital-visual{
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+#dealsTab .capital-visual:hover{
+  transform: translateY(-2px);
+}
+
+/* ===== UX: lightweight, expressive asset tag (no heavy animations) ===== */
+.tagDisplay{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(16,185,129,0.35);
+  background: linear-gradient(180deg, rgba(16,185,129,0.18), rgba(6,182,212,0.10));
+  box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+  font-weight:700;
+  letter-spacing:.3px;
+  white-space:nowrap;
+}
+.tagDisplay .tagDot{
+  width:8px;height:8px;border-radius:50%;
+  background: rgba(16,185,129,0.95);
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.15);
+}
+.tagDisplay .tagText{
+  font-size:12px;
+}
+.tagDisplay .tagRemove{
+  border:0;
+  background: transparent;
+  color: rgba(239,68,68,0.95);
+  font-weight:900;
+  cursor:pointer;
+  padding:0 4px;
+  line-height:1;
+}
+/* one-time micro pop on creation (GPU-friendly) */
+.tagPop{
+  animation: tagPop 160ms ease-out 1;
+}
+@keyframes tagPop{
+  0%{transform:scale(.96);opacity:.6}
+  100%{transform:scale(1);opacity:1}
+}
+
+/* ===== UX: one-time lock flash when asset is fixed ===== */
+.tagLockFlash{
+  position: relative;
+}
+.tagLockFlash::after{
+  content:'';
+  position:absolute;
+  inset:-4px;
+  border-radius:999px;
+  box-shadow: 0 0 0 0 rgba(16,185,129,.55);
+  animation: tagLock 220ms ease-out 1;
+}
+@keyframes tagLock{
+  0%{box-shadow:0 0 0 0 rgba(16,185,129,.55)}
+  100%{box-shadow:0 0 0 6px rgba(16,185,129,0)}
+}
+
+/* ===== UX: lock icon inside fixed asset tag ===== */
+.tagDisplay .tagLock{
+  font-size:12px;
+  opacity:.9;
+  margin-left:2px;
+  line-height:1;
+}
+
+/* ===== UX: lock badge next to asset tag (table) ===== */
+.tagWrap{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.lockBadge{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  width:26px;
+  height:26px;
+  border-radius:999px;
+  border:1px solid rgba(16,185,129,0.35);
+  background: rgba(16,185,129,0.12);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.16);
+  font-size:14px;
+  line-height:1;
+}
+.tagWrap.locked .lockBadge{
+  display:inline-flex;
+}
+
+/* ===== UX: change tag look when deal is closed (locked) ===== */
+.tagWrap.locked .tagDisplay{
+  border-color: rgba(99,102,241,0.45); /* indigo */
+  background: linear-gradient(180deg, rgba(99,102,241,0.20), rgba(6,182,212,0.08));
+}
+.tagWrap.locked .tagDisplay .tagDot{
+  background: rgba(99,102,241,0.95);
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.16);
+}
+
+/* === TOOLTIP (lightweight) === */
+.tooltip{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  cursor:help;
+}
+.tooltip i{
+  font-style:normal;
+  font-size:12px;
+  color:#94a3b8;
+  border:1px solid #94a3b8;
+  border-radius:50%;
+  width:14px;
+  height:14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.tooltip span{
+  position:absolute;
+  bottom:130%;
+  left:0;
+  background:#0f172a;
+  color:#e5e7eb;
+  font-size:12px;
+  padding:6px 8px;
+  border-radius:6px;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(4px);
+  transition:opacity .15s ease, transform .15s ease;
+  z-index:50;
+}
+.tooltip:hover span{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.iconBtn{
+  width:28px;height:28px;
+  border-radius:8px;
+  border:1px solid rgba(239,68,68,.4);
+  background:rgba(239,68,68,.12);
+  color:#fff;
+  cursor:pointer;
+  font-weight:900;
+}
+.iconBtn:hover{background:rgba(239,68,68,.25)}
+
+/* === Small fintech action button (inline) === */
+.miniFinBtn{
+  margin-left:8px;
+  width:34px;height:34px;
+  border-radius:12px;
+  border:1px solid rgba(59,130,246,0.35);
+  background:linear-gradient(180deg, rgba(59,130,246,0.22), rgba(16,185,129,0.18));
+  color:#e5e7eb;
+  cursor:pointer;
+  font-weight:900;
+  line-height:32px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+}
+.miniFinBtn:hover{
+  border-color: rgba(16,185,129,0.55);
+  box-shadow: 0 14px 32px rgba(0,0,0,0.28);
+}
+.miniFinBtn:active{
+  transform: translateY(1px);
+}
+
+/* === Erase button (compact, fintech) === */
+.eraseBtn{
+  padding:5px 9px;
+  border-radius:10px;
+  border:1px solid rgba(59,130,246,0.40);
+  background: linear-gradient(180deg, rgba(59,130,246,0.22), rgba(16,185,129,0.14));
+  color:#f8fafc;
+  cursor:pointer;
+  font-weight:800;
+  font-size:12px;
+  font-family: ui-rounded, "Nunito", "Poppins", Inter, system-ui, Arial;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.22);
+}
+
+.eraseBtn:hover{
+  border-color: rgba(16,185,129,0.65);
+  box-shadow: 0 20px 44px rgba(0,0,0,0.34);
+  transform: translateY(-1px);
+}
+.eraseBtn:active{
+  transform: translateY(0px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+}
+
+/* === Start capital reset button (right side, small) === */
+.startCapWrap{
+  position: relative;
+  width: 100%;
+}
+.startCapWrap input{
+  width: 100%;
+  padding-right: 72px;
+}
+.eraseBtnSmall{
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px 8px;
+  border-radius: 9px;
+  border: 1px solid rgba(59,130,246,0.45);
+  background: linear-gradient(180deg, rgba(59,130,246,0.22), rgba(16,185,129,0.14));
+  color:#f8fafc;
+  cursor:pointer;
+  font-weight:700;
+  font-size:11px;
+  font-family: ui-rounded, "Nunito", "Poppins", Inter, system-ui, Arial;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.22);
+}
+.eraseBtnSmall:hover{
+  border-color: rgba(16,185,129,0.65);
+}
+
+/* ===============================
+   CLUB500 • UI POLISH (Variant B)
+   Premium contrast + typography
+   (Safe overrides — easy rollback)
+   =============================== */
+
+:root{
+  /* soften overall text contrast */
+  --text-main: #e5e7eb;
+  --text-strong: #f8fafc;
+  --text-muted-soft: #9ca3af;
+
+  /* slightly deeper background for premium feel */
+  --bg: #070c16;              /* was #0b1220 */
+  --card: rgba(2,6,23,0.82);  /* tighter card surface */
+}
+
+/* Typography baseline */
+body{
+  font-family: Inter, system-ui, Arial;
+  color: var(--text-main);
+  line-height: 1.55;
+  letter-spacing: 0.1px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings & key labels */
+.logo,
+.brand-title,
+.summary-title,
+.chartTitle{
+  font-family: "Space Grotesk", Inter, system-ui, Arial;
+}
+
+/* Remove "all white everywhere" effect */
+.muted,
+.small-muted,
+.capital-sub,
+.chartMeta,
+.footer-note,
+.app-footer{
+  color: var(--text-muted-soft) !important;
+}
+
+/* Default text should not be pure white */
+.card,
+.tabContent,
+label,
+td,
+input,
+select{
+  color: var(--text-main);
+}
+
+/* Strong text only where it matters */
+.result,
+#final{
+  color: var(--text-strong);
+}
+
+/* Cards — premium glass with subtle inner gradient */
+.card{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.010)),
+    rgba(2,6,23,0.70);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+}
+
+/* Tabs — calm by default, pop on active */
+.tabBtn{
+  background: rgba(2,6,23,0.60);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--text-main);
+}
+.tabBtn:hover{
+  border-color: rgba(139,92,246,0.55);
+}
+
+/* Inputs — slightly lighter surface, clearer focus */
+input, select, .fake-input{
+  background: rgba(2,6,23,0.75);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+input:focus, select:focus{
+  outline: none;
+  border-color: rgba(34,211,238,0.55);
+  box-shadow: 0 0 0 4px rgba(34,211,238,0.12);
+}
+
+/* Tables — reduce harsh grid, improve readability */
+table{
+  font-variant-numeric: tabular-nums;
+}
+th{
+  color: rgba(156,163,175,0.95);
+  font-weight: 600;
+}
+th, td{
+  padding: 8px 10px; /* was 1px — too tight */
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+#table tbody tr:hover{
+  background: rgba(255,255,255,0.02);
+}
+
+/* Buttons — slightly less saturation idle, more premium hover */
+.btn{
+  filter: saturate(0.92) contrast(1.02);
+}
+.btn:hover{
+  filter: saturate(1.06) contrast(1.05);
+}
+
+/* Reduce caps noise: keep uppercase only on micro-labels */
+.capital-label,
+.summary-title,
+.chartTitle{
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+}
+
+/* ===============================
+   CLUB500 • YEAR CYCLE EMPHASIS
+   Expressive "fix year" states
+   =============================== */
+
+#statsTab .cycleCard{
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle premium background when start is fixed */
+#statsTab .cycleCard.cycle-started{
+  border-color: rgba(34,211,238,0.22);
+  box-shadow:  0 22px 70px rgba(0,0,0,0.48), 0 0 54px rgba(34,211,238,0.18);
+}
+#statsTab .cycleCard.cycle-started::before{
+  content:'';
+  position:absolute;
+  inset:-2px;
+  background: radial-gradient(800px 260px at 20% 0%, rgba(34,211,238,0.12), transparent 60%),
+              radial-gradient(700px 240px at 80% 10%, rgba(16,185,129,0.08), transparent 55%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* stronger glow when end is fixed */
+#statsTab .cycleCard.cycle-ended{
+  border-color: rgba(16,185,129,0.26);
+  box-shadow:  0 28px 84px rgba(0,0,0,0.52), 0 0 72px rgba(16,185,129,0.24);
+}
+#statsTab .cycleCard.cycle-ended::before{
+  content:'';
+  position:absolute;
+  inset:-2px;
+  background: radial-gradient(820px 280px at 30% 0%, rgba(16,185,129,0.16), transparent 62%),
+              radial-gradient(760px 260px at 78% 8%, rgba(6,182,212,0.12), transparent 58%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* keep content above overlay */
+#statsTab .cycleCard > *{ position: relative; z-index: 1; }
+
+/* top-right status pill */
+.cycleStamp{
+  position:absolute;
+  top: 14px;
+  right: 14px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(2,6,23,0.55);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.35);
+  pointer-events:none;
+}
+.cycleStamp .dot{
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(148,163,184,0.9);
+  box-shadow: 0 0 0 4px rgba(148,163,184,0.16);
+}
+.cycleStamp.start .dot{
+  background: rgba(34,211,238,0.95);
+  box-shadow: 0 0 0 4px rgba(34,211,238,0.16);
+}
+.cycleStamp.end .dot{
+  background: rgba(16,185,129,0.95);
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.18);
+}
+.cycleStamp small{
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .6px;
+  opacity: .75;
+}
+
+/* stamp vivid state */
+.cycleStamp.start{
+  border-color: rgba(34,211,238,0.28);
+  background: linear-gradient(180deg, rgba(34,211,238,0.14), rgba(2,6,23,0.55));
+  box-shadow: 0 18px 48px rgba(0,0,0,0.45), 0 0 34px rgba(34,211,238,0.18);
+}
+.cycleStamp.end{
+  border-color: rgba(16,185,129,0.30);
+  background: linear-gradient(180deg, rgba(16,185,129,0.16), rgba(2,6,23,0.55));
+  box-shadow: 0 20px 56px rgba(0,0,0,0.48), 0 0 46px rgba(16,185,129,0.22);
+}
+
+/* one-time flash animation after clicking fix */
+@keyframes cycleFlashStart{
+  0%{ box-shadow: 0 0 0 rgba(56,189,248,0); }
+  25%{ box-shadow: 0 0 0 10px rgba(56,189,248,0.28), 0 0 90px rgba(56,189,248,0.55); }
+  55%{ box-shadow: 0 0 0 6px rgba(56,189,248,0.16), 0 0 60px rgba(56,189,248,0.40); }
+  100%{ box-shadow: 0 0 0 rgba(56,189,248,0); }
+}
+  30%{ box-shadow: 0 0 0 8px rgba(34,211,238,0.18), 0 0 54px rgba(34,211,238,0.32); }
+  60%{ box-shadow: 0 0 0 4px rgba(34,211,238,0.10), 0 0 36px rgba(34,211,238,0.22); }
+  100%{ box-shadow: 0 0 0 rgba(34,211,238,0); }
+}
+  35%{ box-shadow: 0 0 0 6px rgba(34,211,238,0.14), 0 0 34px rgba(34,211,238,0.20); }
+  100%{ box-shadow: 0 0 0 rgba(34,211,238,0); }
+}
+@keyframes cycleFlashEnd{
+  0%{ box-shadow: 0 0 0 rgba(16,185,129,0); }
+  28%{ box-shadow: 0 0 0 9px rgba(16,185,129,0.20), 0 0 72px rgba(16,185,129,0.34); }
+  60%{ box-shadow: 0 0 0 5px rgba(16,185,129,0.12), 0 0 44px rgba(16,185,129,0.24); }
+  100%{ box-shadow: 0 0 0 rgba(16,185,129,0); }
+}
+  35%{ box-shadow: 0 0 0 7px rgba(16,185,129,0.16), 0 0 44px rgba(16,185,129,0.26); }
+  100%{ box-shadow: 0 0 0 rgba(16,185,129,0); }
+}
+#statsTab .cycleCard.flash-start{ animation: cycleFlashStart 900ms ease-out 1; }
+#statsTab .cycleCard.flash-end{ animation: cycleFlashEnd 1000ms ease-out 1; }
+
+/* ===============================
+   CLUB500 • YEAR ROW HIGHLIGHT
+   Flash the newly added year row
+   =============================== */
+@keyframes yearRowPulse{
+  0%{ background: rgba(34,211,238,0.00); box-shadow: inset 0 0 0 rgba(0,0,0,0); }
+  20%{ background: rgba(34,211,238,0.08); box-shadow: inset 0 0 0 999px rgba(34,211,238,0.02); }
+  55%{ background: rgba(16,185,129,0.10); box-shadow: inset 0 0 0 999px rgba(16,185,129,0.03); }
+  100%{ background: rgba(0,0,0,0.00); box-shadow: inset 0 0 0 rgba(0,0,0,0); }
+}
+.yearRowFlash{
+  animation: yearRowPulse 1400ms ease-out 1;
+  border-radius: 12px;
+}
+.yearRowFlash td{
+  position: relative;
+}
+
+/* ===============================
+   CLUB500 • START FIXED — VIVID STATE
+   =============================== */
+
+/* very expressive START color */
+#statsTab .cycleCard.cycle-started{
+  border-color: rgba(56,189,248,0.85); /* bright cyan */
+  background:
+    radial-gradient(900px 320px at 20% 0%, rgba(56,189,248,0.28), transparent 60%),
+    radial-gradient(700px 260px at 80% 10%, rgba(34,211,238,0.22), transparent 55%),
+    linear-gradient(180deg, rgba(56,189,248,0.10), rgba(2,6,23,0.75));
+  box-shadow:
+    0 26px 90px rgba(0,0,0,0.55),
+    0 0 96px rgba(56,189,248,0.45);
+}
+
+/* keep END even stronger & greener */
+#statsTab .cycleCard.cycle-ended{
+  border-color: rgba(16,185,129,0.95);
+  background:
+    radial-gradient(900px 320px at 20% 0%, rgba(16,185,129,0.32), transparent 62%),
+    radial-gradient(700px 260px at 80% 10%, rgba(6,182,212,0.24), transparent 58%),
+    linear-gradient(180deg, rgba(16,185,129,0.12), rgba(2,6,23,0.75));
+  box-shadow:
+    0 30px 110px rgba(0,0,0,0.58),
+    0 0 120px rgba(16,185,129,0.55);
+}
+
+/* stamp — start is clearly cyan */
+.cycleStamp.start{
+  color: #e0f2fe;
+  border-color: rgba(56,189,248,0.85);
+  background:
+    linear-gradient(180deg, rgba(56,189,248,0.28), rgba(2,6,23,0.65));
+  box-shadow:
+    0 18px 48px rgba(0,0,0,0.45),
+    0 0 48px rgba(56,189,248,0.45);
+}
+
+/* ===============================
+   CLUB500 • STATS FOCUS MODE
+   Dim other cards when cycle fixed
+   =============================== */
+#statsTab.statsFocus .card{
+  transition: filter .22s ease, opacity .22s ease, transform .22s ease;
+}
+
+/* dim everything except the year cycle card */
+#statsTab.statsFocus .card:not(.cycleCard){
+  opacity: 0.86;
+  filter: saturate(0.88) brightness(0.92);
+}
+
+/* keep cycle card crisp */
+#statsTab.statsFocus .cycleCard{
+  opacity: 1;
+  filter: none;
+  transform: translateY(-1px);
+}
+
+/* ===============================
+   CLUB500 • STATS ENHANCEMENTS (2/3/4)
+   2) Percent color logic
+   3) Facts vs Analysis sectioning
+   4) Mini year timeline
+   =============================== */
+
+/* 2) Percent colors */
+.pct{
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+.pct.neg{ color: rgba(239,68,68,0.95); text-shadow: 0 0 18px rgba(239,68,68,0.18); }
+.pct.neu{ color: rgba(226,232,240,0.92); }
+.pct.cyan{ color: rgba(34,211,238,0.95); text-shadow: 0 0 22px rgba(34,211,238,0.18); }
+.pct.green{ color: rgba(16,185,129,0.98); text-shadow: 0 0 24px rgba(16,185,129,0.22); }
+
+/* 3) Section headings */
+.statsSections{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin: 8px 0 10px;
+  flex-wrap:wrap;
+}
+.sectionPill{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(2,6,23,0.55);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.35);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.sectionPill .dot{
+  width: 9px; height: 9px; border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(148,163,184,0.16);
+  background: rgba(148,163,184,0.9);
+}
+.sectionPill.analysis .dot{
+  background: rgba(34,211,238,0.95);
+  box-shadow: 0 0 0 4px rgba(34,211,238,0.16);
+}
+.sectionPill.facts .dot{
+  background: rgba(167,139,250,0.95);
+  box-shadow: 0 0 0 4px rgba(167,139,250,0.16);
+}
+.statsHint{
+  color: rgba(156,163,175,0.95);
+  font-size: 12px;
+}
+
+/* 4) Mini year timeline */
+.yearTimeline{
+  margin-top: 14px;
+  padding: 12px 12px 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(2,6,23,0.55);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+.yearTimelineTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom: 10px;
+}
+.yearTimelineTop .title{
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: rgba(226,232,240,0.95);
+}
+.yearTimelineTop .meta{
+  font-size: 11px;
+  color: rgba(156,163,175,0.95);
+}
+.timelineBar{
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(148,163,184,0.18);
+  overflow: hidden;
+}
+.timelineFill{
+  position:absolute;
+  inset:0;
+  background: linear-gradient(90deg, rgba(34,211,238,0.55), rgba(16,185,129,0.55));
+  opacity: .18;
+}
+.timelineMarks{
+  position:absolute;
+  inset:0;
+  display:grid;
+  grid-template-columns: repeat(12, 1fr);
+}
+.timelineMarks span{
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+.timelineMarks span:last-child{ border-right: 0; }
+
+.tMarker{
+  position:absolute;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(2,6,23,0.9);
+  box-shadow: 0 0 0 5px rgba(255,255,255,0.06), 0 0 22px rgba(34,211,238,0.18);
+}
+.tMarker.start{ background: rgba(56,189,248,0.95); box-shadow: 0 0 0 5px rgba(56,189,248,0.16), 0 0 30px rgba(56,189,248,0.28); }
+.tMarker.now{ background: rgba(226,232,240,0.92); box-shadow: 0 0 0 5px rgba(226,232,240,0.10), 0 0 22px rgba(226,232,240,0.12); }
+.tMarker.end{ background: rgba(16,185,129,0.98); box-shadow: 0 0 0 5px rgba(16,185,129,0.18), 0 0 34px rgba(16,185,129,0.32); }
+
+.timelineLabels{
+  margin-top: 8px;
+  display:grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 4px;
+  font-size: 10px;
+  color: rgba(156,163,175,0.85);
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
+.timelineLabels span{ text-align:center; opacity:.85; }
+
+/* ===============================
+   CLUB500 • STATS FILTER (FACTS/ANALYSIS)
+   Pills behave as toggles
+   =============================== */
+.sectionPill{
+  cursor: pointer;
+  user-select: none;
+}
+.sectionPill:active{ transform: translateY(1px); }
+.sectionPill.active{
+  border-color: rgba(255,255,255,0.22);
+  box-shadow: 0 18px 46px rgba(0,0,0,0.45);
+}
+.sectionPill.analysis.active{
+  border-color: rgba(34,211,238,0.45);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45), 0 0 34px rgba(34,211,238,0.18);
+}
+.sectionPill.facts.active{
+  border-color: rgba(167,139,250,0.45);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45), 0 0 34px rgba(167,139,250,0.18);
+}
+
+/* Filter behavior */
+#statsTab.statsFilterAnalysis [data-section="facts"]{ display:none; }
+#statsTab.statsFilterFacts [data-section="analysis"]{ display:none; }
+
+/* Timeline fill segment (start -> now/end) */
+#timelineFill{
+  position:absolute;
+  top:0; bottom:0;
+  left:0%;
+  width:100%;
+  opacity: .30; /* stronger than base */
+  border-radius: 999px;
+}
+
+/* ===============================
+   CLUB500 • STATS FILTER VISIBILITY FIX
+   =============================== */
+.sectionPill{
+  color: rgba(248,250,252,0.95);
+}
+.sectionPill span{
+  color: inherit;
+}
+.sectionPill:not(.active){
+  opacity: 0.9;
+}
+.sectionPill.analysis:not(.active){
+  border-color: rgba(34,211,238,0.25);
+}
+.sectionPill.facts:not(.active){
+  border-color: rgba(167,139,250,0.25);
+}
+
+/* ===============================
+   CLUB500 • STATS LAYOUT NORMALIZATION
+   Make cards less stretched + consistent
+   =============================== */
+
+/* Center the whole stats tab and limit max width */
+#statsTab{
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Normalize card sizing inside stats tab */
+#statsTab .card{
+  padding: 16px !important;
+  border-radius: 20px !important;
+}
+
+/* Keep the cycle card a touch larger (it is the hero) */
+#statsTab .cycleCard{
+  padding: 18px !important;
+  border-radius: 22px !important;
+}
+
+/* Tighter vertical rhythm between blocks */
+#statsTab .statsSections{
+  margin: 6px 0 10px !important;
+}
+
+/* Reduce excessive spacing for cards that had margin-top */
+#statsTab .card[style*="margin-top"]{
+  margin-top: 10px !important;
+}
+
+/* Grid: slightly more balanced columns to avoid wide empty cards */
+#statsTab .statsGrid{
+  display: grid;
+  grid-template-columns: 1fr 0.9fr;
+  gap: 12px;
+  align-items: start;
+}
+
+/* If the original grid is inline-styled, this will still apply via JS class hook below */
+
+/* ===============================
+   CLUB500 • CASH-IN CARD POLISH
+   =============================== */
+#statsTab .cashInCard{
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(167,139,250,0.26) !important;
+  background:
+    radial-gradient(880px 320px at 20% 0%, rgba(167,139,250,0.22), transparent 60%),
+    radial-gradient(760px 280px at 85% 10%, rgba(34,211,238,0.14), transparent 55%),
+    linear-gradient(180deg, rgba(167,139,250,0.10), rgba(2,6,23,0.72));
+  box-shadow:
+    0 22px 70px rgba(0,0,0,0.48),
+    0 0 54px rgba(167,139,250,0.18);
+}
+#statsTab .cashInCard::before{
+  content:'';
+  position:absolute;
+  inset:-2px;
+  background:
+    linear-gradient(90deg, rgba(167,139,250,0.0), rgba(167,139,250,0.20), rgba(34,211,238,0.12), rgba(167,139,250,0.0));
+  opacity: .35;
+  pointer-events:none;
+}
+#statsTab .cashInCard > *{ position: relative; z-index: 1; }
+
+.cashInHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 10px;
+}
+.cashInTitle{
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  color: rgba(248,250,252,0.96);
+}
+.cashInBadge{
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: rgba(248,250,252,0.92);
+  background: rgba(2,6,23,0.55);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.35);
+}
+.cashInStrip{
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(148,163,184,0.18);
+  overflow:hidden;
+  margin-bottom: 12px;
+}
+.cashInStripFill{
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(167,139,250,0.95), rgba(34,211,238,0.70));
+  box-shadow: 0 0 28px rgba(167,139,250,0.24);
+  transition: width .35s ease;
+}
+
+/* ===============================
+   CLUB500 • CASH-IN FIXES
+   =============================== */
+.cashInCard{
+  overflow: hidden;
+}
+.cashInCard table{
+  width: 100%;
+}
+.cashInCard td{
+  overflow: hidden;
+}
+.cashInCard .btn,
+.cashInCard button{
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ===============================
+   CLUB500 • TOTAL HIGHLIGHT
+   =============================== */
+.cashInTotal{
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(16,185,129,0.18), rgba(2,6,23,0.75));
+  border: 1px solid rgba(16,185,129,0.35);
+  box-shadow:
+    0 18px 46px rgba(0,0,0,0.45),
+    0 0 44px rgba(16,185,129,0.25);
+}
+.cashInTotal .label{
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(226,232,240,0.95);
+  margin-bottom: 6px;
+}
+.cashInTotal .value{
+  font-size: 22px;
+  font-weight: 900;
+  color: rgba(236,253,245,0.98);
+}
+.cashInTotal .sub{
+  font-size: 13px;
+  color: rgba(167,243,208,0.95);
+}
+
+/* CASH-IN TOTAL: make readonly inputs pop */
+.cashInTotal input[readonly]{
+  font-weight: 900;
+  font-size: 18px;
+  background: rgba(2,6,23,0.70);
+  border-color: rgba(16,185,129,0.22);
+}
+.cashInTotal label{
+  color: rgba(226,232,240,0.92);
+}
+.cashInTotal .value{
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: rgba(167,243,208,0.95);
+  margin-bottom: 8px;
+}
+
+/* Keep Add button fully visible */
+#cashInAddBtn{
+  width: 100%;
+  white-space: nowrap;
+}
+
+/* ===============================
+   CLUB500 • CASH-IN TABLE FULL WIDTH
+   =============================== */
+
+/* Make cash-in table span full width like the top table */
+#statsTab .cashInCard table{
+  width: 100% !important;
+}
+
+/* If the card is in the right column, allow it to span both columns */
+#statsTab .cashInCard{
+  grid-column: 1 / -1;
+}
+
+/* Keep inner cells readable when stretched */
+#statsTab .cashInCard th,
+#statsTab .cashInCard td{
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* ===============================
+   CLUB500 • YEAR STATS CARD BEAUTY
+   =============================== */
+#statsTab .yearStatsCard{
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(34,211,238,0.22) !important;
+  background:
+    radial-gradient(900px 340px at 18% 0%, rgba(34,211,238,0.18), transparent 62%),
+    radial-gradient(820px 320px at 85% 10%, rgba(167,139,250,0.16), transparent 58%),
+    linear-gradient(180deg, rgba(34,211,238,0.06), rgba(2,6,23,0.72));
+  box-shadow:
+    0 22px 70px rgba(0,0,0,0.48),
+    0 0 54px rgba(34,211,238,0.14);
+}
+#statsTab .yearStatsCard::before{
+  content:'';
+  position:absolute;
+  inset:-2px;
+  background: linear-gradient(90deg,
+    rgba(34,211,238,0.00),
+    rgba(34,211,238,0.18),
+    rgba(167,139,250,0.14),
+    rgba(34,211,238,0.00)
+  );
+  opacity: .26;
+  pointer-events:none;
+}
+#statsTab .yearStatsCard > *{ position: relative; z-index: 1; }
+
+.yearHdr{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top: 12px;
+}
+.yearHdrTitle{
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: .2px;
+  color: rgba(248,250,252,0.96);
+}
+.yearHdrBadge{
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: rgba(248,250,252,0.92);
+  background: rgba(2,6,23,0.55);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.35);
+}
+.yearHdrSub{
+  margin-top: 6px;
+  color: rgba(156,163,175,0.95);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Table styling */
+#statsTab .yearStatsCard table{
+  margin-top: 10px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+#statsTab .yearStatsCard thead th{
+  color: rgba(226,232,240,0.92);
+  font-weight: 800;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  font-size: 11px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+#statsTab .yearStatsCard tbody td{
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+#statsTab .yearStatsCard tbody tr{
+  background: rgba(255,255,255,0.015);
+}
+#statsTab .yearStatsCard tbody tr:hover{
+  background: rgba(34,211,238,0.04);
+}
+#statsTab .yearStatsCard tbody tr:first-child td:first-child{
+  border-top-left-radius: 14px;
+}
+#statsTab .yearStatsCard tbody tr:first-child td:last-child{
+  border-top-right-radius: 14px;
+}
+#statsTab .yearStatsCard tbody tr:last-child td:first-child{
+  border-bottom-left-radius: 14px;
+}
+#statsTab .yearStatsCard tbody tr:last-child td:last-child{
+  border-bottom-right-radius: 14px;
+}
+
+/* Summary block */
+.yearSummary{
+  margin-top: 12px;
+  padding: 12px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(2,6,23,0.55);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+.yearSummary .row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding: 8px 4px;
+}
+.yearSummary .row + .row{
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.yearSummary .k{
+  color: rgba(156,163,175,0.95);
+  font-size: 12px;
+}
+.yearSummary .v{
+  text-align:right;
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(226,232,240,0.95);
+}
+.yearSummary .v .pct{ font-size: 13px; }
+
+/* ===============================
+   CLUB500 • COMPRESSION (200% AVG) UI
+   =============================== */
+.compVal{
+  font-weight: 950;
+  letter-spacing: .2px;
+}
+.compVal.pos{ color: rgba(16,185,129,0.98); text-shadow: 0 0 24px rgba(16,185,129,0.22); }
+.compVal.zero{ color: rgba(226,232,240,0.92); }
+.compVal.neg{ color: rgba(239,68,68,0.95); text-shadow: 0 0 18px rgba(239,68,68,0.18); }
+
+.compHint{
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(156,163,175,0.92);
+  line-height: 1.45;
+}
+
+/* ===============================
+   CLUB500 • COMPRESSION BADGE
+   =============================== */
+.compRow{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+}
+.compBadge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.4px;
+  white-space:nowrap;
+  border:1px solid rgba(255,255,255,0.14);
+  background: rgba(2,6,23,0.65);
+}
+.compBadge.pos{
+  color: rgba(16,185,129,0.98);
+  border-color: rgba(16,185,129,0.35);
+  box-shadow: 0 0 24px rgba(16,185,129,0.25);
+}
+.compBadge.neg{
+  color: rgba(239,68,68,0.95);
+  border-color: rgba(239,68,68,0.35);
+  box-shadow: 0 0 18px rgba(239,68,68,0.25);
+}
+.compBadge.zero{
+  color: rgba(226,232,240,0.92);
+}
+
+.compText{
+  font-size:10px;
+  line-height:1.45;
+  color: rgba(156,163,175,0.95);
+}
+
+/* ===============================
+   CLUB500 • YEAR AVG DISPLAY FIX
+   Make avg % meaningful and aligned
+   =============================== */
+#yearAvgPct, #yearNeedNext{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top: 8px;
+}
+.avgBadge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.4px;
+  white-space:nowrap;
+  border:1px solid rgba(255,255,255,0.14);
+  background: rgba(2,6,23,0.65);
+}
+.avgBadge.neg{ color: rgba(239,68,68,0.95); border-color: rgba(239,68,68,0.32); box-shadow: 0 0 18px rgba(239,68,68,0.20); }
+.avgBadge.neu{ color: rgba(226,232,240,0.92); }
+.avgBadge.cyan{ color: rgba(34,211,238,0.95); border-color: rgba(34,211,238,0.30); box-shadow: 0 0 22px rgba(34,211,238,0.18); }
+.avgBadge.green{ color: rgba(16,185,129,0.98); border-color: rgba(16,185,129,0.32); box-shadow: 0 0 24px rgba(16,185,129,0.20); }
+
+.avgText{
+  font-size:10px;
+  line-height:1.45;
+  color: rgba(156,163,175,0.95);
+}
+
+/* ===============================
+   CLUB500 • DEALS TAB WIDTH + TABLE RIGIDITY
+   =============================== */
+#dealsTab{
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* override earlier duplicated paddings */
+#dealsTab .deals-inner{
+  padding: 0 20px !important;
+}
+
+/* make table feel like a compact sheet, not stretched */
+#dealsTable{
+  width: 100% !important;
+  table-layout: fixed;
+}
+#dealsTable th, #dealsTable td{
+  padding: 10px 10px;
+}
+#dealsTable thead th{
+  font-size: 11px;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: rgba(226,232,240,0.92);
+}
+#dealsTable th:nth-child(1), #dealsTable td:nth-child(1){ width: 44px; text-align:center; }
+#dealsTable th:nth-child(3), #dealsTable td:nth-child(3){ width: 110px; }
+#dealsTable th:nth-child(4), #dealsTable td:nth-child(4){ width: 110px; }
+#dealsTable th:nth-child(5), #dealsTable td:nth-child(5){ width: 86px; }
+#dealsTable th:nth-child(6), #dealsTable td:nth-child(6){ width: 120px; }
+#dealsTable th:nth-child(7), #dealsTable td:nth-child(7){ width: 88px; text-align:center; }
+
+/* keep asset column readable */
+#dealsTable th:nth-child(2), #dealsTable td:nth-child(2){
+  width: auto;
+  text-align:left;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* stabilize scroll container */
+#dealsTab .dealsTableWrap{
+  overflow:auto;
+  margin-top:8px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ===============================
+   CLUB500 • AVAILABLE CAPITAL ALERT
+   =============================== */
+.capital-visual.capitalZero{
+  border-color: rgba(239,68,68,0.85) !important;
+  box-shadow:
+    0 0 0 1px rgba(239,68,68,0.55),
+    0 0 26px rgba(239,68,68,0.45);
+}
+.capital-visual.capitalZero .muted,
+.capital-visual.capitalZero .label{
+  color: rgba(254,202,202,0.95);
+}
+
+/* ===============================
+   CLUB500 • AVAILABLE CAPITAL FULL ALERT
+   =============================== */
+.capital-visual.capitalZero{
+  border-color: rgba(239,68,68,0.9) !important;
+  background:
+    radial-gradient(900px 320px at 20% 0%, rgba(239,68,68,0.22), transparent 60%),
+    linear-gradient(180deg, rgba(239,68,68,0.18), rgba(2,6,23,0.85));
+  box-shadow:
+    0 0 0 1px rgba(239,68,68,0.65),
+    0 0 60px rgba(239,68,68,0.55),
+    0 0 120px rgba(239,68,68,0.35);
+}
+
+.capital-visual.capitalZero #availableCapital{
+  color: rgba(254,226,226,0.98);
+  text-shadow: 0 0 24px rgba(239,68,68,0.65);
+}
+
+.capital-visual.capitalZero .muted{
+  color: rgba(254,202,202,0.95);
+}
+
+/* ===============================
+   CLUB500 • CAPITAL ZERO FULL RED (TEXT TOO)
+   =============================== */
+.capital-visual.capitalZero{
+  color: rgba(254,226,226,0.98);
+}
+
+.capital-visual.capitalZero *{
+  color: rgba(254,226,226,0.98) !important;
+}
+
+.capital-visual.capitalZero .muted{
+  color: rgba(254,200,200,0.95) !important;
+}
+
+.capital-visual.capitalZero input,
+.capital-visual.capitalZero button{
+  color: rgba(254,226,226,0.98) !important;
+  border-color: rgba(239,68,68,0.65) !important;
+}
+
+/* ===============================
+   CLUB500 • CAPITAL-VALUE OVERRIDE FOR ALERT
+   =============================== */
+.capital-visual.capitalZero .capital-value{
+  background: linear-gradient(90deg, #ef4444, #f97316) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: 0 0 18px rgba(239, 68, 68, 0.65) !important;
+}
+.capital-visual.capitalZero .cap-dot{
+  background: #ef4444 !important;
+  box-shadow: 0 0 18px rgba(239,68,68,0.55) !important;
+}
+
+/* ===============================
+   CLUB500 • PASSIVE INCOME TAB WIDTH + RHYTHM
+   =============================== */
+#passiveTab{
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#passiveTab .passive-inner{
+  padding: 0 20px !important;
+}
+
+/* Tables inside Passive Income */
+#passiveTab table{
+  width: 100%;
+  table-layout: fixed;
+}
+
+#passiveTab th,
+#passiveTab td{
+  padding: 10px 12px;
+}
+
+#passiveTab thead th{
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: rgba(226,232,240,0.92);
+}
+
+/* Key monthly income value */
+#passiveMonthlyValue{
+  font-size: 28px;
+  font-weight: 950;
+  letter-spacing: -0.3px;
+  margin-top: 6px;
+  color: rgba(34,211,238,0.95);
+}
+
+/* Secondary values */
+#passiveTab .muted{
+  font-size: 12px;
+}
+
+/* ===============================
+   CLUB500 • PASSIVE: PLAN / BOUGHT (SIMPLE)
+   =============================== */
+.pdSeg{
+  display:inline-flex;
+  align-items:center;
+  padding:4px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(2,6,23,0.55);
+  gap:4px;
+  vertical-align: middle;
+}
+.pdSeg input{ display:none; }
+.pdSeg label{
+  cursor:pointer;
+  user-select:none;
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:1.1px;
+  text-transform:uppercase;
+  padding:7px 10px;
+  border-radius:11px;
+  color: rgba(156,163,175,0.95);
+  border:1px solid transparent;
+}
+.pdSeg input:checked + label{
+  color: rgba(226,232,240,0.98);
+  background: rgba(34,211,238,0.14);
+  border-color: rgba(34,211,238,0.28);
+  box-shadow: 0 0 18px rgba(34,211,238,0.18);
+}
+
+.pdGroup{
+  margin-top: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(2,6,23,0.40);
+  padding: 12px 12px;
+}
+.pdGroupHdr{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom: 8px;
+}
+.pdGroupTitle{
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: rgba(226,232,240,0.92);
+}
+.pdGroupPill{
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(2,6,23,0.55);
+  white-space: nowrap;
+}
+.pdGroupPill.plan{ color: rgba(34,211,238,0.92); border-color: rgba(34,211,238,0.26); }
+.pdGroupPill.bought{ color: rgba(16,185,129,0.92); border-color: rgba(16,185,129,0.26); }
+
+.pdItem{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.pdItem + .pdItem{ margin-top: 8px; }
+.pdItemName{ font-weight: 950; }
+.pdItemMeta{ margin-top: 3px; color: rgba(156,163,175,0.95); font-size: 12px; }
+.pdTag{
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(2,6,23,0.55);
+}
+.pdTag.plan{ color: rgba(34,211,238,0.92); border-color: rgba(34,211,238,0.26); }
+.pdTag.bought{ color: rgba(16,185,129,0.92); border-color: rgba(16,185,129,0.26); }
+
+/* Tinted cards */
+.pdItem.plan{
+  border-color: rgba(34,211,238,0.35) !important;
+  background: linear-gradient(135deg, rgba(34,211,238,0.22), rgba(255,255,255,0.03)) !important;
+}
+.pdItem.bought{
+  border-color: rgba(16,185,129,0.35) !important;
+  background: linear-gradient(315deg, rgba(16,185,129,0.22), rgba(255,255,255,0.03)) !important;
+}
+.pdItem.plan .pdTag.plan{ background: rgba(34,211,238,0.18); }
+.pdItem.bought .pdTag.bought{ background: rgba(16,185,129,0.18); }
+
+
+/* ===============================
+   CLUB500 • PASSIVE TOTALS GRID
+   =============================== */
+.pdTotalsGrid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap:12px;
+}
+.pdTotalsBox{
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,0.10);
+  background: rgba(2,6,23,0.40);
+  padding: 14px 14px;
+  text-align:center;
+}
+
+
+/* ===== Totals boxes tint (Plan / Bought) ===== */
+.pdTotalsBox.plan{
+  border-color: rgba(34,211,238,0.55) !important;
+  background: linear-gradient(135deg, rgba(34,211,238,0.38), rgba(255,255,255,0.06)) !important;
+  box-shadow:
+    0 8px 30px rgba(34,211,238,0.18),
+    0 2px 18px rgba(0,0,0,0.28) !important;
+}
+.pdTotalsBox.bought{
+  border-color: rgba(16,185,129,0.55) !important;
+  background: linear-gradient(315deg, rgba(16,185,129,0.38), rgba(255,255,255,0.06)) !important;
+  box-shadow:
+    0 8px 30px rgba(16,185,129,0.16),
+    0 2px 18px rgba(0,0,0,0.28) !important;
+}
+/* Make numbers pop a bit more */
+.pdTotalsBox.plan .pdTotalsVal, .pdTotalsBox.plan .pdTotalsVal2{
+  text-shadow: 0 0 16px rgba(34,211,238,0.20);
+}
+.pdTotalsBox.bought .pdTotalsVal, .pdTotalsBox.bought .pdTotalsVal2{
+  text-shadow: 0 0 16px rgba(16,185,129,0.18);
+}
+
+.pdTotalsHdr{
+  display:flex;
+  justify-content:center;
+  margin-bottom:10px;
+}
+.pdTotalsVal{
+  font-size:28px;
+  font-weight:950;
+  letter-spacing:-0.3px;
+  color: rgba(226,232,240,0.98);
+}
+.pdTotalsVal2{
+  font-size:20px;
+  font-weight:900;
+  margin-top:8px;
+  color: rgba(156,163,175,0.95);
+}
+.pdTotalsSub{
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:1.1px;
+  text-transform:uppercase;
+  color: rgba(148,163,184,0.90);
+  margin-top:2px;
+}
+@media (max-width: 720px){
+  .pdTotalsGrid{ grid-template-columns: 1fr; }
+}
+
+
+/* ===== Convex (embossed) effect for totals boxes ===== */
+.pdTotalsBox.plan,
+.pdTotalsBox.bought{
+  position: relative;
+  overflow: hidden;
+}
+
+.pdTotalsBox.plan::before,
+.pdTotalsBox.bought::before{
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.22),
+    rgba(255,255,255,0.02) 40%,
+    rgba(0,0,0,0.18)
+  );
+  pointer-events: none;
+}
+
+.pdTotalsBox.plan::after,
+.pdTotalsBox.bought::after{
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.35),
+    inset 0 -6px 12px rgba(0,0,0,0.35);
+  pointer-events: none;
+}
+
+
+
+/* Prevent grid item stretching */
+.grid > .card{ align-self: start; }
+
+
+
+/* ===============================
+   MOBILE / PARTNER MODE (RESPONSIVE)
+   Goal: удобство партнёрам с телефона
+   =============================== */
+:root{
+  --container-pad: 16px;
+}
+
+/* Prevent iOS zoom on inputs */
+input, select, textarea, button{
+  font-size: 16px;
+}
+
+@media (max-width: 980px){
+  /* общий контейнер */
+  .container, .wrap, .page, .main, .content, .tabContent{
+    padding-left: var(--container-pad) !important;
+    padding-right: var(--container-pad) !important;
+  }
+
+  /* Tabs in header: horizontal scroll */
+  .tabs, .tabbar, .tabs-row, .nav-tabs{
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar, .tabbar::-webkit-scrollbar, .tabs-row::-webkit-scrollbar, .nav-tabs::-webkit-scrollbar{
+    width: 0; height: 0;
+  }
+  .tabs button, .tabbar button, .tabs .tab, .nav-tabs .tab{
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  /* Grid -> 1 column on tablet/phone */
+  .grid, .cards-grid, .cards, .row-grid{
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Cards spacing */
+  .card, .glass-card, .panel, .box{
+    padding: 18px !important;
+    border-radius: 16px !important;
+  }
+
+  /* Inputs / buttons tap targets */
+  input, select, textarea{
+    min-height: 44px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+  button, .btn, .button, .tab-btn{
+    min-height: 44px !important;
+    padding: 12px 14px !important;
+  }
+
+  /* Header compaction */
+  header, .header, .topbar{
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+}
+
+@media (max-width: 520px){
+  :root{
+    --container-pad: 12px;
+  }
+
+  /* Make big numbers fit */
+  .big, .big-number, .value, .card-value, .stat-value{
+    font-size: 22px !important;
+    line-height: 1.15 !important;
+  }
+
+  /* Tables: allow horizontal scroll */
+  table{
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  thead, tbody, tr{
+    width: 100%;
+  }
+}
+
 </style>
-
-
-
-
-
-
-
 
 </head>
 <body>
 <div class="wrap">
-<header class="brand-header">
-  <div class="brand-bubble neon-animate">
-    <div class="brand-title">CLUB500</div>
-    <span class="bubble-scan"></span>
-  </div>
-</header>
+  <div class="topbar" id="topbar">
+    <header class="hero" aria-label="CLUB500">
+      <div class="hero-main">
+        <div class="hero-left">
+          <div class="hero-kicker">
+            <span class="scanBadge"><span class="scanText">CLUB 500</span><span class="scanSep">•</span><span class="scanBy">BY YGNIVENKO</span></span>
+          </div>
+          <div class="brandRow"><h1>CLUB500</h1></div>
+          <p>Финансовая панель для партнёров: быстро считай доходность, фиксируй сделки и контролируй пассивный поток — в одном интерфейсе.</p>
+          <div class="hero-meta">Валюта: калькулятор и сделки — $ • объекты в пассивном доходе — ₽</div>
+        </div>
+        </div>
+      </div>
 
-  <div class="tabs" role="tablist">
-    <button class="tabBtn active" data-tab="calcTab">Калькулятор</button>
+      <div class="tabs" role="tablist" aria-label="Разделы">
+        <button class="tabBtn active" data-tab="calcTab">Калькулятор</button>
     <button class="tabBtn" data-tab="dealsTab">Сводка сделок</button>
     <button class="tabBtn" data-tab="passiveTab">Пассивный доход</button>
 <button class="tabBtn" data-tab="statsTab">Статистика</button>
-
+      </div>
+    </header>
   </div>
+
 
   <div id="calcTab" class="tabContent" style="display:block;">
     <div class="grid">
@@ -893,10 +2657,10 @@ th:first-child, td:first-child { text-align: left; }
     </div>
 <div class="deals-row single">
 
-  <!-- Начальный капитал -->
   <label class="capitalField">
     Начальный капитал ($)
-    <input id="startCapital" type="number" class="deals-input">
+    <div class="startCapWrap"><input id="startCapital" type="number" class="deals-input"><button id="resetStartCapBtn" type="button" class="eraseBtnSmall">Стереть</button></div>
+
   </label>
 
   <!-- Доступный капитал (визуальный) -->
@@ -912,7 +2676,7 @@ th:first-child, td:first-child { text-align: left; }
 </div>
 
       <p class="small-muted">В одной строке — один актив (Enter чтобы сохранить актив в тег). Повторный ввод запрещён.</p>
-      <div style="overflow:auto;margin-top:8px">
+      <div class="dealsTableWrap" style="overflow:auto;margin-top:8px">
         <table id="dealsTable" style="width:100%;border-collapse:collapse">
           <thead>
   <tr>
@@ -946,10 +2710,7 @@ th:first-child, td:first-child { text-align: left; }
   </div>
 <!-- Пассив вкладка -->
 <div id="passiveTab" class="tabContent" style="display:none;">
-  <div id="passiveIncomeTab" style="padding:20px; max-width:900px; margin:auto;">
-
-    <h2 style="text-align:center; margin:6px 0 18px;">Пассивный доход и цель</h2>
-
+  <div id="passiveIncomeTab">
     <!-- Карточка 1: Текущий капитал и цель -->
     <div class="card" style="padding:18px; border-radius:22px; box-shadow:0 2px 18px rgba(0,0,0,0.25); margin-bottom:14px;">
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
@@ -980,38 +2741,140 @@ th:first-child, td:first-child { text-align: left; }
         <input type="text" id="pd_assetName" placeholder="Название актива" style="flex:1; min-width:180px;" />
         <input type="number" id="pd_assetPrice" placeholder="Стоимость" style="width:160px;" />
         <input type="number" id="pd_assetIncome" placeholder="Месячный доход" style="width:160px;" />
-        <button class="btn" id="pd_addAssetBtn" type="button">Добавить</button>
+        <div class="pdSeg" style="margin-right:8px;"><input id="pdStatusPlan" type="radio" name="pd_status" value="plan" checked><label for="pdStatusPlan">План</label><input id="pdStatusBought" type="radio" name="pd_status" value="bought"><label for="pdStatusBought">Куплено</label></div><button class="btn" id="pd_addAssetBtn" type="button">Добавить</button>
       </div>
 
       <ul id="pd_assetsList" style="margin-top:14px; padding-left:18px;"></ul>
     </div>
 
-    <!-- Итоговый пассивный доход и прогноз за год -->
-    <div class="card" style="padding:18px; border-radius:22px; box-shadow:0 2px 18px rgba(0,0,0,0.25); text-align:center;">
-      <h3 style="margin:0 0 10px;">Итоговый месячный пассивный доход</h3>
-      <div id="pd_totalIncome" style="font-size:28px; font-weight:900; color:var(--neon);">0 ₽</div>
-      <div style="height:10px"></div>
-      <h3 style="margin:0 0 10px;">Прогноз дохода за 12 месяцев</h3>
-      <div id="pd_yearlyIncome" style="font-size:22px; font-weight:800; color:var(--accent2);">0 ₽</div>
+    <!-- Итоги (раздельно: план и куплено) -->
+<div class="card" id="pd_totalsCard" style="padding:18px; border-radius:22px; box-shadow:0 2px 18px rgba(0,0,0,0.25);">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+    <div>
+      <h3 style="margin:0 0 6px;">Итоги пассивного дохода</h3>
+      <div class="small-muted">Раздельно по статусам: <b>План</b> и <b>Куплено</b>.</div>
+    </div>
+    <div class="small-muted">Факт сейчас (Куплено): <span id="pd_totalIncome" style="font-weight:900;color:var(--neon);">0 ₽</span> / мес</div>
+  </div>
+
+  <div class="pdTotalsGrid" style="margin-top:12px;">
+    <div class="pdTotalsBox plan">
+      <div class="pdTotalsHdr">
+        <div class="pdTag plan">План</div>
+      </div>
+      <div class="pdTotalsVal" id="pd_planMonthly">0 ₽</div>
+      <div class="pdTotalsSub">в месяц</div>
+      <div class="pdTotalsVal2" id="pd_planYearly">0 ₽</div>
+      <div class="pdTotalsSub">за 12 месяцев</div>
     </div>
 
+    <div class="pdTotalsBox bought">
+      <div class="pdTotalsHdr">
+        <div class="pdTag bought">Куплено</div>
+      </div>
+      <div class="pdTotalsVal" id="pd_boughtMonthly">0 ₽</div>
+      <div class="pdTotalsSub">в месяц</div>
+      <div class="pdTotalsVal2" id="pd_boughtYearly">0 ₽</div>
+      <div class="pdTotalsSub">за 12 месяцев</div>
+    </div>
   </div>
+
+  <div style="margin-top:10px;" class="small-muted">
+    Подсказка: «План» — ожидаемый пассив после покупки. «Куплено» — фактический пассив сейчас.
+  </div>
+</div>
+
+  </div>
+</div>
 </div>
   
  <!-- Статистика вкладка -->
 <div id="statsTab" class="tabContent" style="display:none;">
-  <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:14px;align-items:start;">
 
-    <!-- Карточка 1: текущая статистика (как было) -->
-    <div class="card" style="padding:18px; border-radius:22px;">
-      <div class="muted">Статистика доходности</div>
-      <div style="font-weight:700;margin-top:6px">Учет итогов по годам (ручное добавление)</div>
+  <!-- Year cycle (goal 200%) -->
+  <div class="card cycleCard" id="cycleCard" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="muted" style="font-size:13px">Годовой цикл (цель клуба)</div>
+        <div style="font-weight:800;font-size:18px;margin-top:2px">Цель: 200% за год</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button id="cycleSetStartBtn" type="button" class="btn ghost" style="padding:8px 12px;border-radius:14px">Зафиксировать старт</button>
+        <button id="cycleSetEndBtn" type="button" class="btn ghost" style="padding:8px 12px;border-radius:14px">Зафиксировать итог</button>
+      </div>
+    </div>
 
-      <div style="margin-top:14px">
-        <button class="btn" id="addToStatsBtn">Добавить текущий итог</button>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px">
+      
+      <div>
+        <div class="muted"><span class="tooltip">Старт года<i>i</i><span>С какой суммы начался годовой цикл. Старт задаётся только вручную</span></span></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px">
+          <input id="cycleStartInput" type="number" inputmode="decimal" placeholder="Напр. 100000" style="width:140px" />
+          <div id="cycleStartCap" style="font-size:20px;font-weight:900">—</div>
+        </div>
+        <div class="muted small-muted" id="cycleStartDate">Старт: —</div>
       </div>
 
-      <table id="statsTable">
+      <div>
+        <div class="muted"><span class="tooltip">Текущий капитал<i>i</i><span>Используется только для отображения текущего состояния капитала</span></span></div>
+        <div id="cycleCurrentCap" style="font-size:20px;font-weight:900">—</div>
+        <div class="muted small-muted" id="cycleCompression">Коэффициент: —</div>
+      </div>
+      <div>
+        <div class="muted"><span class="tooltip">Итог (зафиксировано)<i>i</i><span>Фиксация результата на выходе с рынка (по кнопке «Зафиксировать итог»)</span></span></div>
+        <div id="cycleEndCap" style="font-size:20px;font-weight:900">—</div>
+        <div class="muted small-muted" id="cycleGrowthPct">Рост: —</div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div class="muted"><span class="tooltip">Прогресс к 200%<i>i</i><span>Рассчитывается от стартовой суммы: (текущий/старт − 1) × 100</span></span></div>
+        <div class="muted small-muted" id="cycleProgressText">—</div>
+      </div>
+      <div style="background:rgba(148,163,184,0.18);border-radius:999px;height:12px;overflow:hidden">
+        <div id="cycleProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg, rgba(16,185,129,0.95), rgba(6,182,212,0.75));"></div>
+      </div>
+    </div>
+
+    <div class="yearTimeline" id="yearTimeline">
+      <div class="yearTimelineTop">
+        <div class="title">YEAR TIMELINE</div>
+        <div class="meta" id="yearTimelineMeta">—</div>
+      </div>
+      <div class="timelineBar" id="timelineBar">
+        <div class="timelineFill" id="timelineFill"></div>
+        <div class="timelineMarks">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="tMarker start" id="tStart" style="display:none"></div>
+        <div class="tMarker now" id="tNow"></div>
+        <div class="tMarker end" id="tEnd" style="display:none"></div>
+      </div>
+      <div class="timelineLabels">
+        <span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span>
+        <span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="statsSections">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="sectionPill analysis" id="pillAnalysis" type="button" title="Показать только анализ"><span class="dot"></span><span>ANALYSIS</span></button>
+      <button class="sectionPill facts" id="pillFacts" type="button" title="Показать только факты"><span class="dot"></span><span>FACTS</span></button>
+    </div>
+    <div class="statsHint">Слева — оценка эффективности. Справа — факты капитала и пополнений.</div>
+  </div>
+
+<div class="statsGrid" style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:14px;align-items:start;">
+
+    <!-- Карточка 1: текущая статистика (как было) -->
+    <div class="card yearStatsCard" data-section="analysis" style="padding:18px; border-radius:22px;">
+      <div class="muted">Статистика доходности</div>
+      <div style="font-weight:700;margin-top:6px">Учет итогов по годам (ручное добавление)</div>
+<table id="statsTable">
         <thead>
           <tr>
             <th>Год</th>
@@ -1021,45 +2884,82 @@ th:first-child, td:first-child { text-align: left; }
         </thead>
         <tbody></tbody>
       </table>
+    <div style="margin-top:10px">
+      <div class="muted small-muted" id="yearAvgPct">Средняя доходность по годам: —</div>
+      <div class="muted small-muted" id="yearNeedNext">Чтобы средняя была 200%: —</div>
+    </div>
 
       <div style="margin-top:14px;display:flex;gap:24px">
-        <div>
-          <div class="muted">Средняя доходность</div>
-          <div id="avgStatPct" class="result">0.00%</div>
-        </div>
+        
       </div>
     </div>
 
     <!-- Карточка 2: внесенные средства -->
-    <div class="card" style="padding:18px; border-radius:22px;">
-      <div class="muted">Внесённые средства</div>
+    <div class="card cashInCard" data-section="facts" style="padding:18px; border-radius:22px;">
+      <div class="cashInHeader"><div class="cashInTitle">Внесённые средства</div><div class="cashInBadge">CASH-IN</div></div>
       <div style="font-weight:700;margin-top:6px">Ручной учёт пополнений</div>
 
-      <div style="margin-top:14px;display:grid;grid-template-columns:1fr;gap:12px;">
+      
+      <div class="cashInTotal"><div class="label">ИТОГ</div><div class="value">Внесено всего</div><div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <label>Внесено всего (USD)
-          <input id="cashInUsd" type="number" value="0" min="0" step="0.01">
+          <input id="cashInUsd" type="number" value="0" min="0" step="0.01" readonly>
         </label>
         <label>Внесено всего (RUB)
-          <input id="cashInRub" type="number" value="0" min="0" step="1">
+          <input id="cashInRub" type="number" value="0" min="0" step="1" readonly>
         </label>
       </div>
 
-      <div class="small-muted" style="margin-top:10px;line-height:1.4;">
+      </div><div style="margin-top:12px;padding:12px;border-radius:16px;background:rgba(148,163,184,0.06);border:1px solid rgba(148,163,184,0.18)">
+        <div class="muted" style="margin-bottom:8px">Добавить пополнение</div>
+        <div style="display:grid;grid-template-columns:140px 1fr 1fr auto;gap:8px;align-items:end">
+          <div>
+            <div class="muted small-muted">Дата</div>
+            <input id="cashInDate" type="date">
+          </div>
+          <div>
+            <div class="muted small-muted">USD</div>
+            <input id="cashInUsdAdd" type="number" min="0" step="0.01" placeholder="0.00">
+          </div>
+          <div>
+            <div class="muted small-muted">RUB</div>
+            <input id="cashInRubAdd" type="number" min="0" step="1" placeholder="0">
+          </div>
+          <button id="cashInAddBtn" type="button" class="btn" style="padding:10px 14px;border-radius:14px;font-weight:900">Добавить</button>
+        </div>
+
+        <div style="margin-top:10px;max-height:160px;overflow:auto;border-radius:14px;border:1px solid rgba(148,163,184,0.16)">
+          <table class="tightTable" style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th style="text-align:left">Дата</th>
+                <th style="text-align:right">USD</th>
+                <th style="text-align:right">RUB</th>
+                <th style="width:44px"></th>
+              </tr>
+            </thead>
+            <tbody id="cashInTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+<div class="small-muted" style="margin-top:10px;line-height:1.4;">
         Используется только для аналитики. На сделки и расчёты калькулятора не влияет.
       </div>
+    </div>
+
     
     <!-- Карточка 3: статистика по завершённым сделкам (авто) -->
-    <div class="card" style="padding:18px; border-radius:22px; margin-top:14px;">
+    <div class="card" data-section="analysis" style="padding:18px; border-radius:22px; margin-top:14px;">
       <div class="muted">Статистика сделок</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px"><div style="font-weight:700">Завершённые сделки (вход + выход)</div><button id="dealStats_clearBtn" type="button" class="btn ghost" style="padding:8px 12px;border-radius:14px;">Очистить статистику</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px"><div style="font-weight:700">Завершённые сделки (вход + выход)</div><button id="dealStats_clearBtn" type="button" class="btn ghost" style="padding:8px 12px;border-radius:14px;">Очистить статистику</button>
 
       <div style="margin-top:14px;display:flex;gap:24px;flex-wrap:wrap;">
         <div style="min-width:180px">
-          <div class="muted">Всего сделок</div>
+          <div class="muted"><span class="tooltip">Всего сделок<i>i</i><span>Считаются только завершённые сделки (есть вход и выход)</span></span></div>
           <div id="dealStats_total" class="result">0</div>
         </div>
         <div style="min-width:220px">
-          <div class="muted">Средняя доходность (вариант A)</div>
+          <div class="muted"><span class="tooltip">Средняя доходность<i>i</i><span>Средняя по сделкам: каждая сделка весит одинаково (показывает качество входов)</span></span></div>
           <div id="dealStats_avgPct" class="result">0.00%</div>
         </div>
       </div>
@@ -1079,10 +2979,6 @@ th:first-child, td:first-child { text-align: left; }
     </div>
   </div>
 </div>
-  
-  <footer class="app-footer">
-    <div class="scanBadge">CLUB500 • Авторская модель Ygnivenko</div>
-  </footer>
   <div id="toast" class="toast" aria-live="polite"></div>
 
 <script>
@@ -1100,6 +2996,138 @@ function showToast(txt, ms=2200){
   showToast._t = window.setTimeout(()=>t.classList.remove('show'), ms);
 }
 
+/* ===== STATS ENHANCEMENTS: percent colors + mini timeline ===== */
+/* ===== STATS FILTER TOGGLES (FACTS/ANALYSIS) ===== */
+function setStatsFilter(mode){
+  const tab = document.getElementById('statsTab');
+  if(!tab) return;
+  tab.classList.remove('statsFilterAnalysis','statsFilterFacts');
+
+  const bAll = document.getElementById('pillAll');
+  const bA = document.getElementById('pillAnalysis');
+  const bF = document.getElementById('pillFacts');
+  [bAll,bA,bF].forEach(b=>b && b.classList.remove('active'));
+
+  if(mode === 'analysis'){
+    tab.classList.add('statsFilterAnalysis');
+    bA && bA.classList.add('active');
+  }else if(mode === 'facts'){
+    tab.classList.add('statsFilterFacts');
+    bF && bF.classList.add('active');
+  }else{
+    bAll && bAll.classList.add('active');
+  }
+
+  try{ localStorage.setItem('club500_stats_filter', mode || 'all'); }catch(_){}
+}
+
+function initStatsFilter(){
+  const bAll = document.getElementById('pillAll');
+  const bA = document.getElementById('pillAnalysis');
+  const bF = document.getElementById('pillFacts');
+
+  if(bAll) bAll.addEventListener('click', ()=>setStatsFilter('all'));
+  if(bA) bA.addEventListener('click', ()=>{
+    const tab = document.getElementById('statsTab');
+    const active = tab && tab.classList.contains('statsFilterAnalysis');
+    setStatsFilter(active ? 'all' : 'analysis');
+  });
+  if(bF) bF.addEventListener('click', ()=>{
+    const tab = document.getElementById('statsTab');
+    const active = tab && tab.classList.contains('statsFilterFacts');
+    setStatsFilter(active ? 'all' : 'facts');
+  });
+
+  let mode = 'all';
+  try{ mode = localStorage.getItem('club500_stats_filter') || 'all'; }catch(_){}
+  setStatsFilter(mode);
+}
+
+/* ===== Timeline fill: from Start to Now (or End if fixed) ===== */
+function setTimelineFill(startM, endM){
+  const fill = document.getElementById('timelineFill');
+  if(!fill) return;
+
+  // If no start, keep subtle full fill
+  if(!startM){
+    fill.style.left = '0%';
+    fill.style.width = '100%';
+    fill.style.opacity = '0.14';
+    return;
+  }
+
+  const s = monthToX(startM);
+  const e = monthToX(endM || (new Date().getMonth()+1));
+
+  const left = Math.min(s, e);
+  const right = Math.max(s, e);
+  fill.style.left = left + '%';
+  fill.style.width = Math.max(2, (right - left)) + '%';
+  fill.style.opacity = '0.32';
+}
+
+function pctClass(p){
+  const v = Number(p);
+  if(!Number.isFinite(v)) return 'neu';
+  if(v < 0) return 'neg';
+  if(v >= 200) return 'green';
+  if(v >= 100) return 'cyan';
+  return 'neu';
+}
+function applyPct(el, p, suffix='%'){
+  if(!el) return;
+  const v = Number(p);
+  el.classList.remove('pct','neg','neu','cyan','green');
+  el.classList.add('pct', pctClass(v));
+  if(Number.isFinite(v)){
+    el.textContent = v.toFixed(2) + suffix;
+  }
+}
+function monthToX(m){ // m: 1..12
+  const pct = ((m-0.5)/12)*100;
+  return Math.max(2, Math.min(98, pct));
+}
+function updateYearTimeline(meta){
+  const tMeta = document.getElementById('yearTimelineMeta');
+  const tStart = document.getElementById('tStart');
+  const tNow = document.getElementById('tNow');
+  const tEnd = document.getElementById('tEnd');
+  if(!tNow) return;
+
+  const now = new Date();
+  const nowM = now.getMonth()+1;
+
+  tNow.style.left = monthToX(nowM) + '%';
+
+  const hasStart = meta && meta.startTs;
+  const hasEnd = meta && meta.endTs;
+
+  if(hasStart && tStart){
+    const d = new Date(meta.startTs);
+    const m = d.getMonth()+1;
+    tStart.style.display = 'block';
+    tStart.style.left = monthToX(m) + '%';
+  }else if(tStart){
+    tStart.style.display = 'none';
+  }
+
+  if(hasEnd && tEnd){
+    const d = new Date(meta.endTs);
+    const m = d.getMonth()+1;
+    tEnd.style.display = 'block';
+    tEnd.style.left = monthToX(m) + '%';
+  }else if(tEnd){
+    tEnd.style.display = 'none';
+  }
+
+  if(tMeta){
+    const s = hasStart ? new Date(meta.startTs).toLocaleDateString('ru-RU') : '—';
+    const e = hasEnd ? new Date(meta.endTs).toLocaleDateString('ru-RU') : '—';
+    tMeta.textContent = `Start: ${s} • Now: ${now.toLocaleDateString()} • End: ${e}`;
+  }
+}
+
+
 /* ===== Tabs ===== */
 document.querySelectorAll('.tabBtn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -1114,9 +3142,28 @@ document.querySelectorAll('.tabBtn').forEach(btn=>{
     if(tab==='calcTab') recalcCalc();
     if(tab==='dealsTab') recalcAvailableCapital();
     if(tab==='passiveTab') updatePassiveTab();
-    if(tab==='statsTab') renderStats();
+    if(tab==='statsTab'){ renderStats(); renderCompletedDealsStats();
+  updateCashInStrip(); initStatsFilter(); updateCashInStrip(); }
   });
 });
+
+/* ===== Topbar height + quick navigation ===== */
+function setTopbarHeightVar(){
+  const topbar = document.getElementById('topbar');
+  if(!topbar) return;
+  const h = topbar.getBoundingClientRect().height;
+  document.documentElement.style.setProperty('--topbarH', Math.ceil(h) + 'px');
+}
+window.addEventListener('resize', setTopbarHeightVar);
+document.addEventListener('DOMContentLoaded', setTopbarHeightVar);
+
+function activateTab(tabId){
+  const btn = document.querySelector(`.tabBtn[data-tab="${tabId}"]`);
+  if(btn) btn.click();
+  // keep content aligned for mobile (sticky tabs)
+  const top = document.querySelector('.tabs');
+  if(top) top.scrollIntoView({behavior:'smooth', block:'start'});
+}
 
 /* ===== Calculator ===== */
 let calcLocked = false;
@@ -1281,8 +3328,6 @@ $('calcBtn')?.addEventListener('click', ()=>{
   }
 });
 
-
-
 // RESULT -> передать итоговый капитал в «Сводка сделок» (стартовый капитал)
 $('sendResultToDeals')?.addEventListener('click', ()=>{
   const finalText = ($('final')?.innerText || '$0').replace('$','').replace(/,/g,'');
@@ -1297,6 +3342,8 @@ $('sendResultToDeals')?.addEventListener('click', ()=>{
     return;
   }
   sc.value = finalSum.toFixed(2);
+  // запомним последний RESULT для фиксации итога цикла
+  localStorage.setItem('club500_last_result_capital', String(finalSum));
   saveDeals();
   recalcAvailableCapital();
   updatePassiveTab();
@@ -1324,6 +3371,7 @@ $('resetBtn')?.addEventListener('click', ()=>{
   loadCalcParams();
   createDealsTable();
   renderStats();
+  renderCompletedDealsStats();
   unlockCalc();
   recalcCalc();
   showToast('Данные сброшены');
@@ -1399,6 +3447,7 @@ function createDealsTable(){
       <td style="text-align:left">
         <div class="tagWrap" data-row="${i}">
           <span class="tagDisplay" style="display:none"></span>
+          <span class="lockBadge">🔒</span>
           <input type="text" class="assetEntry" placeholder="введите актив (Enter)" />
         </div>
       </td>
@@ -1466,7 +3515,18 @@ function createDealsTable(){
     btn.addEventListener('click', ()=>{
       const tr = btn.closest('tr');
       if(!tr) return;
-      // clear asset tag + inputs
+
+      // при удалении строки НЕ пишем в историю (история фиксируется по кнопке «Рассчитать доходность»)
+      try{
+        const __map = getRowSigMap();
+        const __k = String(Array.from(tr.parentNode.children).indexOf(tr));
+        if(__k !== ''){ delete __map[__k]; saveRowSigMap(__map); }
+      }catch(_){}
+
+      // сбрасываем визуальные статусы и поля строки
+      const wrap = tr.querySelector('.tagWrap');
+      if(wrap) wrap.classList.remove('locked');
+
       removeAssetTag(tr);
       tr.querySelector('.in').value = '';
       tr.querySelector('.out').value = '';
@@ -1479,13 +3539,16 @@ function createDealsTable(){
       showToast('Сделка удалена');
     });
   });
+
 }
 
-
 function setAssetTag(tr, asset){
+  const wrap = tr.querySelector('.tagWrap');
   const input = tr.querySelector('.assetEntry');
   const display = tr.querySelector('.tagDisplay');
-  display.innerHTML = `<span class="tagText">${asset}</span><button class="remove" title="удалить">✕</button>`;
+
+  // фиксируем актив (тег). 🔒 появится после фиксации сделки
+    display.innerHTML = `<span class="tagText">${asset}</span><button class="remove" title="удалить">✕</button>`;
   display.style.display='inline-flex';
   input.style.display='none';
   input.value='';
@@ -1493,9 +3556,20 @@ function setAssetTag(tr, asset){
 }
 
 function removeAssetTag(tr){
+  const wrap = tr.querySelector('.tagWrap');
   const input = tr.querySelector('.assetEntry');
   const display = tr.querySelector('.tagDisplay');
   dealsCalculated = false;
+
+  // сбрасываем сигнатуру строки (если партнёр перезапускает актив в этой же строке)
+  try{
+    const __map = getRowSigMap();
+    const __k = String(Array.from(tr.parentNode.children).indexOf(tr));
+    if(__k !== ''){ delete __map[__k]; saveRowSigMap(__map); }
+  }catch(_){ }
+
+  if(wrap) wrap.classList.remove('locked');
+
   display.innerHTML='';
   display.style.display='none';
   input.style.display='inline-block';
@@ -1566,6 +3640,13 @@ function saveDealsHistory(arr){
   localStorage.setItem('club500_deals_history', JSON.stringify(arr || []));
 }
 
+function getRowSigMap(){
+  try{ return JSON.parse(localStorage.getItem('club500_row_sig_map') || '{}'); }
+  catch(_){ return {}; }
+}
+function saveRowSigMap(map){
+  localStorage.setItem('club500_row_sig_map', JSON.stringify(map || {}));
+}
 function dealSig(d){
   const a = (d.asset || '').toUpperCase();
   const e = Number(d.entry || 0).toFixed(4);
@@ -1575,16 +3656,27 @@ function dealSig(d){
 
 function getCurrentCompletedDeals(){
   const out = [];
-  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+  document.querySelectorAll('#dealsTable tbody tr').forEach((tr, idx)=>{
     const entry = parseSafe(tr.querySelector('.in')?.value);
     const exit = parseSafe(tr.querySelector('.out')?.value);
     if(entry > 0 && exit > 0){
       const pct = (exit/entry - 1) * 100;
       const asset = tr.querySelector('.tagDisplay .tagText')?.textContent?.trim().toUpperCase() || '';
-      out.push({ asset, entry, exit, pct, ts: Date.now() });
+      out.push({ rowIndex: idx, asset, entry, exit, pct, ts: Date.now() });
     }
   });
   return out;
+}
+function computeDealsCalcHash(){
+  // Хэш текущей таблицы сделок: актив(тег) + вход + выход по всем строкам (с порядком)
+  const parts = [];
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+    const asset = (tr.querySelector('.tagDisplay .tagText')?.textContent || '').trim().toUpperCase();
+    const entry = (tr.querySelector('.in')?.value || '').trim();
+    const exit  = (tr.querySelector('.out')?.value || '').trim();
+    parts.push(asset + '|' + entry + '|' + exit);
+  });
+  return parts.join('##');
 }
 
 function mergeDeals(history, current){
@@ -1600,54 +3692,280 @@ function mergeDeals(history, current){
 function appendToHistory(deal){
   if(!deal) return;
   const hist = getDealsHistory();
-  const sig = dealSig(deal);
-  if(!hist.some(x => dealSig(x) === sig)){
-    hist.push(deal);
-    saveDealsHistory(hist);
-  }
+  // Каждая завершённая сделка — отдельная запись (даже если суммы совпали)
+  const id = (Date.now().toString(36) + Math.random().toString(36).slice(2,8)).toUpperCase();
+  hist.push({ ...deal, id });
+  saveDealsHistory(hist);
+  // обновить кеш статистики
+  try{ localStorage.setItem('club500_completed_deals_stats', JSON.stringify(computeCompletedDealsStats())); }catch(_){ }
+}
+
+function getCompletedDealsFromTable(){
+  const deals = [];
+  document.querySelectorAll('#dealsTable tbody tr').forEach((tr, idx)=>{
+    const asset = (tr.querySelector('.tagDisplay .tagText')?.textContent || '').trim().toUpperCase();
+    const entry = parseSafe(tr.querySelector('.in')?.value);
+    const exit  = parseSafe(tr.querySelector('.out')?.value);
+    if(asset && entry > 0 && exit > 0){
+      const pnl = exit - entry;
+      const pct = (pnl / entry) * 100;
+      deals.push({ asset, entry, exit, pnl, pct, rowIndex: idx });
+    }
+  });
+  return deals;
 }
 
 function computeCompletedDealsStats(){
-  const history = getDealsHistory();
-  const current = getCurrentCompletedDeals();
-  const all = mergeDeals(history, current);
+  // Статистика считается по истории завершённых сделок (не зависит от удаления строк из таблицы)
+  const arr = getDealsHistory();
+  const count = arr.length;
 
-  const count = all.length;
-  let sumPct = 0;
-  const byAsset = {}; // {ASSET:{count,sumPct}}
+  let sumPct = 0, sumPnl = 0, sumEntry = 0;
+  let wins = 0, losses = 0;
 
-  all.forEach(d=>{
-    const pct = Number(d.pct || 0);
+  const byAsset = {};
+  arr.forEach(d=>{
+    const asset = (d.asset || '').toUpperCase().trim();
+    const entry = Number(d.entry)||0;
+    const pnl = Number(d.pnl)||0;
+    const pct = Number(d.pct)||0;
+
     sumPct += pct;
-    const a = (d.asset || '').toUpperCase();
-    if(a){
-      if(!byAsset[a]) byAsset[a] = {count:0, sumPct:0};
-      byAsset[a].count += 1;
-      byAsset[a].sumPct += pct;
+    sumPnl += pnl;
+    sumEntry += entry;
+
+    if(pnl > 0) wins++;
+    else if(pnl < 0) losses++;
+
+    if(asset){
+      if(!byAsset[asset]) byAsset[asset] = {count:0, pnl:0, sumPct:0};
+      byAsset[asset].count += 1;
+      byAsset[asset].pnl += pnl;
+      byAsset[asset].sumPct += pct;
     }
   });
 
-  const avgPct = count > 0 ? (sumPct / count) : 0;
+  const avgPct = count ? (sumPct / count) : 0;                  // средняя по сделкам (арифм.)
+  const weightedPct = sumEntry ? (sumPnl / sumEntry) * 100 : 0; // взвешенная (по объёму)
+  const winRate = count ? (wins / count) * 100 : 0;
+
+  const topByCount = Object.entries(byAsset)
+    .sort((a,b)=>b[1].count - a[1].count)
+    .slice(0,5)
+    .map(([asset,v])=>({asset, ...v}));
+
+  const topByPnl = Object.entries(byAsset)
+    .sort((a,b)=>b[1].pnl - a[1].pnl)
+    .slice(0,5)
+    .map(([asset,v])=>({asset, ...v}));
 
   const frequent = Object.entries(byAsset)
-    .filter(([_, v]) => v.count >= 2)
-    .map(([name, v]) => ({name, count: v.count, avgPct: v.sumPct / v.count}))
-    .sort((a,b)=> (b.count - a.count) || (a.name.localeCompare(b.name)));
+    .filter(([_,v])=>v.count >= 2)
+    .sort((a,b)=>b[1].count - a[1].count)
+    .slice(0,10)
+    .map(([asset,v])=>({
+      name: asset,
+      count: v.count,
+      avgPct: v.count ? (v.sumPct / v.count) : 0
+    }));
 
-  return { count, avgPct, frequent };
+  return { count, avgPct, weightedPct, winRate, wins, losses, sumPnl, topByCount, topByPnl, frequent };
 }
-
 
 function saveCompletedDealsStats(stats){
   localStorage.setItem('club500_completed_deals_stats', JSON.stringify(stats));
 }
 
 function loadCompletedDealsStats(){
-  try{
-    return JSON.parse(localStorage.getItem('club500_completed_deals_stats') || 'null');
-  }catch(_){
-    return null;
+  // Всегда считаем по истории завершённых сделок (устойчиво к удалению строк таблицы и сохраняется между перезагрузками)
+  const arr = getDealsHistory();
+  if(!arr || arr.length === 0) return null;
+  const data = computeCompletedDealsStats();
+  try{ localStorage.setItem('club500_completed_deals_stats', JSON.stringify(data)); }catch(_){}
+  return data;
+}
+
+function initStatsScopeToggle(){
+  const wrap = document.getElementById('statsScope');
+  if(!wrap) return;
+  const saved = localStorage.getItem('club500_stats_scope') || 'history';
+  wrap.querySelectorAll('.segBtn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.scope === saved);
+  });
+  wrap.querySelectorAll('.segBtn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      wrap.querySelectorAll('.segBtn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      localStorage.setItem('club500_stats_scope', b.dataset.scope);
+      renderCompletedDealsStats();
+    });
+  });
+}
+
+function readMoneyText(s){
+  if(s == null) return 0;
+  const str = String(s).replace(/\s/g,'').replace(/[^0-9.,-]/g,'');
+  if(!str) return 0;
+  // if both comma and dot exist, assume comma is thousands separator
+  if(str.includes('.') && str.includes(',')){
+    return parseFloat(str.replace(/,/g,'')) || 0;
   }
+  // if only comma, treat comma as decimal
+  if(str.includes(',') && !str.includes('.')){
+    return parseFloat(str.replace(/,/g,'.')) || 0;
+  }
+  return parseFloat(str) || 0;
+}
+
+function getCycleMeta(){
+  return {
+    startCap: readMoneyText(localStorage.getItem('club500_cycle_start_capital') || ''),
+    startTs: parseInt(localStorage.getItem('club500_cycle_start_ts') || '0', 10) || 0,
+    endCap: readMoneyText(localStorage.getItem('club500_cycle_end_capital') || ''),
+  };
+}
+function saveCycleMeta(meta){
+  if(meta.startCap != null) localStorage.setItem('club500_cycle_start_capital', String(meta.startCap));
+  if(meta.startTs != null) localStorage.setItem('club500_cycle_start_ts', String(meta.startTs));
+  if(meta.endCap != null) localStorage.setItem('club500_cycle_end_capital', String(meta.endCap));
+}
+function clearCycleMeta(){
+  localStorage.removeItem('club500_cycle_start_capital');
+  localStorage.removeItem('club500_cycle_start_ts');
+  localStorage.removeItem('club500_cycle_end_capital');
+}
+
+function getCurrentCapitalForCycle(){
+  // берём из «Доступный капитал» (в сводке сделок)
+  const el = document.getElementById('availableCapital');
+  if(!el) return 0;
+  return readMoneyText(el.textContent);
+}
+
+/* ===== YEAR CYCLE EMPHASIS (UI) ===== */
+function ensureCycleStamp(card){
+  if(!card) return null;
+  let stamp = card.querySelector('.cycleStamp');
+  if(!stamp){
+    stamp = document.createElement('div');
+    stamp.className = 'cycleStamp';
+    stamp.innerHTML = '<span class="dot"></span><div><div class="t">YEAR CYCLE</div><small class="s">—</small></div>';
+    card.appendChild(stamp);
+  }
+  return stamp;
+}
+
+function flashCycle(card, type){
+  if(!card) return;
+  const cls = type === 'end' ? 'flash-end' : 'flash-start';
+  card.classList.remove('flash-start','flash-end');
+  // trigger reflow to restart animation
+  void card.offsetWidth;
+  card.classList.add(cls);
+  window.setTimeout(()=>card.classList.remove(cls), 1100);
+}
+
+function updateCycleUI(){
+  const meta = getCycleMeta();
+  const startCap = meta.startCap || 0;
+  const currentCap = getCurrentCapitalForCycle();
+  const endCap = meta.endCap || 0;
+
+  const elStart = document.getElementById('cycleStartCap');
+  const elStartDate = document.getElementById('cycleStartDate');
+  const elStartIn = document.getElementById('cycleStartInput');
+  const elCur = document.getElementById('cycleCurrentCap');
+  const elComp = document.getElementById('cycleCompression');
+  const elEnd = document.getElementById('cycleEndCap');
+  const elGrowth = document.getElementById('cycleGrowthPct');
+  const elProg = document.getElementById('cycleProgressBar');
+  const elProgText = document.getElementById('cycleProgressText');
+
+  if(elStart) elStart.textContent = startCap>0 ? money(startCap) : '—';
+  if(elStartIn){ elStartIn.value = startCap>0 ? String(startCap) : ''; }
+  if(elStartDate){
+    if(meta.startTs){
+      const d = new Date(meta.startTs);
+      elStartDate.textContent = 'Старт: ' + d.toLocaleDateString('ru-RU');
+    } else {
+      elStartDate.textContent = 'Старт: —';
+    }
+  }
+
+  if(elCur) elCur.textContent = currentCap>0 ? money(currentCap) : '—';
+  if(elComp){
+    if(startCap>0 && currentCap>0){
+      const k = (currentCap / startCap);
+      elComp.textContent = 'Буфер доходности: ×' + k.toFixed(2);
+    } else {
+      elComp.textContent = 'Буфер доходности: —';
+    }
+  }
+
+  if(elEnd) elEnd.textContent = endCap>0 ? money(endCap) : '—';
+
+  // Рост по текущему капиталу (если старт зафиксирован)
+  let growthPct = 0;
+  if(startCap>0 && currentCap>0){
+    growthPct = ((currentCap / startCap) - 1) * 100;
+  }
+  
+  if(elGrowth){
+    // Render label + colored percent
+    if(!document.getElementById('cycleGrowthPctSpan')){
+      elGrowth.innerHTML = 'Рост: <span id="cycleGrowthPctSpan" class="pct neu">—</span>';
+    }
+    const sp = document.getElementById('cycleGrowthPctSpan');
+    if(startCap>0 && currentCap>0){
+      applyPct(sp, growthPct, '%');
+    } else {
+      sp.className = 'pct neu';
+      sp.textContent = '—';
+    }
+  }
+
+
+  // Прогресс к 200%
+  const target = 200;
+  let progPct = 0;
+  if(startCap>0 && currentCap>0){
+    progPct = Math.max(0, Math.min(100, (growthPct / target) * 100));
+  }
+  if(elProg) elProg.style.width = progPct.toFixed(1) + '%';
+  if(elProgText){
+    if(startCap>0 && currentCap>0){
+      elProgText.textContent = growthPct.toFixed(2) + '% из ' + target + '%';
+    } else {
+      elProgText.textContent = '—';
+    }
+  
+
+// ===== Visual emphasis for "year fixed" states =====
+const card = document.getElementById('cycleCard') || document.getElementById('cycleSetStartBtn')?.closest('.card');
+if(card){
+  const started = (meta.startCap || 0) > 0;
+  const ended = (meta.endCap || 0) > 0;
+  card.classList.toggle('cycle-started', started);
+  card.classList.toggle('cycle-ended', ended);
+
+  const stamp = ensureCycleStamp(card);
+  if(stamp){
+    stamp.classList.remove('start','end');
+    if(ended){
+      stamp.classList.add('end');
+      stamp.querySelector('.t').textContent = 'YEAR FIXED';
+      stamp.querySelector('.s').textContent = 'Итог зафиксирован';
+    } else if(started){
+      stamp.classList.add('start');
+      stamp.querySelector('.t').textContent = 'YEAR STARTED';
+      stamp.querySelector('.s').textContent = 'Старт зафиксирован';
+    } else {
+      stamp.querySelector('.t').textContent = 'YEAR CYCLE';
+      stamp.querySelector('.s').textContent = 'Ожидает фиксации';
+    }
+  }
+}
+}
 }
 
 function renderCompletedDealsStats(){
@@ -1710,32 +4028,92 @@ function recalcAvailableCapital(){
 
   const box = el.closest('.capital-visual');
   if(box){
-    if(available < 0) box.classList.add('negative');
-    else box.classList.remove('negative');
+    // reset states first
+    box.classList.remove('negative');
+    box.classList.remove('capitalZero');
+    if(available <= 0) box.classList.add('negative');
   }
+
+  updateCycleUI();
 }
 
 $('calcDealsBtn')?.addEventListener('click', ()=>{
   dealsCalculated = true;
   document.querySelectorAll('#dealsTable tbody tr').forEach(tr=> updateDealRow(tr));
+  // визуальная фиксация сделки: 🔒 и изменение цвета тега появляются только после фиксации (есть вход и выход)
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+    const entry = parseSafe(tr.querySelector('.in')?.value);
+    const exit  = parseSafe(tr.querySelector('.out')?.value);
+    const wrap  = tr.querySelector('.tagWrap');
+    if(!wrap) return;
+    if(entry > 0 && exit > 0) wrap.classList.add('locked');
+    else wrap.classList.remove('locked');
+  });
   recalcDealsSummary();
   recalcAvailableCapital();
   updatePassiveTab();
-  
-  // авто-статистика по завершённым сделкам (вариант A)
+
+  // защита от дублей: если «Рассчитать доходность» нажали повторно без изменений в таблице — историю не трогаем
+  const __hash = computeDealsCalcHash();
+  const __lastHash = localStorage.getItem('club500_last_calc_hash') || '';
+  const __isSameCalc = (__hash === __lastHash);
+
+  if(!__isSameCalc){
+    localStorage.setItem('club500_last_calc_hash', __hash);
+
+    // фиксируем завершённые сделки в историю (за всё время) по изменению строк
+    const __map = getRowSigMap();
+    const __cur = getCurrentCompletedDeals();
+
+    __cur.forEach(d=>{
+      const sig = dealSig(d);
+      const k = String(d.rowIndex ?? '');
+      if(k !== '' && __map[k] !== sig){
+        appendToHistory(d);
+        __map[k] = sig;
+      }
+    });
+    saveRowSigMap(__map);
+  }
+// авто-статистика по завершённым сделкам (вариант A)
   const ds = computeCompletedDealsStats();
   saveCompletedDealsStats(ds);
-showToast('Доходность по сделкам рассчитана');
+  renderCompletedDealsStats();
+  showToast('Доходность по сделкам рассчитана');
 });
 
 $('clearDealsBtn')?.addEventListener('click', ()=>{
-  if(!confirm('Очистить все сделки?')) return;
-  localStorage.removeItem('club500_deals');
-  createDealsTable();
-  $('avgDealPct').textContent='—';
+  // Очистить ВСЮ таблицу (активы/замки/вход/выход/%/PnL) — история и статистика НЕ трогаются
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+    // inputs
+    const inEl = tr.querySelector('.in'); if(inEl) inEl.value = '';
+    const outEl = tr.querySelector('.out'); if(outEl) outEl.value = '';
+
+    // tag + lock
+    const wrap = tr.querySelector('.tagWrap');
+    if(wrap) wrap.classList.remove('locked');
+
+    const input = tr.querySelector('.assetEntry');
+    const display = tr.querySelector('.tagDisplay');
+    if(display){
+      display.innerHTML = '';
+      display.style.display = 'none';
+    }
+    if(input){
+      input.value = '';
+      input.style.display = 'inline-block';
+    }
+
+    // metrics
+    clearDealMetrics(tr);
+  });
+
+  // reset summary line
+  if($('avgDealPct')) $('avgDealPct').textContent = '—';
+
+  saveDeals();
   recalcAvailableCapital();
-  updatePassiveTab();
-  showToast('Сводка сделок очищена');
+  showToast('Таблица сделок очищена');
 });
 
 $('useInCalcBtn')?.addEventListener('click', ()=>{
@@ -1758,33 +4136,6 @@ $('useInCalcBtn')?.addEventListener('click', ()=>{
   showToast('В калькулятор передан реальный рост капитала');
 });
 
-/* ===== Calc → Deals: RESULT button ===== */
-$('sendResultToDeals')?.addEventListener('click', ()=>{
-  // Берём итоговый капитал из калькулятора
-  const finalText = ($('final')?.innerText || '$0').replace('$','').replace(/,/g,'');
-  const finalSum = parseFloat(finalText);
-  if(!finalSum || finalSum<=0){
-    showToast('Сначала посчитай калькулятор, чтобы появился итог');
-    return;
-  }
-
-  if($('startCapital')) $('startCapital').value = finalSum.toFixed(2);
-
-  // обновляем расчёты/визуал в сделках
-  saveDeals();
-  recalcAvailableCapital();
-  updatePassiveTab();
-
-  // переключаемся на вкладку «Сводка сделок»
-  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
-  document.querySelector('[data-tab="dealsTab"]').classList.add('active');
-  document.querySelectorAll('.tabContent').forEach(c=>c.style.display='none');
-  $('dealsTab').style.display='block';
-
-  showToast('Итоговый капитал передан в «Сводка сделок»');
-});
-
-
 /* ===== Passive Income (Assets) ===== */
 let pd_assets = [];
 let pd_prevTotalIncome = 0;
@@ -1794,10 +4145,10 @@ function pd_formatNumber(num){
   return Number.isFinite(n) ? n.toLocaleString('ru-RU',{maximumFractionDigits:2}) : '0';
 }
 
-
 function pd_load(){
   try{ pd_assets = JSON.parse(localStorage.getItem('club500_pd_assets') || '[]'); }
   catch(_){ pd_assets = []; }
+  try{ pd_assets = (pd_assets||[]).map(a=>({status:'plan',...a})); }catch(_){ }
 
   const goal = localStorage.getItem('club500_pd_goal');
   if(goal!=null && $('pd_goalCapital')) $('pd_goalCapital').value = goal;
@@ -1813,8 +4164,8 @@ function pd_save(){
 }
 
 function pd_updateProgress(){
-  const current = parseSafe($('pd_currentCapital')?.value);
-  const goal = parseSafe($('pd_goalCapital')?.value) || 1;
+  const current = pdRubParse($('pd_currentCapital')?.value);
+  const goal = pdRubParse($('pd_goalCapital')?.value) || 1;
   const percent = Math.min((current/goal)*100, 100);
   const bar = $('pd_progressBar');
   if(!bar) return;
@@ -1824,52 +4175,65 @@ function pd_updateProgress(){
 }
 
 function pd_renderAssets(){
-  const list = $('pd_assetsList');
-  const totalDiv = $('pd_totalIncome');
-  const yearlyDiv = $('pd_yearlyIncome');
-  if(!list || !totalDiv || !yearlyDiv) return;
+  const list = document.getElementById('pd_assetsList');
+  if(!list) return;
 
-  list.innerHTML = '';
-  let totalIncome = 0;
+  try{ pd_assets = (pd_assets||[]).map(a=>({status:'plan',...a})); }catch(_){}
 
-  pd_assets.forEach((a, idx)=>{
-    const li = document.createElement('li');
-    li.style.marginBottom = '10px';
-    li.innerHTML = `
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <div style="flex:1;min-width:220px;">
-          <strong>${String(a.name||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</strong><br>
-          <span class="small-muted">Стоимость:</span> ${pd_formatNumber(a.price)} ₽
-          <span class="small-muted">| Доход:</span> ${pd_formatNumber(a.income)} ₽ / мес
+  const plan = [];
+  const bought = [];
+  (pd_assets||[]).forEach((a, idx)=>{
+    (a.status === 'bought' ? bought : plan).push({a, idx});
+  });
+
+  const itemHTML = (a, idx)=>`
+    <div class="pdItem ${(a.status==='bought')?'bought':'plan'}">
+      <div>
+        <div class="pdItemName">${(a.name||'—')}</div>
+        <div class="pdItemMeta">Стоимость: <b>${pdRubFormat(a.price||0)} ₽</b> &nbsp;|&nbsp; Доход: <b>${pdRubFormat(a.income||0)} ₽ / мес</b></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+        <span class="pdTag ${(a.status==='bought')?'bought':'plan'}">${(a.status==='bought')?'Куплено':'План'}</span>
+        <button class="btn ghost pdDelBtn" type="button" data-idx="${idx}"
+          style="padding:8px 10px;border-radius:14px;border-color:rgba(239,68,68,0.35);color:rgba(254,202,202,0.95);">
+          Удалить
+        </button>
+      </div>
+    </div>
+  `;
+
+  const groupHTML = (title, cls, arr)=>{
+    if(!arr.length) return '';
+    return `
+      <div class="pdGroup">
+        <div class="pdGroupHdr">
+          <div class="pdGroupTitle">${title}</div>
+          <div class="pdGroupPill ${cls}">${arr.length}</div>
         </div>
-        <button class="btn ghost" type="button" data-pd-remove="${idx}" style="padding:8px 10px;border-radius:12px;color:#ef4444;">Удалить</button>
+        ${arr.map(({a,idx})=>itemHTML(a,idx)).join('')}
       </div>
     `;
-    list.appendChild(li);
-    totalIncome += parseSafe(a.income);
-  });
+  };
 
-  // подсветка изменения
-  if(totalIncome > pd_prevTotalIncome) totalDiv.style.color = 'var(--neon)';
-  else if(totalIncome < pd_prevTotalIncome) totalDiv.style.color = 'var(--bad)';
-  else totalDiv.style.color = '#fff';
-  pd_prevTotalIncome = totalIncome;
+  list.innerHTML =
+    groupHTML('Запланировано', 'plan', plan) +
+    groupHTML('Куплено', 'bought', bought) +
+    ((!plan.length && !bought.length) ? '<div class="small-muted" style="margin-top:10px;">Пока нет активов. Добавь в план или отметь купленное.</div>' : '');
 
-  totalDiv.textContent = pd_formatNumber(totalIncome) + ' ₽';
-  yearlyDiv.textContent = pd_formatNumber(totalIncome*12) + ' ₽';
-
-  // делегирование удаления
-  list.querySelectorAll('[data-pd-remove]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const i = parseInt(btn.getAttribute('data-pd-remove'),10);
-      if(Number.isFinite(i)){
-        pd_assets.splice(i,1);
-        pd_save();
-        pd_renderAssets();
-        showToast('Актив удалён');
-      }
+  // Bind delete handlers (avoid inline onclick issues)
+  list.querySelectorAll('.pdDelBtn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const i = Number(btn.getAttribute('data-idx'));
+      if(!Number.isFinite(i)) return;
+      pd_assets.splice(i, 1);
+      pd_save();
+      pd_renderAssets();
+      pd_updateTotals();
     });
   });
+
+  pd_updateTotals();
 }
 
 function pd_syncCapitalFromDeals(){
@@ -1890,23 +4254,26 @@ function updatePassiveTab(){
   // вызывается при переключении на вкладку
   pd_updateProgress();
   pd_renderAssets();
+  pd_updateTotals();
 }
 
 // init passive assets UI
 pd_load();
 pd_renderAssets();
+  pd_updateTotals();
 pd_updateProgress();
 
 $('pd_addAssetBtn')?.addEventListener('click', ()=>{
   const name = ($('pd_assetName')?.value || '').trim();
-  const price = parseSafe($('pd_assetPrice')?.value);
-  const income = parseSafe($('pd_assetIncome')?.value);
+  const price = pdRubParse($('pd_assetPrice')?.value);
+  const income = pdRubParse($('pd_assetIncome')?.value);
 
   if(!name){ showToast('Укажи название актива'); return; }
   if(price<=0){ showToast('Укажи стоимость'); return; }
   if(income===0){ showToast('Укажи месячный доход'); return; }
 
-  pd_assets.push({name, price, income});
+  const status = document.querySelector('input[name=pd_status]:checked')?.value || 'plan';
+  pd_assets.push({name, price, income, status});
   pd_save();
 
   if($('pd_assetName')) $('pd_assetName').value='';
@@ -1914,11 +4281,12 @@ $('pd_addAssetBtn')?.addEventListener('click', ()=>{
   if($('pd_assetIncome')) $('pd_assetIncome').value='';
 
   pd_renderAssets();
+  pd_updateTotals();
   showToast('Актив добавлен');
 });
 
 $('pd_currentCapital')?.addEventListener('input', ()=>{
-  localStorage.setItem('club500_pd_current_capital', String(parseSafe($('pd_currentCapital').value)));
+  localStorage.setItem('club500_pd_current_capital', String(pdRubParse($('pd_currentCapital').value)));
   pd_updateProgress();
 });
 $('pd_goalCapital')?.addEventListener('input', ()=>{ pd_save(); pd_updateProgress(); });
@@ -1940,51 +4308,59 @@ function loadCashIn(){
   if($('cashInUsd')) $('cashInUsd').value = usd!=null ? usd : 0;
   if($('cashInRub')) $('cashInRub').value = rub!=null ? rub : 0;
 }
-function bindCashIn(){
-  $('cashInUsd')?.addEventListener('input', ()=>{
-    localStorage.setItem('club500_cash_in_usd', String(parseSafe($('cashInUsd').value)));
-  });
-  $('cashInRub')?.addEventListener('input', ()=>{
-    localStorage.setItem('club500_cash_in_rub', String(parseSafe($('cashInRub').value)));
-  });
+
+/* ===== YEAR ROW HIGHLIGHT (UI) ===== */
+function flashYearRow(index){
+  try{
+    const tbody = document.querySelector('#statsTable tbody');
+    if(!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    const i = Number(index);
+    if(!Number.isFinite(i) || i < 0 || i >= rows.length) return;
+    const tr = rows[i];
+    tr.classList.remove('yearRowFlash');
+    void tr.offsetWidth; // restart anim
+    tr.classList.add('yearRowFlash');
+    // Scroll into view (smooth) so user sees it
+    tr.scrollIntoView({behavior:'smooth', block:'center'});
+    window.setTimeout(()=>tr.classList.remove('yearRowFlash'), 1800);
+  }catch(_){}
 }
 
 function renderStats(){
   const tbody = document.querySelector('#statsTable tbody');
   if(!tbody) return;
-  tbody.innerHTML='';
-  if(!stats.length){
-    $('avgStatPct') && ($('avgStatPct').textContent='0.00%');
-  } else {
+  tbody.innerHTML = '';
+  stats.forEach((r, i)=>{
+    const tr = document.createElement('tr');
 
-  const pcts=[];
-  stats.forEach((row,i)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML = `<td>${i+1}</td><td>${money(row.sum)}</td><td>${Number(row.pct||0).toFixed(2)}%</td>`;
+    const startTs = r.startTs || 0;
+    const endTs = r.endTs || 0;
+    const period = (startTs && endTs) ? (formatDateShort(startTs) + ' → ' + formatDateShort(endTs)) : '—';
+    const days = (r.days != null) ? r.days : (startTs && endTs ? calcDaysBetween(startTs, endTs) : '—');
+
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td>${money(r.sum)}</td>
+      <td><span class=\"yearPct\" data-pct=\"${Number(r.pct||0)}\">—</span></td>
+      <td>${period}</td>
+      <td style="text-align:center">${days}</td>
+      <td style="text-align:center">
+        <button class="iconBtn danger" title="Удалить год" onclick="deleteYearStat(${i})">✕</button>
+      </td>
+    `;
     tbody.appendChild(tr);
-    pcts.push(Number(row.pct||0));
   });
-  const avg = pcts.reduce((a,b)=>a+b,0)/pcts.length;
-  $('avgStatPct') && ($('avgStatPct').textContent = avg.toFixed(2) + '%');
-  }
+  updateYearAverages();
 
-  // авто-статистика по завершённым сделкам
-  renderCompletedDealsStats();
+// applyPctToYearRows
+try{
+  document.querySelectorAll('#statsTable tbody .yearPct').forEach(sp=>{
+    const v = parseFloat(sp.getAttribute('data-pct'));
+    applyPct(sp, v, '%');
+  });
+}catch(_){}
 }
-
-$('addToStatsBtn')?.addEventListener('click', ()=>{
-  const finalText = ($('final')?.innerText || '$0').replace('$','').replace(/,/g,'');
-  const finalSum = parseFloat(finalText);
-  if(!finalSum || finalSum<=0){ showToast('Сначала посчитай калькулятор'); return; }
-
-  const base = parseSafe($('S0')?.value);
-  const pct = base>0 ? ((finalSum/base)-1)*100 : 0;
-
-  stats.push({sum: finalSum, pct});
-  saveStats();
-  renderStats();
-  showToast('Добавлено в статистику');
-});
 
 /* ===== Init ===== */
 window.addEventListener('load', ()=>{
@@ -2002,6 +4378,7 @@ window.addEventListener('load', ()=>{
 
   createDealsTable();
   loadDeals();
+  ensureDealsHistoryFromTable();
 
   recalcDealsSummary();
   recalcAvailableCapital();
@@ -2009,16 +4386,488 @@ window.addEventListener('load', ()=>{
 
   recalcCalc();
   renderStats();
+  renderCompletedDealsStats();
 });
 
 // Очистка статистики (история завершённых сделок)
 $('dealStats_clearBtn')?.addEventListener('click', ()=>{
   localStorage.removeItem('club500_deals_history');
   localStorage.removeItem('club500_completed_deals_stats');
+  localStorage.removeItem('club500_row_sig_map');
+  localStorage.removeItem('club500_last_calc_hash');
   showToast('Статистика очищена');
   renderCompletedDealsStats();
+  clearCycleMeta();
+  updateCycleUI();
 });
 
+$('cycleSetStartBtn')?.addEventListener('click', ()=>{
+  // старт цикла — ТОЛЬКО вручную
+  const manual = parseSafe($('cycleStartInput')?.value);
+  if(!(manual > 0)){
+    showToast('Введи стартовую сумму для фиксации начала года');
+    return;
+  }
+  saveCycleMeta({ startCap: manual, startTs: Date.now(), endCap: 0 });
+  showToast('Старт года зафиксирован');
+  updateCycleUI();
+});
+
+$('cycleSetEndBtn')?.addEventListener('click', ()=>{
+  // Итог года фиксируем по текущему доступному капиталу (а RESULT остаётся только для расчёта/передачи в сделки)
+  const endCap = getCurrentCapitalForCycle();
+  if(!(endCap > 0)){
+    showToast('Сначала должен быть капитал в сводке сделок (доступный капитал)');
+    return;
+  }
+  const meta = getCycleMeta();
+  if(!(meta.startCap > 0)){
+    showToast('Сначала задай старт года');
+    return;
+  }
+
+  // сохранить итог года (для карточки цикла)
+  saveCycleMeta({ startCap: meta.startCap, startTs: meta.startTs || Date.now(), endCap: endCap });
+
+  // добавить год в «Статистика по годам»
+  const pct = ((endCap / meta.startCap) - 1) * 100;
+  const endTs = Date.now();
+  const startTs = meta.startTs || 0;
+  const days = calcDaysBetween(startTs, endTs);
+  stats.push({ sum: endCap, pct: pct, startTs: startTs, endTs: endTs, days: days });
+  saveStats();
+  renderStats();
+  flashYearRow(stats.length-1);
+
+  showToast('Итог года добавлен в статистику');
+  updateCycleUI();
+});
+
+initStatsScopeToggle();
+
+function formatDateShort(ts){
+  if(!ts) return '—';
+  try{
+    const d = new Date(ts);
+    return d.toLocaleDateString('ru-RU');
+  }catch(e){ return '—'; }
+}
+function calcDaysBetween(a,b){
+  if(!a || !b) return '—';
+  const ms = Math.abs(b - a);
+  return Math.max(1, Math.round(ms / (1000*60*60*24)));
+}
+
+function deleteYearStat(i){
+  if(!Array.isArray(stats)) return;
+  stats.splice(i,1);
+  saveStats();
+  renderStats();
+  showToast('Год удалён');
+}
+
+function updateYearAverages(){
+  const elAvg = document.getElementById('yearAvgPct');
+  const elNeed = document.getElementById('yearNeedNext'); // buffer block
+  if(!elAvg || !elNeed) return;
+
+  const n = Array.isArray(stats) ? stats.length : 0;
+
+  if(n === 0){
+    elAvg.innerHTML = '<span class="avgText">Средняя за год(ы):</span> <span class="avgBadge neu">—</span>';
+    elNeed.innerHTML = '<span class="avgText">Буфер доходности:</span> <span class="compBadge zero">—</span>';
+    return;
+  }
+
+  const pcts = stats.map(r=>Number(r.pct||0)).filter(x=>Number.isFinite(x));
+  const sum = pcts.reduce((a,b)=>a+b,0);
+  const avg = sum / pcts.length;
+
+  const avgCls = pctClass(avg); // neg / neu / cyan / green (from pct logic)
+  const yearsTxt = pcts.length === 1 ? 'за 1 год' : `за ${pcts.length} года`;
+
+  // Average badge + explanation (keeps meaning)
+  elAvg.innerHTML = `
+    <span class="avgText">Средняя доходность ${yearsTxt}:</span>
+    <span class="avgBadge ${avgCls}">${avg.toFixed(2)}%</span>
+    <span class="avgText">Цель: 200% средняя.</span>
+  `;
+
+  // Buffer vs target average
+  const target = 200;
+  const buffer = sum - target * pcts.length;
+
+  const cls = buffer > 0 ? 'pos' : (buffer < 0 ? 'neg' : 'zero');
+  const sign = buffer > 0 ? '+' : '';
+  const absv = Math.abs(buffer).toFixed(2);
+
+  const requiredNext = target * (pcts.length + 1) - sum;
+
+  let text = '';
+  if(requiredNext <= 0){
+    text = `Есть запас — следующий год может быть 0%, средняя ≥ ${target}%.`;
+  } else {
+    text = `Дефицит — чтобы удержать среднюю ≥ ${target}%, следующий год ≥ ${requiredNext.toFixed(2)}%.`;
+  }
+
+  elNeed.innerHTML = `
+    <span class="avgText">Буфер доходности:</span>
+    <div class="compRow" style="margin-top:-2px">
+      <span class="compBadge ${cls}">${sign}${absv}%</span>
+      <div class="compText">${text}</div>
+    </div>
+  `;
+}
+
+/* ===== Cash-in entries (USD/RUB with dates) ===== */
+function getCashInEntries(){
+  try{
+    return JSON.parse(localStorage.getItem('club500_cash_in_entries') || '[]');
+  }catch(e){ return []; }
+}
+function saveCashInEntries(arr){
+  localStorage.setItem('club500_cash_in_entries', JSON.stringify(arr || []));
+}
+function sumCashIn(arr){
+  let usd=0, rub=0;
+  (arr||[]).forEach(x=>{
+    usd += Number(x.usd||0) || 0;
+    rub += Number(x.rub||0) || 0;
+  });
+  return {usd, rub};
+}
+function renderCashIn(){
+  const tbody = $('cashInTbody');
+  if(!tbody) return;
+  const arr = getCashInEntries();
+  tbody.innerHTML = '';
+  arr
+    .slice()
+    .sort((a,b)=> String(b.date||'').localeCompare(String(a.date||'')))
+    .forEach((x)=>{
+      const tr = document.createElement('tr');
+      const usd = Number(x.usd||0)||0;
+      const rub = Number(x.rub||0)||0;
+      tr.innerHTML = `
+        <td>${x.date || '—'}</td>
+        <td style="text-align:right">${usd ? usd.toFixed(2) : '—'}</td>
+        <td style="text-align:right">${rub ? Math.round(rub).toLocaleString('ru-RU') : '—'}</td>
+        <td style="text-align:center">
+          <button class="iconBtn danger" title="Удалить" data-ci="${x.id}">✕</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+  const s = sumCashIn(arr);
+  if($('cashInUsd')) $('cashInUsd').value = s.usd.toFixed(2);
+  if($('cashInRub')) $('cashInRub').value = String(Math.round(s.rub));
+
+  tbody.querySelectorAll('button[data-ci]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-ci');
+      const cur = getCashInEntries().filter(x=>String(x.id)!==String(id));
+      saveCashInEntries(cur);
+      renderCashIn();
+      showToast('Пополнение удалено');
+    });
+  });
+}
+function migrateOldCashIn(){
+  const existing = getCashInEntries();
+  if(existing.length) return;
+  const oldUsd = parseSafe(localStorage.getItem('club500_cash_in_usd') || '0');
+  const oldRub = parseSafe(localStorage.getItem('club500_cash_in_rub') || '0');
+  if(oldUsd>0 || oldRub>0){
+    const today = new Date().toISOString().slice(0,10);
+    saveCashInEntries([{ id: 'm1', date: today, usd: oldUsd, rub: oldRub }]);
+  }
+}
+function bindCashIn(){
+  migrateOldCashIn();
+  if($('cashInDate')) $('cashInDate').value = new Date().toISOString().slice(0,10);
+
+  $('cashInAddBtn')?.addEventListener('click', ()=>{
+    const date = $('cashInDate')?.value || new Date().toISOString().slice(0,10);
+    const usd = parseSafe($('cashInUsdAdd')?.value);
+    const rub = parseSafe($('cashInRubAdd')?.value);
+    if(!(usd>0 || rub>0)){
+      showToast('Введи сумму в USD или RUB');
+      return;
+    }
+    const arr = getCashInEntries();
+    arr.push({ id: 'ci_' + Date.now(), date, usd, rub });
+    saveCashInEntries(arr);
+    if($('cashInUsdAdd')) $('cashInUsdAdd').value = '';
+    if($('cashInRubAdd')) $('cashInRubAdd').value = '';
+    renderCashIn();
+    showToast('Пополнение добавлено');
+  });
+
+  renderCashIn();
+}
+
+/* ===== Ensure deals history persists (rebuild from table if needed) ===== */
+function ensureDealsHistoryFromTable(){
+  const hist = getDealsHistory();
+  if(hist && hist.length) return;
+  // Rebuild from current completed rows in table (which are persisted) if any.
+  const cur = getCurrentCompletedDeals();
+  if(!cur || !cur.length) return;
+  const rebuilt = [];
+  const map = {};
+  cur.forEach(d=>{
+    const sig = dealSig(d);
+    const id = (Date.now().toString(36) + Math.random().toString(36).slice(2,8)).toUpperCase();
+    rebuilt.push({ ...d, id });
+    if(d.rowIndex != null) map[String(d.rowIndex)] = sig;
+  });
+  saveDealsHistory(rebuilt);
+  saveRowSigMap(map);
+  try{ localStorage.setItem('club500_completed_deals_stats', JSON.stringify(computeCompletedDealsStats())); }catch(_){}
+}
+
+// Reset start capital (UI only)
+
+$('resetStartCapBtn')?.addEventListener('click', ()=>{
+  const el = $('startCapital');
+  if(el){ el.value = ''; }
+  saveDeals();
+  recalcAvailableCapital();
+  showToast('Начальный капитал очищен');
+});
+
+/* ===== Timeline: day-precision progress within calendar year ===== */
+function daysInYear(y){
+  return ((y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0)) ? 366 : 365;
+}
+function dayOfYear(d){
+  const dt = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const start = new Date(d.getFullYear(), 0, 1);
+  const diff = (dt - start) / 86400000;
+  return Math.floor(diff) + 1; // 1..365/366
+}
+function dateToX(dateObj){ // percent position 0..100 (clamped)
+  const y = dateObj.getFullYear();
+  const doy = dayOfYear(dateObj);
+  const pct = (doy / daysInYear(y)) * 100;
+  return Math.max(1, Math.min(99, pct));
+}
+
+/* Replace month markers with day-precision */
+function updateYearTimeline(meta){
+  const tMeta = document.getElementById('yearTimelineMeta');
+  const tStart = document.getElementById('tStart');
+  const tNow = document.getElementById('tNow');
+  const tEnd = document.getElementById('tEnd');
+  const fill = document.getElementById('timelineFill');
+
+  const now = new Date();
+  if(tNow) tNow.style.left = dateToX(now) + '%';
+
+  const hasStart = meta && meta.startTs;
+  const hasEnd = meta && meta.endTs;
+
+  if(hasStart && tStart){
+    const d = new Date(meta.startTs);
+    tStart.style.display = 'block';
+    tStart.style.left = dateToX(d) + '%';
+  }else if(tStart){
+    tStart.style.display = 'none';
+  }
+
+  if(hasEnd && tEnd){
+    const d = new Date(meta.endTs);
+    tEnd.style.display = 'block';
+    tEnd.style.left = dateToX(d) + '%';
+  }else if(tEnd){
+    tEnd.style.display = 'none';
+  }
+
+  // Fill = calendar-year progress to Now (or to End if fixed)
+  if(fill){
+    const endDate = hasEnd ? new Date(meta.endTs) : now;
+    const w = dateToX(endDate);
+    fill.style.left = '0%';
+    fill.style.width = w + '%';
+    fill.style.opacity = '0.34';
+  }
+
+  if(tMeta){
+    const s = hasStart ? new Date(meta.startTs).toLocaleDateString('ru-RU') : '—';
+    const e = hasEnd ? new Date(meta.endTs).toLocaleDateString('ru-RU') : '—';
+    tMeta.textContent = `Start: ${s} • Now: ${now.toLocaleDateString('ru-RU')} • End: ${e}`;
+  }
+}
+
+/* ===== CASH-IN STRIP AUTO (visual only) ===== */
+function updateCashInStrip(){
+  try{
+    const fill = document.getElementById('cashInStripFill');
+    if(!fill) return;
+    const cashIn = Number(window.cashInTotal || 0);
+    // Try to infer current capital displayed in stats tab
+    const capEl = document.getElementById('cycleCurrentCapital');
+    let cur = 0;
+    if(capEl){
+      const t = capEl.textContent || '';
+      cur = parseFloat(String(t).replace(/[^0-9.]/g,'')) || 0;
+    }
+    const denom = Math.max(cur, cashIn, 1);
+    const pct = Math.max(10, Math.min(100, (cashIn/denom)*100));
+    fill.style.width = pct.toFixed(0) + '%';
+  }catch(_){}
+}
+
+/* ===== STATS FILTER: STRICT MODE (no double-toggle reset) ===== */
+function setStatsFilterStrict(mode){
+  const tab = document.getElementById('statsTab');
+  if(!tab) return;
+
+  tab.classList.remove('statsFilterAnalysis','statsFilterFacts');
+
+  const bA = document.getElementById('pillAnalysis');
+  const bF = document.getElementById('pillFacts');
+  [bA,bF].forEach(b=>b && b.classList.remove('active'));
+
+  if(mode === 'analysis'){
+    tab.classList.add('statsFilterAnalysis');
+    bA && bA.classList.add('active');
+  }else if(mode === 'facts'){
+    tab.classList.add('statsFilterFacts');
+    bF && bF.classList.add('active');
+  }
+  try{ localStorage.setItem('club500_stats_filter', mode); }catch(_){}
+}
+
+function initStatsFilter(){
+  const bA = document.getElementById('pillAnalysis');
+  const bF = document.getElementById('pillFacts');
+
+  if(bA) bA.addEventListener('click', ()=>setStatsFilterStrict('analysis'));
+  if(bF) bF.addEventListener('click', ()=>setStatsFilterStrict('facts'));
+
+  let mode = null;
+  try{ mode = localStorage.getItem('club500_stats_filter'); }catch(_){}
+  if(mode === 'analysis' || mode === 'facts'){
+    setStatsFilterStrict(mode);
+  }
+}
+
+/* ===== AVAILABLE CAPITAL ALERT LOGIC (START CAPITAL DRIVES STATE) =====
+   Idea:
+   - Before user enters Start Capital: show full RED state (attention needed)
+   - As soon as Start Capital > 0: switch to normal (green) state
+*/
+function updateAvailableCapitalAlert(){
+  const startEl = document.getElementById('startCapital');
+  const valEl = document.getElementById('availableCapital');
+  if(!valEl) return;
+
+  const box = valEl.closest('.capital-visual') || valEl.parentElement;
+  if(!box) return;
+
+  const startRaw = startEl ? String(startEl.value || '').replace(',', '.').replace(/[^0-9.-]/g,'') : '';
+  const startNum = Number(startRaw);
+
+  const needsInput = !(Number.isFinite(startNum) && startNum > 0);
+
+  box.classList.toggle('capitalZero', needsInput);
+}
+
+// Run on load + whenever start capital changes
+document.addEventListener('DOMContentLoaded', ()=>{
+  updateAvailableCapitalAlert();
+
+  const startEl = document.getElementById('startCapital');
+  if(startEl){
+    startEl.addEventListener('input', updateAvailableCapitalAlert);
+    startEl.addEventListener('change', updateAvailableCapitalAlert);
+  }
+  const resetBtn = document.getElementById('resetStartCapBtn');
+  if(resetBtn) resetBtn.addEventListener('click', ()=>setTimeout(updateAvailableCapitalAlert, 0));
+});
+/* ===== Passive totals (plan vs bought) ===== */
+function pd_updateTotals(){
+  const planElM = $('pd_planMonthly');
+  const planElY = $('pd_planYearly');
+  const boughtElM = $('pd_boughtMonthly');
+  const boughtElY = $('pd_boughtYearly');
+  const totalEl = $('pd_totalIncome');
+
+  if(!planElM || !boughtElM || !totalEl) return;
+
+  let planM = 0, boughtM = 0;
+
+  (pd_assets || []).forEach(a=>{
+    const inc = Number(a.income || 0);
+    if(!Number.isFinite(inc)) return;
+    if(a.status === 'bought') boughtM += inc;
+    else planM += inc;
+  });
+
+  const totalM = boughtM; // общий итог = факт (Куплено)
+
+  planElM.textContent = pdRubFormat(planM) + ' ₽';
+  boughtElM.textContent = pdRubFormat(boughtM) + ' ₽';
+  if(planElY) planElY.textContent = pdRubFormat(planM * 12) + ' ₽';
+  if(boughtElY) boughtElY.textContent = pdRubFormat(boughtM * 12) + ' ₽';
+
+  totalEl.textContent = pdRubFormat(totalM) + ' ₽';
+}
+
+
+
+/* ===== Passive tab only: RUB input formatting (spaces for thousands) ===== */
+function pdRubFormat(n){
+  const s = String(n);
+  const parts = s.split('.');
+  const intp = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return parts.length > 1 ? intp + '.' + parts[1] : intp;
+}
+function pdRubParse(v){
+  if(v == null) return 0;
+  const raw = String(v).replace(/\s+/g,'').replace(',', '.').replace(/[^0-9.-]/g,'');
+  const num = Number(raw);
+  return Number.isFinite(num) ? num : 0;
+}
+function pdBindRubInput(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  // Only in passive tab
+  const tab = document.getElementById('passiveIncomeTab');
+  if(tab && !tab.contains(el)) return;
+
+  // Use text input to allow spaces
+  if((el.getAttribute('type')||'').toLowerCase() === 'number'){
+    el.setAttribute('type','text');
+    el.setAttribute('inputmode','decimal');
+    el.setAttribute('autocomplete','off');
+    el.setAttribute('spellcheck','false');
+  }
+
+  el.addEventListener('focus', ()=>{
+    el.value = String(pdRubParse(el.value) || '');
+  });
+  el.addEventListener('blur', ()=>{
+    const num = pdRubParse(el.value);
+    el.value = (num || num === 0) ? (num ? pdRubFormat(num) : '0') : '';
+  });
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Only passive tab RUB fields:
+  ['pd_assetPrice','pd_assetIncome','pd_goalCapital'].forEach(pdBindRubInput);
+
+  // Format existing values once
+  ['pd_assetPrice','pd_assetIncome','pd_goalCapital'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    const tab = document.getElementById('passiveIncomeTab');
+    if(tab && !tab.contains(el)) return;
+    const num = pdRubParse(el.value);
+    if(num || num === 0) el.value = num ? pdRubFormat(num) : '0';
+  });
+});
 </script>
 
 </body>
