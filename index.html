@@ -8,6 +8,49 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* ===== CORE / PRO switch ===== */
+.modeSwitch{
+  display:flex;
+  gap:10px;
+  margin:14px 0 10px;
+  padding:6px;
+  border-radius:16px;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(10px);
+}
+.modeBtn{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  padding:10px 10px;
+  border-radius:12px;
+  border:1px solid transparent;
+  background: transparent;
+  color: rgba(255,255,255,.85);
+  cursor:pointer;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease, color .12s ease;
+}
+.modeBtn:active{ transform: scale(.99); }
+.modeTitle{ font-weight:800; letter-spacing:.08em; font-size:12px; }
+.modeSub{ font-weight:600; font-size:12px; opacity:.75; }
+
+:root[data-mode="core"] .modeBtn[data-mode="core"],
+:root[data-mode="pro"]  .modeBtn[data-mode="pro"]{
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.14);
+  color: rgba(255,255,255,.98);
+}
+
+/* Hide PRO-only tabs in CORE mode */
+:root[data-mode="core"] .tabBtn[data-tab="passiveTab"],
+:root[data-mode="core"] .tabBtn[data-tab="statsTab"]{
+  display:none !important;
+}
+
 
 :root {
   --bg: #0b1220;
@@ -2510,6 +2553,105 @@ input, select, textarea, button{
   }
 }
 
+
+/* ===== CORE ONE-SCREEN MODE ===== */
+.mode-core{
+  --pad: clamp(8px, 1.8vw, 14px);
+  --gap: clamp(6px, 1.6vw, 10px);
+  --h: clamp(34px, 4.8vh, 44px);
+  --fz: clamp(12px, 1.65vh, 15px);
+  --fzTitle: clamp(14px, 1.9vh, 18px);
+}
+.mode-core .core-screen{
+  min-height:100dvh;
+  padding:var(--pad);
+  padding-bottom:calc(var(--pad) + env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+  gap:var(--gap);
+  overflow:hidden;
+}
+.mode-core .card{
+  padding:var(--pad);
+  border-radius:14px;
+}
+.mode-core h1,.mode-core h2,.mode-core h3,.mode-core .title{
+  font-size:var(--fzTitle);
+  margin:0 0 var(--gap) 0;
+}
+.mode-core input,
+.mode-core select,
+.mode-core button{
+  height:var(--h);
+  font-size:var(--fz);
+  padding:0 10px;
+}
+.mode-core .calc-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:var(--gap);
+}
+.mode-core .deal-summary-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:var(--gap);
+}
+.mode-core label,
+.mode-core .help,
+.mode-core .muted{
+  font-size:calc(var(--fz) - 1px);
+  line-height:1.1;
+}
+@media (max-height:740px){
+  .mode-core .core-screen{
+    transform:scale(0.94);
+    transform-origin:top center;
+  }
+}
+@media (max-height:680px){
+  .mode-core .core-screen{
+    transform:scale(0.90);
+  }
+}
+
+
+/* ===== CORE KEYBOARD MICRO-MODE (when inputs focused) ===== */
+.mode-core.keyboard-open{
+  --pad: clamp(6px, 1.4vw, 12px);
+  --gap: clamp(5px, 1.2vw, 8px);
+  --h: clamp(32px, 4.4vh, 42px);
+}
+.mode-core.keyboard-open .core-screen{
+  overflow-y:auto; /* allow tiny scroll only while keyboard is open */
+  -webkit-overflow-scrolling: touch;
+}
+.mode-core.keyboard-open .muted,
+.mode-core.keyboard-open .help{
+  display:none !important; /* remove helper text to save vertical space */
+}
+.mode-core.keyboard-open .card .title{
+  margin-bottom: calc(var(--gap) * 0.6);
+}
+
+/* Make deal summary more compact while typing */
+.mode-core.keyboard-open .deal-summary-grid{
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--gap) * 0.8);
+}
+.mode-core.keyboard-open .deal-summary-grid > *{
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: 0 !important;
+}
+
+/* Optional: sticky switcher / header stays visible */
+.mode-core.keyboard-open .core-header{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  backdrop-filter: blur(8px);
+}
+
 </style>
 
 </head>
@@ -2529,6 +2671,17 @@ input, select, textarea, button{
         </div>
       </div>
 
+
+      <div class="modeSwitch" role="group" aria-label="Режим интерфейса">
+        <button type="button" class="modeBtn" data-mode="core" aria-pressed="true">
+          <span class="modeTitle">CORE</span>
+          <span class="modeSub">Трейдинг</span>
+        </button>
+        <button type="button" class="modeBtn" data-mode="pro" aria-pressed="false">
+          <span class="modeTitle">PRO</span>
+          <span class="modeSub">Статистика</span>
+        </button>
+      </div>
       <div class="tabs" role="tablist" aria-label="Разделы">
         <button class="tabBtn active" data-tab="calcTab">Калькулятор</button>
     <button class="tabBtn" data-tab="dealsTab">Сводка сделок</button>
@@ -3126,6 +3279,72 @@ function updateYearTimeline(meta){
     tMeta.textContent = `Start: ${s} • Now: ${now.toLocaleDateString()} • End: ${e}`;
   }
 }
+
+
+
+/* ===== CORE / PRO mode ===== */
+(function(){
+  const root = document.documentElement;
+  const MODE_KEY = 'club500_mode';
+
+  function setPressed(mode){
+    document.querySelectorAll('.modeBtn').forEach(b=>{
+      const on = b.dataset.mode === mode;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  function activeTabId(){
+    const btn = document.querySelector('.tabBtn.active');
+    return btn ? btn.dataset.tab : null;
+  }
+
+  function switchToTab(tabId){
+    const btn = document.querySelector(`.tabBtn[data-tab="${tabId}"]`);
+    if(btn){
+      btn.click();
+      return true;
+    }
+    // fallback if click handler isn't available yet
+    document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
+    const fb = document.querySelector(`.tabBtn[data-tab="${tabId}"]`);
+    if(fb) fb.classList.add('active');
+    document.querySelectorAll('.tabContent').forEach(c=>c.style.display='none');
+    const pane = document.getElementById(tabId);
+    if(pane) pane.style.display='block';
+    return !!pane;
+  }
+
+  function applyMode(mode){
+    mode = (mode === 'pro') ? 'pro' : 'core';
+    root.dataset.mode = mode;
+    setPressed(mode);
+    try{ localStorage.setItem(MODE_KEY, mode); }catch(e){}
+
+    // If current tab is hidden in CORE -> jump to calc
+    const tab = activeTabId();
+    if(mode === 'core' && (tab === 'passiveTab' || tab === 'statsTab')){
+      switchToTab('calcTab');
+    }
+  }
+
+  function init(){
+    const saved = (()=>{ try{ return localStorage.getItem(MODE_KEY); }catch(e){ return null; } })();
+    applyMode(saved || 'core');
+
+    document.querySelectorAll('.modeBtn').forEach(b=>{
+      b.addEventListener('click', ()=> applyMode(b.dataset.mode));
+    });
+  }
+
+  // Init after DOM is ready (file is single page)
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  }else{
+    init();
+  }
+})();
 
 
 /* ===== Tabs ===== */
@@ -4868,6 +5087,61 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(num || num === 0) el.value = num ? pdRubFormat(num) : '0';
   });
 });
+</script>
+
+
+<script>
+(function(){
+  function isCore(){
+    return document.body.classList.contains('mode-core');
+  }
+  let focusCount = 0;
+
+  function onFocusIn(e){
+    if(!isCore()) return;
+    const t = e.target;
+    if(!(t instanceof HTMLElement)) return;
+    const tag = t.tagName;
+    if(tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA'){
+      focusCount++;
+      document.body.classList.add('keyboard-open');
+    }
+  }
+
+  function onFocusOut(e){
+    if(!isCore()) return;
+    const t = e.target;
+    if(!(t instanceof HTMLElement)) return;
+    const tag = t.tagName;
+    if(tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA'){
+      focusCount = Math.max(0, focusCount - 1);
+      // Delay to allow focus to move between fields without flicker
+      setTimeout(function(){
+        if(!isCore()) return;
+        const active = document.activeElement;
+        const aTag = active && active.tagName;
+        const stillInField = (aTag === 'INPUT' || aTag === 'SELECT' || aTag === 'TEXTAREA');
+        if(focusCount === 0 && !stillInField){
+          document.body.classList.remove('keyboard-open');
+        }else{
+          document.body.classList.add('keyboard-open');
+        }
+      }, 50);
+    }
+  }
+
+  document.addEventListener('focusin', onFocusIn, true);
+  document.addEventListener('focusout', onFocusOut, true);
+
+  // Safety: if mode switches away from core, remove keyboard-open
+  const obs = new MutationObserver(function(){
+    if(!isCore()){
+      document.body.classList.remove('keyboard-open');
+      focusCount = 0;
+    }
+  });
+  obs.observe(document.body, {attributes:true, attributeFilter:['class']});
+})();
 </script>
 
 </body>
