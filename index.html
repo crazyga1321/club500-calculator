@@ -2556,11 +2556,12 @@ input, select, textarea, button{
 
 /* ===== CORE ONE-SCREEN MODE ===== */
 .mode-core{
-  --pad: clamp(8px, 1.8vw, 14px);
-  --gap: clamp(6px, 1.6vw, 10px);
-  --h: clamp(34px, 4.8vh, 44px);
-  --fz: clamp(12px, 1.65vh, 15px);
-  --fzTitle: clamp(14px, 1.9vh, 18px);
+  /* Tight mobile CORE sizing */
+  --pad: clamp(6px, 1.4vw, 10px);
+  --gap: clamp(5px, 1.2vw, 8px);
+  --h: clamp(32px, 4.2vh, 40px);
+  --fz: clamp(11px, 1.55vh, 14px);
+  --fzTitle: clamp(13px, 1.8vh, 16px);
 }
 .mode-core .core-screen{
   min-height:100dvh;
@@ -2572,19 +2573,19 @@ input, select, textarea, button{
   overflow:hidden;
 }
 .mode-core .card{
-  padding:var(--pad);
-  border-radius:14px;
+  padding: var(--pad);
+  border-radius: 12px;
 }
 .mode-core h1,.mode-core h2,.mode-core h3,.mode-core .title{
-  font-size:var(--fzTitle);
-  margin:0 0 var(--gap) 0;
+  font-size: var(--fzTitle);
+  margin: 0 0 calc(var(--gap) * 0.7) 0;
 }
 .mode-core input,
 .mode-core select,
 .mode-core button{
-  height:var(--h);
-  font-size:var(--fz);
-  padding:0 10px;
+  height: var(--h);
+  font-size: var(--fz);
+  padding: 0 8px;
 }
 .mode-core .calc-grid{
   display:grid;
@@ -2650,6 +2651,166 @@ input, select, textarea, button{
   top: 0;
   z-index: 5;
   backdrop-filter: blur(8px);
+}
+
+
+/* Extra tightening only for CORE (keeps PRO "desktop-like") */
+.mode-core .container,
+.mode-core .wrapper,
+.mode-core .content{
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.mode-core .card + .card{
+  margin-top: var(--gap) !important;
+}
+
+
+/* ===== FIX: summary overflow on small widths ===== */
+.mode-core, .mode-core * { box-sizing: border-box; }
+
+.mode-core .core-screen{
+  overflow-x: hidden; /* prevent horizontal bleed */
+}
+
+/* Ensure grid items can shrink inside columns */
+.mode-core .deal-summary-grid,
+.mode-core .calc-grid{
+  width: 100%;
+  min-width: 0;
+}
+
+.mode-core .deal-summary-grid > *{
+  min-width: 0;            /* critical for grid shrink */
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* If summary items have label/value rows, make them wrap safely */
+.mode-core .deal-summary-grid *{
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Common pattern: label + value on one line */
+.mode-core .deal-summary-grid .row,
+.mode-core .deal-summary-grid .line,
+.mode-core .deal-summary-grid .item{
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  align-items: baseline;
+}
+
+/* Prevent long numbers/text from pushing layout */
+.mode-core .deal-summary-grid .value,
+.mode-core .deal-summary-grid .num{
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
+}
+
+/* Extra: slightly smaller summary typography on very narrow screens */
+@media (max-width: 380px){
+  .mode-core .deal-summary-grid{
+    gap: 6px;
+  }
+  .mode-core .deal-summary-grid .value,
+  .mode-core .deal-summary-grid .num{
+    max-width: 60%;
+  }
+  .mode-core .deal-summary-grid{
+    font-size: calc(var(--fz) - 1px);
+  }
+}
+
+
+/* ===== Mobile-friendly Deals table (CORE only) ===== */
+@media (max-width: 560px){
+  body.mode-core .dealsTableWrap{
+    overflow: visible !important;
+  }
+  body.mode-core #dealsTable thead{
+    display: none !important;
+  }
+
+  body.mode-core #dealsTable,
+  body.mode-core #dealsTable tbody,
+  body.mode-core #dealsTable tr{
+    display: block;
+    width: 100%;
+  }
+
+  body.mode-core #dealsTable tr{
+    margin: 0 0 10px 0;
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.18);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  }
+
+  body.mode-core #dealsTable td{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 2px;
+    border: 0 !important;
+    min-width: 0;
+  }
+
+  body.mode-core #dealsTable td::before{
+    flex: 0 0 32%;
+    content: "";
+    opacity: 0.75;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    text-align: left;
+  }
+
+  body.mode-core #dealsTable td:nth-child(1)::before{ content: "#"; }
+  body.mode-core #dealsTable td:nth-child(2)::before{ content: "Актив"; }
+  body.mode-core #dealsTable td:nth-child(3)::before{ content: "Вход"; }
+  body.mode-core #dealsTable td:nth-child(4)::before{ content: "Выход"; }
+  body.mode-core #dealsTable td:nth-child(5)::before{ content: "%"; }
+  body.mode-core #dealsTable td:nth-child(6)::before{ content: "PnL"; }
+  body.mode-core #dealsTable td:nth-child(7)::before{ content: "Удалить"; }
+
+  /* Make form controls fit neatly on mobile */
+  body.mode-core #dealsTable input,
+  body.mode-core #dealsTable select,
+  body.mode-core #dealsTable button{
+    max-width: 62%;
+    width: 62%;
+    min-width: 0;
+  }
+
+  /* If PnL is plain text inside a span/div, align it */
+  body.mode-core #dealsTable td:nth-child(6){
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Delete button cell: keep button compact */
+  body.mode-core #dealsTable td:nth-child(7) button{
+    width: 44px;
+    max-width: 44px;
+    height: 40px;
+    padding: 0;
+  }
+}
+
+/* Extra: reduce top helper text spacing in CORE on phone */
+@media (max-width: 560px){
+  body.mode-core .small-muted{
+    margin-top: 4px !important;
+    margin-bottom: 6px !important;
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+  }
 }
 
 </style>
