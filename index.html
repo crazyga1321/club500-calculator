@@ -2813,6 +2813,187 @@ input, select, textarea, button{
   }
 }
 
+
+/* ===== CORE MOBILE: stacked deals (phone-friendly) ===== */
+@media (max-width: 600px){
+  html[data-mode="core"] body .dealsTableWrap{ overflow: hidden !important; }
+  html[data-mode="core"] body #dealsTable thead{ display:none !important; }
+
+  html[data-mode="core"] body #dealsTable,
+  html[data-mode="core"] body #dealsTable tbody,
+  html[data-mode="core"] body #dealsTable tr{
+    display:block;
+    width:100%;
+  }
+
+  html[data-mode="core"] body #dealsTable tr{
+    position: relative;
+    padding: 10px 10px 12px 10px;
+    margin: 0 0 10px 0;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    background: transparent;
+  }
+
+  html[data-mode="core"] body #dealsTable td{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:10px;
+    padding:4px 0;
+    border:0 !important;
+    min-width:0;
+    width:100%;
+    box-sizing:border-box;
+    font-size:12px;
+  }
+
+  html[data-mode="core"] body #dealsTable td::before{
+    content:'';
+    opacity:.65;
+    font-size:11px;
+    flex:0 0 92px; /* label column */
+    text-align:left;
+  }
+
+  html[data-mode="core"] body #dealsTable td:nth-child(2)::before{ content:'Актив'; }
+  html[data-mode="core"] body #dealsTable td:nth-child(3)::before{ content:'Ввод'; }
+  html[data-mode="core"] body #dealsTable td:nth-child(4)::before{ content:'Вывод'; }
+  html[data-mode="core"] body #dealsTable td:nth-child(5)::before{ content:'%'; }
+  html[data-mode="core"] body #dealsTable td:nth-child(6)::before{ content:'PNL'; }
+
+  /* hide # column */
+  html[data-mode="core"] body #dealsTable td:nth-child(1){ display:none !important; }
+
+  /* inputs full width */
+  html[data-mode="core"] body #dealsTable input{
+    height: 34px;
+    font-size: 12px;
+    padding: 0 10px;
+    margin: 0 !important;
+    width: 100%;
+    max-width: none;
+    flex: 1 1 auto;
+    border-radius: 12px;
+    box-sizing: border-box;
+  }
+
+  /* % and PNL on one line */
+  html[data-mode="core"] body #dealsTable tr .core-metrics{
+    display:flex;
+    gap:10px;
+    width:100%;
+    margin-top: 2px;
+  }
+  html[data-mode="core"] body #dealsTable tr .core-metrics .metric{
+    flex:1 1 50%;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:8px;
+    font-size:12px;
+  }
+  html[data-mode="core"] body #dealsTable tr .core-metrics .metric .k{
+    opacity:.65;
+    font-size:11px;
+    min-width: 18px;
+  }
+  html[data-mode="core"] body #dealsTable tr .core-metrics .metric .v{
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* delete button to top-right */
+  html[data-mode="core"] body #dealsTable td:nth-child(7){
+    position:absolute !important;
+    top:10px; right:10px;
+    padding:0 !important;
+    margin:0 !important;
+    width:auto !important;
+    justify-content:flex-end !important;
+  }
+  html[data-mode="core"] body #dealsTable td:nth-child(7)::before{ display:none !important; }
+  html[data-mode="core"] body #dealsTable td:nth-child(7) button{
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 12px !important;
+    padding:0 !important;
+  }
+
+  /* add button (appears under last visible deal) */
+  html[data-mode="core"] body .core-add-btn{
+    display:block;
+    width:100%;
+    height:40px;
+    border-radius:12px;
+    font-size:13px;
+    margin-top:10px;
+  }
+
+  /* full width: remove max-width gutters if present */
+  html[data-mode="core"] body .container,
+  html[data-mode="core"] body .wrapper,
+  html[data-mode="core"] body .content,
+  html[data-mode="core"] body .app,
+  html[data-mode="core"] body .main,
+  html[data-mode="core"] body .panel,
+  html[data-mode="core"] body .card{
+    max-width:none !important;
+    width:100% !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+  }
+}
+
+/* ===== CORE MOBILE: visible rows control via data-core-visible ===== */
+@media (max-width: 600px){
+  html[data-mode="core"][data-core-visible="1"] body #dealsTable tbody tr:nth-child(n+2){ display:none !important; }
+  html[data-mode="core"][data-core-visible="2"] body #dealsTable tbody tr:nth-child(n+3){ display:none !important; }
+  html[data-mode="core"][data-core-visible="3"] body #dealsTable tbody tr:nth-child(n+4){ display:none !important; }
+  html[data-mode="core"][data-core-visible="4"] body #dealsTable tbody tr:nth-child(n+5){ display:none !important; }
+  html[data-mode="core"][data-core-visible="5"] body #dealsTable tbody tr:nth-child(n+6){ display:none !important; }
+  html[data-mode="core"][data-core-visible="6"] body #dealsTable tbody tr:nth-child(n+7){ display:none !important; }
+  html[data-mode="core"][data-core-visible="7"] body #dealsTable tbody tr:nth-child(n+8){ display:none !important; }
+  html[data-mode="core"][data-core-visible="8"] body #dealsTable tbody tr:nth-child(n+9){ display:none !important; }
+  html[data-mode="core"][data-core-visible="9"] body #dealsTable tbody tr:nth-child(n+10){ display:none !important; }
+  html[data-mode="core"][data-core-visible="10"] body #dealsTable tbody tr:nth-child(n+11){ display:none !important; }
+  html[data-mode="core"][data-core-visible="11"] body #dealsTable tbody tr:nth-child(n+12){ display:none !important; }
+  html[data-mode="core"][data-core-visible="12"] body #dealsTable tbody tr:nth-child(n+13){ display:none !important; }
+  html[data-mode="core"][data-core-visible="13"] body #dealsTable tbody tr:nth-child(n+14){ display:none !important; }
+  html[data-mode="core"][data-core-visible="14"] body #dealsTable tbody tr:nth-child(n+15){ display:none !important; }
+  html[data-mode="core"][data-core-visible="15"] body #dealsTable tbody tr:nth-child(n+16){ display:none !important; }
+  html[data-mode="core"][data-core-visible="16"] body #dealsTable tbody tr:nth-child(n+17){ display:none !important; }
+  html[data-mode="core"][data-core-visible="17"] body #dealsTable tbody tr:nth-child(n+18){ display:none !important; }
+  html[data-mode="core"][data-core-visible="18"] body #dealsTable tbody tr:nth-child(n+19){ display:none !important; }
+  html[data-mode="core"][data-core-visible="19"] body #dealsTable tbody tr:nth-child(n+20){ display:none !important; }
+  html[data-mode="core"][data-core-visible="20"] body #dealsTable tbody tr:nth-child(n+21){ display:none !important; }
+}
+
+
+@media (max-width: 600px){
+  html[data-mode="core"] body .core-actionbar{
+    display:flex;
+    gap:10px;
+    width:100%;
+    margin-top:10px;
+  }
+  html[data-mode="core"] body .core-actionbar .core-add-btn,
+  html[data-mode="core"] body .core-actionbar .core-clear-btn{
+    flex: 1 1 auto;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+  html[data-mode="core"] body .core-actionbar .core-clear-btn{
+    opacity: 0.85;
+  }
+}
+
+
+@media (max-width: 600px){
+  html[data-mode="core"] body .core-clear-btn{ display:none !important; }
+  html[data-mode="core"] body .core-actionbar{ justify-content: flex-start; }
+}
+
 </style>
 
 </head>
@@ -5251,57 +5432,297 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 
 
+
 <script>
 (function(){
-  function isCore(){
-    return document.body.classList.contains('mode-core');
-  }
-  let focusCount = 0;
+  const MAX = 20;
+  const BASE = 3; // first 3 rows always visible
+  const INITIAL_EXTRA = 0;
 
-  function onFocusIn(e){
-    if(!isCore()) return;
-    const t = e.target;
-    if(!(t instanceof HTMLElement)) return;
-    const tag = t.tagName;
-    if(tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA'){
-      focusCount++;
-      document.body.classList.add('keyboard-open');
+  function isCoreMobile(){
+    const isCore = document.documentElement.getAttribute('data-mode') === 'core';
+    const isMobile = window.matchMedia('(max-width: 600px)').matches;
+    return isCore && isMobile;
+  }
+
+  function tbody(){
+    return document.querySelector('#dealsTable tbody');
+  }
+
+  function allRows(){
+    const t = tbody();
+    return t ? Array.from(t.querySelectorAll('tr')) : [];
+  }
+
+  function rows20(){
+    return allRows().slice(0, MAX);
+  }
+
+  function baseRows(){
+    return rows20().slice(0, BASE);
+  }
+
+  function extraPool(){
+    return rows20().slice(BASE);
+  }
+
+  function getExtraVisible(){
+    const v = parseInt(document.documentElement.getAttribute('data-core-extra') || '', 10);
+    return Number.isFinite(v) ? Math.max(0, v) : INITIAL_EXTRA;
+  }
+
+  function setExtraVisible(v){
+    const capped = Math.max(0, Math.min(MAX - BASE, v));
+    document.documentElement.setAttribute('data-core-extra', String(capped));
+  }
+
+  function clearRow(tr){
+    tr.querySelectorAll('input, select, textarea').forEach(el=>{
+      if(el.tagName === 'SELECT'){
+        el.selectedIndex = 0;
+      } else if(el instanceof HTMLInputElement){
+        if(el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+        else el.value = '';
+      } else {
+        el.value = '';
+      }
+      el.dispatchEvent(new Event('input', {bubbles:true}));
+      el.dispatchEvent(new Event('change', {bubbles:true}));
+    });
+  }
+
+  function showOnlyBaseAndExtra(){
+    const base = baseRows();
+    const pool = extraPool();
+    const extraVisible = getExtraVisible();
+
+    base.forEach(tr=>{
+      tr.style.display = '';
+    });
+
+    let shown = 0;
+    for(const tr of pool){
+      if(shown < extraVisible){
+        tr.style.display = '';
+        shown++;
+      }else{
+        tr.style.display = 'none';
+      }
+    }
+    if(shown < extraVisible){
+      setExtraVisible(shown);
     }
   }
 
-  function onFocusOut(e){
-    if(!isCore()) return;
-    const t = e.target;
-    if(!(t instanceof HTMLElement)) return;
-    const tag = t.tagName;
-    if(tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA'){
-      focusCount = Math.max(0, focusCount - 1);
-      // Delay to allow focus to move between fields without flicker
-      setTimeout(function(){
-        if(!isCore()) return;
-        const active = document.activeElement;
-        const aTag = active && active.tagName;
-        const stillInField = (aTag === 'INPUT' || aTag === 'SELECT' || aTag === 'TEXTAREA');
-        if(focusCount === 0 && !stillInField){
-          document.body.classList.remove('keyboard-open');
+  function ensureMetricsRow(){
+    rows20().forEach(tr=>{
+      const tds = tr.querySelectorAll('td');
+      if(tds.length < 7) return;
+
+      const tdPct = tds[4];
+      const tdPnl = tds[5];
+
+      let bar = tr.querySelector('.core-metrics');
+      if(!bar){
+        bar = document.createElement('div');
+        bar.className = 'core-metrics';
+
+        const m1 = document.createElement('div');
+        m1.className = 'metric metric-pct';
+        const k1 = document.createElement('div'); k1.className='k'; k1.textContent='%';
+        const v1 = document.createElement('div'); v1.className='v'; v1.textContent='—';
+        m1.appendChild(k1); m1.appendChild(v1);
+
+        const m2 = document.createElement('div');
+        m2.className = 'metric metric-pnl';
+        const k2 = document.createElement('div'); k2.className='k'; k2.textContent='PNL';
+        const v2 = document.createElement('div'); v2.className='v'; v2.textContent='$0.00';
+        m2.appendChild(k2); m2.appendChild(v2);
+
+        bar.appendChild(m1); bar.appendChild(m2);
+        tr.appendChild(bar);
+
+        tdPct.style.display = 'none';
+        tdPnl.style.display = 'none';
+      }
+
+      const pctText = (tdPct.textContent || '').trim() || '—';
+      const pnlText = (tdPnl.textContent || '').trim() || '$0.00';
+      const pctV = tr.querySelector('.metric-pct .v');
+      const pnlV = tr.querySelector('.metric-pnl .v');
+      if(pctV) pctV.textContent = pctText;
+      if(pnlV) pnlV.textContent = pnlText;
+    });
+  }
+
+  function mountButtons(){
+    document.querySelectorAll('.core-actionbar').forEach(b=>b.remove());
+
+    const rows = rows20();
+    if(rows.length === 0) return;
+
+    const extraVisible = getExtraVisible();
+    const lastIndex = Math.min(BASE + extraVisible, rows.length) - 1;
+    const last = rows[lastIndex];
+    if(!last) return;
+
+    const maxExtra = Math.min(MAX, rows.length) - BASE;
+
+    const bar = document.createElement('div');
+    bar.className = 'core-actionbar';
+
+    if(extraVisible < maxExtra){
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'core-add-btn';
+      addBtn.textContent = `Добавить актив (${BASE + extraVisible}/${Math.min(MAX, rows.length)})`;
+      addBtn.addEventListener('click', ()=>{
+        setExtraVisible(getExtraVisible() + 1);
+        render();
+        setTimeout(()=>{
+          const r = rows20();
+          const idx = Math.min(BASE + getExtraVisible(), r.length) - 1;
+          const tr = r[idx];
+          if(tr){
+            const assetInput = tr.querySelector('td:nth-child(2) input') || tr.querySelector('input');
+            if(assetInput) assetInput.focus();
+          }
+        }, 50);
+      });
+      bar.appendChild(addBtn);
+    }
+
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'core-clear-btn';
+    clearBtn.textContent = 'Очистить';
+    clearBtn.addEventListener('click', ()=>{
+      rows20().forEach(clearRow);
+      setExtraVisible(0);
+      render();
+    });
+    bar.appendChild(clearBtn);
+
+    last.appendChild(bar);
+  }
+
+  function interceptDelete(){
+    const table = document.querySelector('#dealsTable');
+    if(!table || table.__coreDeleteBound) return;
+    table.__coreDeleteBound = true;
+
+    table.addEventListener('click', (e)=>{
+      if(!isCoreMobile()) return;
+
+      const btn = e.target && (e.target.closest ? e.target.closest('button') : null);
+      if(!btn) return;
+
+      const tr = btn.closest('tr');
+      if(!tr) return;
+
+      // likely delete if inside last cell or text 'x'
+      const isDelete = !!btn.closest('td:nth-child(7)') || btn.textContent.trim().toLowerCase() === 'x';
+      if(!isDelete) return;
+
+      const rows = rows20();
+      const idx = rows.indexOf(tr);
+      if(idx < 0) return;
+
+      setTimeout(()=>{
+        if(idx < BASE){
+          // first 3: clear only
+          clearRow(tr);
         }else{
-          document.body.classList.add('keyboard-open');
+          // 4+ : hide one row by reducing extra visible, then collapse
+          clearRow(tr);
+          const current = getExtraVisible();
+          if(current > 0) setExtraVisible(current - 1);
+          render();
         }
-      }, 50);
-    }
+      }, 0);
+    }, true);
   }
 
-  document.addEventListener('focusin', onFocusIn, true);
-  document.addEventListener('focusout', onFocusOut, true);
+  function cleanup(){
+    document.documentElement.removeAttribute('data-core-extra');
+    document.querySelectorAll('.core-actionbar').forEach(b=>b.remove());
+    rows20().forEach(tr=>{
+      tr.style.display = '';
+      const tds = tr.querySelectorAll('td');
+      if(tds[4]) tds[4].style.display = '';
+      if(tds[5]) tds[5].style.display = '';
+      const bar = tr.querySelector('.core-metrics');
+      if(bar) bar.remove();
+    });
+  }
 
-  // Safety: if mode switches away from core, remove keyboard-open
-  const obs = new MutationObserver(function(){
-    if(!isCore()){
-      document.body.classList.remove('keyboard-open');
-      focusCount = 0;
+  function render(){
+    if(!isCoreMobile()){
+      cleanup();
+      return;
     }
-  });
-  obs.observe(document.body, {attributes:true, attributeFilter:['class']});
+    if(!document.documentElement.hasAttribute('data-core-extra')){
+      setExtraVisible(INITIAL_EXTRA);
+    }
+    showOnlyBaseAndExtra();
+    ensureMetricsRow();
+    mountButtons();
+    interceptDelete();
+  }
+
+  function lateRender(){
+    render();
+    setTimeout(render, 200);
+    setTimeout(render, 600);
+  }
+
+  window.addEventListener('resize', lateRender);
+  document.addEventListener('DOMContentLoaded', lateRender);
+  new MutationObserver(lateRender).observe(document.documentElement,{attributes:true,attributeFilter:['data-mode']});
+})();
+</script>
+
+
+<script>
+(function(){
+  function isCoreMobile(){
+    const isCore = document.documentElement.getAttribute('data-mode') === 'core';
+    const isMobile = window.matchMedia('(max-width: 600px)').matches;
+    return isCore && isMobile;
+  }
+
+  function collapseToBase(){
+    // Our logic uses data-core-extra to control extra rows beyond base 3
+    document.documentElement.setAttribute('data-core-extra', '0');
+    // If an actionbar exists, it will be re-mounted by the main renderer shortly
+  }
+
+  function removeInjectedClear(){
+    document.querySelectorAll('.core-clear-btn').forEach(b=>b.remove());
+  }
+
+  function bind(){
+    const btn = document.getElementById('clearDealsBtn');
+    if(!btn || btn.__coreBound) return;
+    btn.__coreBound = true;
+
+    btn.addEventListener('click', function(){
+      // Let existing clear logic run, but enforce collapsing in CORE mobile
+      if(isCoreMobile()){
+        collapseToBase();
+        removeInjectedClear();
+        // re-render if main renderer exists (it is in another script); give it a tick
+        setTimeout(function(){
+          // trigger a resize to encourage renderer update
+          window.dispatchEvent(new Event('resize'));
+        }, 50);
+      }
+    }, true);
+  }
+
+  document.addEventListener('DOMContentLoaded', bind);
+  // also try immediately in case DOM already loaded
+  try{ bind(); }catch(e){}
 })();
 </script>
 
