@@ -4351,7 +4351,7 @@ function defaultDealsState(){
 
 function saveDeals(){
   const state = { startCapital: $('startCapital')?.value ?? '', deals: [] };
-  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+  __rows.forEach(tr=>{
     const asset = tr.querySelector('.tagDisplay .tagText')?.textContent || '';
     const inv = tr.querySelector('.in')?.value ?? '';
     const outv = tr.querySelector('.out')?.value ?? '';
@@ -4990,19 +4990,25 @@ function recalcAvailableCapital(){
 }
 
 $('calcDealsBtn')?.addEventListener('click', ()=>{
-  dealsCalculated = true;
-  // SOFT OPT: process only rows that actually contain data (asset or numbers)
+
+  // Mobile perf: calculate only rows that have data (asset or in/out).
+  const __root = document.documentElement;
+  const __extra = Number(__root.getAttribute('data-core-extra') || 0) || 0;
+  const __BASE = 3;
+  const __visibleCount = Math.max(__BASE, Math.min(20, __BASE + __extra));
   const __allRows = Array.from(document.querySelectorAll('#dealsTable tbody tr'));
-  const __activeRows = __allRows.filter(tr=>{
+  const __rows = __allRows.slice(0, __visibleCount).filter(tr=>{
     const entry = parseSafe(tr.querySelector('.in')?.value);
     const exit  = parseSafe(tr.querySelector('.out')?.value);
-    const assetIn   = (tr.querySelector('.assetEntry')?.value || '').trim();
-    const assetDisp = (tr.querySelector('.tagDisplay')?.textContent || '').trim();
-    return entry > 0 || exit > 0 || assetIn.length > 0 || assetDisp.length > 0;
+    const asset = (tr.querySelector('.tagDisplay')?.textContent || '').trim() ||
+                  (tr.querySelector('.assetEntry')?.value || '').trim();
+    return entry>0 || exit>0 || asset.length>0;
   });
-  __activeRows.forEach(tr=> updateDealRow(tr));
+
+  dealsCalculated = true;
+  __rows.forEach(tr=> updateDealRow(tr));
   // визуальная фиксация сделки: 🔒 и изменение цвета тега появляются только после фиксации (есть вход и выход)
-  __activeRows.forEach(tr=>{
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
     const entry = parseSafe(tr.querySelector('.in')?.value);
     const exit  = parseSafe(tr.querySelector('.out')?.value);
     const wrap  = tr.querySelector('.tagWrap');
@@ -5040,9 +5046,16 @@ $('calcDealsBtn')?.addEventListener('click', ()=>{
   const ds = computeCompletedDealsStats();
   saveCompletedDealsStats(ds);
   renderCompletedDealsStats();
-  // SOFT OPT: force a single repaint so %/PNL appear instantly on mobile browsers
-  const __tbl = $('dealsTable');
-  if(__tbl) void __tbl.offsetHeight;
+  
+  // Mobile paint fix: some browsers paint updated rows only after user scroll.
+  try{
+    const tbl = $('dealsTable');
+    const wrap = tbl?.closest('.dealsTableWrap') || tbl?.parentElement;
+    const sc = wrap && (wrap.scrollHeight > wrap.clientHeight) ? wrap : (document.scrollingElement || document.documentElement);
+    const y = sc.scrollTop;
+    sc.scrollTop = y + 1;
+    requestAnimationFrame(()=>{ sc.scrollTop = y; });
+  }catch(e){}
   showToast('Доходность по сделкам рассчитана');
 });
 
