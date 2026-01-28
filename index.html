@@ -841,7 +841,7 @@ input, select{ min-height: 44px; font-size: 14px; }
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(16,185,129,0.08);
+  background: transparent;
 }
 .tagDisplay .remove{
   border: 0;
@@ -849,6 +849,64 @@ input, select{ min-height: 44px; font-size: 14px; }
   color: rgba(255,255,255,0.8);
   cursor: pointer;
   font-weight: 900;
+}
+
+
+/* Premium gradient text for asset (CORE only) */
+html[data-mode="core"] body #dealsTable .tagTextPremium{
+  font-family: "Space Grotesk","Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  /* gradient text */
+  background: linear-gradient(90deg, rgba(34,197,94,0.95), rgba(16,185,129,0.85), rgba(110,231,183,0.95));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* premium glow (subtle) */
+  text-shadow: 0 0 10px rgba(16,185,129,0.22);
+}
+
+/* Do NOT paint the whole row: keep tag container transparent */
+html[data-mode="core"] body #dealsTable td:nth-child(2) .tagDisplay{
+  background: transparent !important;
+}
+
+/* Premium delete cross (always visible, sized to row) */
+html[data-mode="core"] body #dealsTable td:nth-child(7) .dealDel{
+  width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  background: rgba(255,255,255,0.04) !important;
+  color: rgba(255,255,255,0.85) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  font-size: 16px !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.28) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+html[data-mode="core"] body #dealsTable td:nth-child(7) .dealDel:active{
+  transform: scale(0.96) !important;
+}
+html[data-mode="core"] body #dealsTable td:nth-child(7) .dealDel:hover{
+  border-color: rgba(16,185,129,0.35) !important;
+}
+
+/* Disable any long-press hint visuals if present */
+html[data-mode="core"] body #dealsTable tr.core-hint::after{ display:none !important; }
+
+
+html[data-mode="core"] body #dealsTable td:nth-child(7) button{
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: none !important;
 }
 
 /* ===== CALC SUMMARY EMPHASIS ===== */
@@ -2994,6 +3052,341 @@ input, select, textarea, button{
   html[data-mode="core"] body .core-actionbar{ justify-content: flex-start; }
 }
 
+
+/* =========================================================
+   CORE (mobile) — Deals input area: 3D neon cards + compact buttons
+   PRO / desktop untouched
+   ========================================================= */
+@media (max-width: 600px){
+  /* ---------- Bottom action buttons (the ones on your screenshot) ---------- */
+  html[data-mode="core"] body #calcDealsBtn,
+  html[data-mode="core"] body #clearDealsBtn,
+  html[data-mode="core"] body #useInCalcBtn{
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 14px !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+    border-radius: 14px !important;
+    white-space: normal !important;
+  }
+  /* allow 2 lines nicely */
+  html[data-mode="core"] body #calcDealsBtn,
+  html[data-mode="core"] body #useInCalcBtn{
+    line-height: 1.05 !important;
+  }
+
+  /* container that holds those buttons inside deals tab */
+  html[data-mode="core"] body #dealsTab div[style*="display:flex"][style*="gap"]{
+    gap: 10px !important;
+  }
+
+  /* ---------- Deals table → stacked cards (mobile friendly) ---------- */
+  html[data-mode="core"] body .dealsTableWrap{
+    overflow: visible !important;
+  }
+
+  html[data-mode="core"] body #dealsTable thead{ display:none !important; }
+
+  html[data-mode="core"] body #dealsTable,
+  html[data-mode="core"] body #dealsTable tbody,
+  html[data-mode="core"] body #dealsTable tr{
+    display:block !important;
+    width:100% !important;
+  }
+
+  /* 3D neon card */
+  html[data-mode="core"] body #dealsTable tr{
+    margin: 0 0 12px 0 !important;
+    padding: 12px 12px 10px 12px !important;
+    border-radius: 18px !important;
+    background:
+      radial-gradient(1200px 240px at 20% -20%, rgba(0,255,255,0.12), transparent 55%),
+      radial-gradient(900px 200px at 90% 10%, rgba(110,90,255,0.10), transparent 55%),
+      linear-gradient(180deg, rgba(18,26,40,0.92), rgba(10,14,22,0.92)) !important;
+    border: 1px solid rgba(120,255,255,0.10) !important;
+    box-shadow:
+      0 18px 40px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 0 0 1px rgba(0,255,255,0.05),
+      0 0 22px rgba(0, 200, 255, 0.10) !important;
+  }
+
+  /* Each cell becomes a row */
+  html[data-mode="core"] body #dealsTable td{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap: 10px !important;
+    padding: 6px 0 !important;
+    border: 0 !important;
+    min-width: 0 !important;
+  }
+
+  /* Hide # column */
+  html[data-mode="core"] body #dealsTable td:nth-child(1){ display:none !important; }
+
+  /* Labels */
+  html[data-mode="core"] body #dealsTable td::before{
+    content:"";
+    flex: 0 0 74px;
+    opacity: .70;
+    font-size: 12px;
+    letter-spacing: .02em;
+  }
+  html[data-mode="core"] body #dealsTable td:nth-child(2)::before{ content:"Актив"; }
+  html[data-mode="core"] body #dealsTable td:nth-child(3)::before{ content:"Ввод"; }
+  html[data-mode="core"] body #dealsTable td:nth-child(4)::before{ content:"Вывод"; }
+  html[data-mode="core"] body #dealsTable td:nth-child(5)::before{ content:"%"; }
+  html[data-mode="core"] body #dealsTable td:nth-child(6)::before{ content:"PNL"; }
+  html[data-mode="core"] body #dealsTable td:nth-child(7)::before{ content:""; }
+
+  /* Inputs: no iOS zoom */
+  html[data-mode="core"] body #dealsTable input,
+  html[data-mode="core"] body #dealsTable select,
+  html[data-mode="core"] body #dealsTable textarea{
+    font-size: 16px !important; /* prevents iOS zoom */
+  }
+  html[data-mode="core"] body #dealsTable input{
+    height: 38px !important;
+    padding: 0 12px !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+    max-width: none !important;
+    flex: 1 1 auto !important;
+    background: rgba(7,10,18,0.75) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      0 10px 24px rgba(0,0,0,0.45) !important;
+  }
+
+  /* PNL/% text alignment (if they are plain text cells) */
+  html[data-mode="core"] body #dealsTable td:nth-child(5),
+  html[data-mode="core"] body #dealsTable td:nth-child(6){
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Delete button: keep where it already is (no absolute positioning) */
+  html[data-mode="core"] body #dealsTable td:nth-child(7){
+    justify-content: flex-end !important;
+    padding-top: 10px !important;
+  }
+  html[data-mode="core"] body #dealsTable td:nth-child(7) button{
+    height: 38px !important;
+    width: 52px !important;
+    border-radius: 14px !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 14px 30px rgba(0,0,0,0.55) !important;
+  }
+}
+
+/* =========================================================
+   CORE (mobile) — шире + ровное поле "Актив" без крестика в теге
+   ========================================================= */
+@media (max-width: 600px){
+  html[data-mode="core"] .wrap{
+    max-width: none !important;
+    margin: 14px auto !important;
+    padding: 0 10px !important; /* меньше боковых полей => шире контент */
+  }
+  html[data-mode="core"] #dealsTab{
+    max-width: none !important;
+  }
+  html[data-mode="core"] #dealsTab .deals-inner{
+    padding: 0 10px !important;
+  }
+  html[data-mode="core"] #dealsTab .card{
+    padding: 14px !important;
+  }
+
+  /* в карточках сделок: label слева, поле справа — без "space-between" */
+  html[data-mode="core"] body #dealsTable td{
+    justify-content: flex-start !important;
+  }
+  html[data-mode="core"] body #dealsTable td::before{
+    flex: 0 0 74px !important;
+  }
+  html[data-mode="core"] body #dealsTable td:nth-child(2) .tagWrap{
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  html[data-mode="core"] body #dealsTable td:nth-child(2) .assetEntry,
+  html[data-mode="core"] body #dealsTable td:nth-child(2) .tagDisplay{
+    width: 100% !important;
+  }
+
+  /* Актив: ровный текст + капс + одинаковая высота строки */
+  html[data-mode="core"] body #dealsTable td:nth-child(2) .assetEntry{
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-weight: 800;
+  }
+  html[data-mode="core"] body #dealsTable td:nth-child(2) .tagDisplay{
+    justify-content: flex-start;
+    padding: 0 12px;
+    height: 38px;
+    border-radius: 14px;
+  }
+}
+
+
+/* ===== CORE mobile only: remove %/PNL duplicates + compact + add button polish ===== */
+@media (max-width: 600px){
+  html[data-mode="core"] body #dealsTable td:nth-child(5),
+  html[data-mode="core"] body #dealsTable td:nth-child(6){
+    display:none !important; /* keep only the metrics-line */
+  }
+
+  html[data-mode="core"] body .core-metrics{
+    display:flex !important;
+    gap:10px !important;
+    width:100% !important;
+    margin-top: 6px !important;
+  }
+  html[data-mode="core"] body .core-metrics .metric{
+    flex:1 1 50% !important;
+    display:flex !important;
+    align-items:baseline !important;
+    justify-content:space-between !important;
+    padding: 8px 10px !important;
+    border-radius: 14px !important;
+    background: rgba(7,10,18,0.55) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    font-variant-numeric: tabular-nums;
+  }
+  html[data-mode="core"] body .core-metrics .k{ opacity:.72 !important; font-size:12px !important; }
+  html[data-mode="core"] body .core-metrics .v{ font-size:13px !important; }
+
+  /* Default show space: slightly tighter cards */
+  html[data-mode="core"] body #dealsTable tr{
+    margin-bottom: 10px !important;
+    padding: 10px 10px 12px 10px !important;
+    border-radius: 16px !important;
+  }
+
+  /* Actionbar buttons */
+  html[data-mode="core"] body .core-actionbar{
+    display:flex !important;
+    gap:10px !important;
+    width:100% !important;
+    margin-top: 10px !important;
+  }
+  html[data-mode="core"] body .core-add-btn{
+    flex: 1 1 auto !important;
+    height: 40px !important;
+    border-radius: 14px !important;
+    font-size: 14px !important;
+    letter-spacing: .02em !important;
+    background: linear-gradient(135deg, rgba(0,255,210,0.95), rgba(80,120,255,0.95)) !important;
+    color: #051018 !important;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.55), 0 0 22px rgba(0,255,210,0.20) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+  }
+  html[data-mode="core"] body .core-add-btn:active{ transform: translateY(1px); }
+  html[data-mode="core"] body .core-clear-btn{
+    flex: 0 0 42% !important;
+    height: 40px !important;
+    border-radius: 14px !important;
+    font-size: 14px !important;
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+  }
+}
+
+
+/* ===== CORE mobile: long-press to show delete (no overlap) ===== */
+@media (max-width: 600px){
+  html[data-mode="core"] body #dealsTable tr{
+    position: relative !important;
+  }
+
+  /* corner anchor for delete cell */
+  html[data-mode="core"] body #dealsTable td:nth-child(7){
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  /* hidden by default */
+  html[data-mode="core"] body #dealsTable td:nth-child(7) button{
+    height: 26px !important;
+    width: 26px !important;
+    border-radius: 8px !important;
+    padding: 0 !important;
+
+    background:
+      linear-gradient(180deg, rgba(255,90,90,0.35), rgba(255,40,40,0.22)) !important;
+    border: 1px solid rgba(255,90,90,0.35) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      inset 0 -1px 0 rgba(0,0,0,0.35),
+      0 6px 16px rgba(0,0,0,0.45) !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.92) !important;
+    transition: opacity .15s ease, transform .15s ease !important;
+  }
+
+  html[data-mode="core"] body #dealsTable tr.core-del-armed td:nth-child(7) button{
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: scale(1) !important;
+  }
+
+  html[data-mode="core"] body #dealsTable td:nth-child(7) button svg{
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  /* subtle hint on first card only */
+  html[data-mode="core"] body #dealsTable tr.core-hint::after{
+    content: "Зажми карточку, чтобы удалить";
+    position: absolute;
+    right: 10px;
+    top: -18px;
+    font-size: 11px;
+    opacity: .55;
+    pointer-events: none;
+  }
+}
+
+</style>
+
+
+<style>
+/* CORE mobile: rows visibility controlled by add button (data-core-extra). BASE=3, MAX=20 */
+@media (max-width: 600px){
+  html[data-mode="core"] body #dealsTable tbody tr:nth-child(-n+3){ display:block !important; }
+  html[data-mode="core"][data-core-extra="0"] body #dealsTable tbody tr:nth-child(n+4){ display:none !important; }
+  html[data-mode="core"][data-core-extra="1"] body #dealsTable tbody tr:nth-child(n+5){ display:none !important; }
+  html[data-mode="core"][data-core-extra="2"] body #dealsTable tbody tr:nth-child(n+6){ display:none !important; }
+  html[data-mode="core"][data-core-extra="3"] body #dealsTable tbody tr:nth-child(n+7){ display:none !important; }
+  html[data-mode="core"][data-core-extra="4"] body #dealsTable tbody tr:nth-child(n+8){ display:none !important; }
+  html[data-mode="core"][data-core-extra="5"] body #dealsTable tbody tr:nth-child(n+9){ display:none !important; }
+  html[data-mode="core"][data-core-extra="6"] body #dealsTable tbody tr:nth-child(n+10){ display:none !important; }
+  html[data-mode="core"][data-core-extra="7"] body #dealsTable tbody tr:nth-child(n+11){ display:none !important; }
+  html[data-mode="core"][data-core-extra="8"] body #dealsTable tbody tr:nth-child(n+12){ display:none !important; }
+  html[data-mode="core"][data-core-extra="9"] body #dealsTable tbody tr:nth-child(n+13){ display:none !important; }
+  html[data-mode="core"][data-core-extra="10"] body #dealsTable tbody tr:nth-child(n+14){ display:none !important; }
+  html[data-mode="core"][data-core-extra="11"] body #dealsTable tbody tr:nth-child(n+15){ display:none !important; }
+  html[data-mode="core"][data-core-extra="12"] body #dealsTable tbody tr:nth-child(n+16){ display:none !important; }
+  html[data-mode="core"][data-core-extra="13"] body #dealsTable tbody tr:nth-child(n+17){ display:none !important; }
+  html[data-mode="core"][data-core-extra="14"] body #dealsTable tbody tr:nth-child(n+18){ display:none !important; }
+  html[data-mode="core"][data-core-extra="15"] body #dealsTable tbody tr:nth-child(n+19){ display:none !important; }
+  html[data-mode="core"][data-core-extra="16"] body #dealsTable tbody tr:nth-child(n+20){ display:none !important; }
+  html[data-mode="core"][data-core-extra="17"] body #dealsTable tbody tr:nth-child(n+21){ display:none !important; }
+}
 </style>
 
 </head>
@@ -3983,10 +4376,9 @@ function loadDeals(){
       const display = tr.querySelector('.tagDisplay');
 
       if(d.asset){
-        display.innerHTML = `<span class="tagText">${String(d.asset).toUpperCase()}</span><button class="remove" title="удалить">✕</button>`;
+        display.innerHTML = `<span class="tagText">${String(d.asset).toUpperCase()}</span>`;
         display.style.display = 'inline-flex';
         input.style.display = 'none';
-        display.querySelector('.remove')?.addEventListener('click', ()=> removeAssetTag(tr));
       }
 
       tr.querySelector('.in').value = d.in ?? '';
@@ -4109,11 +4501,10 @@ function setAssetTag(tr, asset){
   const display = tr.querySelector('.tagDisplay');
 
   // фиксируем актив (тег). 🔒 появится после фиксации сделки
-    display.innerHTML = `<span class="tagText">${asset}</span><button class="remove" title="удалить">✕</button>`;
+    display.innerHTML = `<span class="tagText tagTextPremium">${asset}</span>`;
   display.style.display='inline-flex';
   input.style.display='none';
   input.value='';
-  display.querySelector('.remove')?.addEventListener('click', ()=> removeAssetTag(tr));
 }
 
 function removeAssetTag(tr){
@@ -5723,6 +6114,317 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.addEventListener('DOMContentLoaded', bind);
   // also try immediately in case DOM already loaded
   try{ bind(); }catch(e){}
+})();
+</script>
+
+
+<script>
+(function(){
+  const NS = '__club500CoreMobileV1';
+  if(window[NS]) return;
+  window[NS] = true;
+
+  return; // disabled: delete button is always visible (no long-press)
+  const MAX = 20;
+  const BASE = 3;
+
+  function isCoreMobile(){
+    return document.documentElement.getAttribute('data-mode') === 'core'
+      && window.matchMedia('(max-width: 600px)').matches;
+  }
+
+  function getRows(){
+    const tb = document.querySelector('#dealsTable tbody');
+    return tb ? Array.from(tb.querySelectorAll('tr')).slice(0, MAX) : [];
+  }
+
+  function getExtra(){
+    const v = parseInt(document.documentElement.getAttribute('data-core-extra') || '0', 10);
+    return Number.isFinite(v) ? Math.max(0, v) : 0;
+  }
+  function setExtra(v){
+    const capped = Math.max(0, Math.min(MAX-BASE, v));
+    document.documentElement.setAttribute('data-core-extra', String(capped));
+  }
+
+  function clearRow(tr){
+    tr.querySelectorAll('input, select, textarea').forEach(el=>{
+      if(el.tagName === 'SELECT') el.selectedIndex = 0;
+      else if(el instanceof HTMLInputElement){
+        if(el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+        else el.value = '';
+      }else el.value = '';
+      el.dispatchEvent(new Event('input', {bubbles:true}));
+      el.dispatchEvent(new Event('change', {bubbles:true}));
+    });
+  }
+
+  function applyVisibility(){
+    const r = getRows();
+    const extra = getExtra();
+    const isCore = document.documentElement.getAttribute('data-mode') === 'core';
+    const isMobile = window.matchMedia('(max-width: 600px)').matches;
+    r.forEach((tr,i)=>{
+      const visible = i < (BASE + extra);
+      if(isCore && isMobile){
+        // Mobile layout uses card rows (block). Force via !important to beat base CSS.
+        tr.style.setProperty('display', visible ? 'block' : 'none', 'important');
+      }else{
+        tr.style.display = visible ? '' : 'none';
+      }
+    });
+  }
+
+  function ensureMetrics(){
+    const r = getRows();
+    r.forEach(tr=>{
+      const tds = tr.querySelectorAll('td');
+      if(tds.length < 7) return;
+      const tdPct = tds[4];
+      const tdPnl = tds[5];
+
+      let bar = tr.querySelector('.core-metrics');
+      if(!bar){
+        bar = document.createElement('div');
+        bar.className = 'core-metrics';
+        bar.innerHTML = '<div class="metric"><span class="k">%</span><span class="v">—</span></div><div class="metric"><span class="k">PNL</span><span class="v">$0.00</span></div>';
+        tr.appendChild(bar);
+      }
+      const v1 = bar.querySelectorAll('.v')[0];
+      const v2 = bar.querySelectorAll('.v')[1];
+      if(v1) v1.textContent = (tdPct.textContent || '').trim() || '—';
+      if(v2) v2.textContent = (tdPnl.textContent || '').trim() || '$0.00';
+    });
+  }
+
+  function mountActionbar(){
+    // remove only our bars
+    document.querySelectorAll('.core-actionbar').forEach(x=>x.remove());
+
+    const r = getRows();
+    if(!r.length) return;
+    const extra = getExtra();
+    const lastIndex = Math.min(BASE + extra, r.length) - 1;
+    const last = r[lastIndex];
+    if(!last) return;
+
+    const maxExtra = Math.min(MAX, r.length) - BASE;
+
+    const bar = document.createElement('div');
+    bar.className = 'core-actionbar';
+
+    if(extra < maxExtra){
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'core-add-btn';
+      add.textContent = `Добавить актив (${BASE+extra}/${Math.min(MAX,r.length)})`;
+      add.addEventListener('click', ()=>{
+        setExtra(getExtra()+1);
+        render();
+        setTimeout(()=>{
+          const rr = getRows();
+          const idx = Math.min(BASE + getExtra(), rr.length) - 1;
+          const tr = rr[idx];
+          const inp = tr ? (tr.querySelector('td:nth-child(2) input') || tr.querySelector('input')) : null;
+          if(inp) inp.focus();
+        }, 50);
+      });
+      bar.appendChild(add);
+    }
+
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'core-clear-btn';
+    clear.textContent = 'Очистить';
+    clear.addEventListener('click', ()=>{
+      getRows().forEach(clearRow);
+      setExtra(0);
+      render();
+    });
+    bar.appendChild(clear);
+
+    last.appendChild(bar);
+  }
+
+  function bindExistingClear(){
+    const btn = document.getElementById('clearDealsBtn');
+    if(!btn || btn.__coreMobileBound) return;
+    btn.__coreMobileBound = true;
+    btn.addEventListener('click', ()=>{
+      if(isCoreMobile()){
+        setExtra(0);
+        setTimeout(render, 60);
+      }
+    }, true);
+  }
+
+  function bindDelete(){
+    const table = document.getElementById('dealsTable');
+    if(!table || table.__coreMobileDelBound) return;
+    table.__coreMobileDelBound = true;
+
+    table.addEventListener('click', (e)=>{
+      if(!isCoreMobile()) return;
+      const btn = e.target && e.target.closest ? e.target.closest('button') : null;
+      if(!btn) return;
+      const td = btn.closest('td');
+      const tr = btn.closest('tr');
+      if(!td || !tr) return;
+      // only react to delete column (7th)
+      if(td.cellIndex !== 6) return;
+
+      const r = getRows();
+      const idx = r.indexOf(tr);
+      if(idx < 0) return;
+
+      setTimeout(()=>{
+        if(idx < BASE){
+          clearRow(tr);
+        }else{
+          clearRow(tr);
+          setExtra(Math.max(0, getExtra()-1));
+          render();
+        }
+      }, 0);
+    }, true);
+  }
+
+  function cleanup(){
+    document.querySelectorAll('.core-actionbar').forEach(x=>x.remove());
+    getRows().forEach(tr=>{
+      tr.style.display = '';
+      // do not remove metrics; it's harmless for desktop, but keep UI clean:
+      const bar = tr.querySelector('.core-metrics');
+      if(bar) bar.remove();
+    });
+    document.documentElement.removeAttribute('data-core-extra');
+  }
+
+  function render(){
+    if(!isCoreMobile()){
+      cleanup();
+      return;
+    }
+    if(!document.documentElement.hasAttribute('data-core-extra')) setExtra(0);
+    applyVisibility();
+    ensureMetrics();
+    mountActionbar();
+    bindExistingClear();
+    bindDelete();
+  }
+
+  function late(){
+    render();
+    setTimeout(render, 250);
+    setTimeout(render, 800);
+  }
+
+  document.addEventListener('DOMContentLoaded', late);
+  window.addEventListener('resize', late);
+  new MutationObserver(late).observe(document.documentElement, {attributes:true, attributeFilter:['data-mode']});
+})();
+</script>
+
+
+<script>
+(function(){
+  const NS = '__club500LongPressDeleteV1';
+  if(window[NS]) return;
+  window[NS] = true;
+
+  const LONGPRESS_MS = 450;
+
+  function isCoreMobile(){
+    return document.documentElement.getAttribute('data-mode') === 'core'
+      && window.matchMedia('(max-width: 600px)').matches;
+  }
+
+  function getRows(){
+    const tb = document.querySelector('#dealsTable tbody');
+    return tb ? Array.from(tb.querySelectorAll('tr')).slice(0, 20) : [];
+  }
+
+  function clearArmed(){
+    getRows().forEach(r=>r.classList.remove('core-del-armed'));
+  }
+
+  function applyHintOnce(){
+    const r = getRows();
+    r.forEach(x=>x.classList.remove('core-hint'));
+    if(r[0]) r[0].classList.add('core-hint');
+  }
+
+  function bind(){
+    const tb = document.querySelector('#dealsTable tbody');
+    if(!tb || tb.__lpBound) return;
+    tb.__lpBound = true;
+
+    let pressTimer = null;
+    let pressedRow = null;
+
+    const start = (e)=>{
+      if(!isCoreMobile()) return;
+      const row = e.target.closest && e.target.closest('tr');
+      if(!row) return;
+
+      // don't trigger when pressing inside inputs or buttons
+      if(e.target.closest('input, textarea, select, button')) return;
+
+      pressedRow = row;
+      pressTimer = setTimeout(()=>{
+        clearArmed();
+        row.classList.add('core-del-armed');
+        // remove hint after first successful long-press
+        row.classList.remove('core-hint');
+      }, LONGPRESS_MS);
+    };
+
+    const cancel = ()=>{
+      if(pressTimer){
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+      pressedRow = null;
+    };
+
+    tb.addEventListener('touchstart', start, {passive:true});
+    tb.addEventListener('mousedown', start);
+
+    tb.addEventListener('touchend', cancel);
+    tb.addEventListener('touchmove', cancel, {passive:true});
+    tb.addEventListener('mouseup', cancel);
+    tb.addEventListener('mouseleave', cancel);
+
+    // tap anywhere outside delete button to hide
+    document.addEventListener('click', (e)=>{
+      if(!isCoreMobile()) return;
+      const insideArmed = e.target.closest && e.target.closest('tr.core-del-armed');
+      const isDeleteBtn = e.target.closest && e.target.closest('#dealsTable td:nth-child(7) button');
+      if(isDeleteBtn) return; // allow normal delete
+      if(!insideArmed) clearArmed();
+    }, true);
+
+    document.addEventListener('touchstart', (e)=>{
+      if(!isCoreMobile()) return;
+      const isDeleteBtn = e.target.closest && e.target.closest('#dealsTable td:nth-child(7) button');
+      if(isDeleteBtn) return;
+      const insideArmed = e.target.closest && e.target.closest('tr.core-del-armed');
+      if(!insideArmed) clearArmed();
+    }, {passive:true, capture:true});
+  }
+
+  function late(){
+    if(!isCoreMobile()) return;
+    applyHintOnce();
+    bind();
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    late();
+    setTimeout(late, 300);
+  });
+  window.addEventListener('resize', late);
+  new MutationObserver(late).observe(document.documentElement, {attributes:true, attributeFilter:['data-mode']});
 })();
 </script>
 
