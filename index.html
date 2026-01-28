@@ -4351,7 +4351,7 @@ function defaultDealsState(){
 
 function saveDeals(){
   const state = { startCapital: $('startCapital')?.value ?? '', deals: [] };
-  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
+  __activeRows.forEach(tr=>{
     const asset = tr.querySelector('.tagDisplay .tagText')?.textContent || '';
     const inv = tr.querySelector('.in')?.value ?? '';
     const outv = tr.querySelector('.out')?.value ?? '';
@@ -4991,7 +4991,22 @@ function recalcAvailableCapital(){
 
 $('calcDealsBtn')?.addEventListener('click', ()=>{
   dealsCalculated = true;
-  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=> updateDealRow(tr));
+  // PERF: process only rows that contain data (asset or numbers) in the visible window
+  const __root = document.documentElement;
+  const __rows = Array.from(document.querySelectorAll('#dealsTable tbody tr'));
+  const __BASE = 3;
+  const __extra = Number(__root.getAttribute('data-core-extra') || 0) || 0;
+  const __visibleCount = Math.max(__BASE, Math.min(__rows.length, __BASE + __extra));
+  const __cand = __rows.slice(0, __visibleCount);
+  const __activeRows = __cand.filter(tr=>{
+    const entry = parseSafe(tr.querySelector('.in')?.value);
+    const exit  = parseSafe(tr.querySelector('.out')?.value);
+    if(entry > 0 || exit > 0) return true;
+    const assetIn   = (tr.querySelector('.assetEntry')?.value || '').trim();
+    const assetDisp = (tr.querySelector('.tagDisplay')?.textContent || '').trim();
+    return assetIn.length > 0 || assetDisp.length > 0;
+  });
+  __activeRows.forEach(tr=> updateDealRow(tr));
   // визуальная фиксация сделки: 🔒 и изменение цвета тега появляются только после фиксации (есть вход и выход)
   document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
     const entry = parseSafe(tr.querySelector('.in')?.value);
