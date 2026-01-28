@@ -4351,7 +4351,7 @@ function defaultDealsState(){
 
 function saveDeals(){
   const state = { startCapital: $('startCapital')?.value ?? '', deals: [] };
-  __renderRows.forEach(tr=>{
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
     const asset = tr.querySelector('.tagDisplay .tagText')?.textContent || '';
     const inv = tr.querySelector('.in')?.value ?? '';
     const outv = tr.querySelector('.out')?.value ?? '';
@@ -4990,33 +4990,8 @@ function recalcAvailableCapital(){
 }
 
 $('calcDealsBtn')?.addEventListener('click', ()=>{
-
-  const __root = document.documentElement;
-  const __isMobile = window.matchMedia('(max-width: 600px)').matches;
-  const __isCore = (__root.getAttribute('data-mode') === 'core');
-  const __extra = Number(__root.getAttribute('data-core-extra') || 0) || 0;
-  const __BASE = 3;
-  const __visibleCount = __BASE + __extra;
-
-  // collect all rows once
-  const __allRows = Array.from(document.querySelectorAll('#dealsTable tbody tr'));
-
-  // rows that actually have data
-  const __activeRows = __allRows.filter(tr=>{
-    const entry = parseSafe(tr.querySelector('.in')?.value);
-    const exit  = parseSafe(tr.querySelector('.out')?.value);
-    const asset = (tr.querySelector('.tagDisplay')?.textContent || '').trim() ||
-                  (tr.querySelector('.assetEntry')?.value || '').trim();
-    return entry>0 || exit>0 || asset.length>0;
-  });
-
-  // rows that are currently visible on mobile
-  const __renderRows = (__isCore && __isMobile)
-    ? __activeRows.slice(0, __visibleCount)
-    : __activeRows;
-
   dealsCalculated = true;
-  __renderRows.forEach(tr=> updateDealRow(tr));
+  document.querySelectorAll('#dealsTable tbody tr').forEach(tr=> updateDealRow(tr));
   // визуальная фиксация сделки: 🔒 и изменение цвета тега появляются только после фиксации (есть вход и выход)
   document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
     const entry = parseSafe(tr.querySelector('.in')?.value);
@@ -5609,11 +5584,24 @@ function ensureDealsHistoryFromTable(){
 // Reset start capital (UI only)
 
 $('resetStartCapBtn')?.addEventListener('click', ()=>{
-  const el = $('startCapital');
-  if(el){ el.value = ''; }
+  // CORE: «Стереть» очищает начальный капитал и доступный капитал.
+  // Таблицу сделок НЕ трогаем.
+  const startEl = $('startCapital');
+  if(startEl){ startEl.value = ''; }
+
+  const availEl = $('availableCapital');
+  if(availEl){
+    availEl.textContent = '—';
+    const box = availEl.closest('.capital-visual');
+    if(box){
+      box.classList.remove('negative');
+      box.classList.remove('capitalZero');
+    }
+  }
+
   saveDeals();
-  recalcAvailableCapital();
-  showToast('Начальный капитал очищен');
+  updateCycleUI();
+  showToast('Капитал очищен');
 });
 
 /* ===== Timeline: day-precision progress within calendar year ===== */
