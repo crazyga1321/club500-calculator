@@ -4351,7 +4351,7 @@ function defaultDealsState(){
 
 function saveDeals(){
   const state = { startCapital: $('startCapital')?.value ?? '', deals: [] };
-  __rows.forEach(tr=>{
+  __renderRows.forEach(tr=>{
     const asset = tr.querySelector('.tagDisplay .tagText')?.textContent || '';
     const inv = tr.querySelector('.in')?.value ?? '';
     const outv = tr.querySelector('.out')?.value ?? '';
@@ -4991,13 +4991,18 @@ function recalcAvailableCapital(){
 
 $('calcDealsBtn')?.addEventListener('click', ()=>{
 
-  // Mobile perf: calculate only rows that have data (asset or in/out).
   const __root = document.documentElement;
+  const __isMobile = window.matchMedia('(max-width: 600px)').matches;
+  const __isCore = (__root.getAttribute('data-mode') === 'core');
   const __extra = Number(__root.getAttribute('data-core-extra') || 0) || 0;
   const __BASE = 3;
-  const __visibleCount = Math.max(__BASE, Math.min(20, __BASE + __extra));
+  const __visibleCount = __BASE + __extra;
+
+  // collect all rows once
   const __allRows = Array.from(document.querySelectorAll('#dealsTable tbody tr'));
-  const __rows = __allRows.slice(0, __visibleCount).filter(tr=>{
+
+  // rows that actually have data
+  const __activeRows = __allRows.filter(tr=>{
     const entry = parseSafe(tr.querySelector('.in')?.value);
     const exit  = parseSafe(tr.querySelector('.out')?.value);
     const asset = (tr.querySelector('.tagDisplay')?.textContent || '').trim() ||
@@ -5005,8 +5010,13 @@ $('calcDealsBtn')?.addEventListener('click', ()=>{
     return entry>0 || exit>0 || asset.length>0;
   });
 
+  // rows that are currently visible on mobile
+  const __renderRows = (__isCore && __isMobile)
+    ? __activeRows.slice(0, __visibleCount)
+    : __activeRows;
+
   dealsCalculated = true;
-  __rows.forEach(tr=> updateDealRow(tr));
+  __renderRows.forEach(tr=> updateDealRow(tr));
   // визуальная фиксация сделки: 🔒 и изменение цвета тега появляются только после фиксации (есть вход и выход)
   document.querySelectorAll('#dealsTable tbody tr').forEach(tr=>{
     const entry = parseSafe(tr.querySelector('.in')?.value);
@@ -5046,16 +5056,6 @@ $('calcDealsBtn')?.addEventListener('click', ()=>{
   const ds = computeCompletedDealsStats();
   saveCompletedDealsStats(ds);
   renderCompletedDealsStats();
-  
-  // Mobile paint fix: some browsers paint updated rows only after user scroll.
-  try{
-    const tbl = $('dealsTable');
-    const wrap = tbl?.closest('.dealsTableWrap') || tbl?.parentElement;
-    const sc = wrap && (wrap.scrollHeight > wrap.clientHeight) ? wrap : (document.scrollingElement || document.documentElement);
-    const y = sc.scrollTop;
-    sc.scrollTop = y + 1;
-    requestAnimationFrame(()=>{ sc.scrollTop = y; });
-  }catch(e){}
   showToast('Доходность по сделкам рассчитана');
 });
 
