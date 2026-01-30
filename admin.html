@@ -198,33 +198,28 @@
     return { ok:true, user: session.user, profile: prof };
   }
 
-  async function loadUsers(){
+    async function loadUsers(){
     statusText.textContent = "Загрузка пользователей…";
     loader.style.display = "inline-block";
 
-    // NOTE: because of RLS, direct select(*) would only return own profile.
-    // For MVP without Edge Functions we rely on: admin sets RLS later OR uses service function.
-    // Here we attempt to fetch all and show a helpful message if RLS blocks it.
-    const { data, error } = await sb
-      .from("profiles")
-      .select("user_id,email,name,plan,is_admin,created_at,updated_at")
-      .order("updated_at", { ascending:false });
+    // Admin users list via Edge Function (bypasses RLS, but checks is_admin inside function)
+    const { data, error } = await sb.functions.invoke("rapid-processor");
 
     if(error){
-      statusText.textContent = "Нет доступа к списку пользователей (нужна admin function)";
+      statusText.textContent = "Ошибка загрузки (Edge Function)";
       loader.style.display = "none";
-      // show explanation row
       tbody.innerHTML = `<tr><td colspan="5" class="small">
-        Сейчас включён RLS, поэтому из браузера нельзя получить всех пользователей даже админу.
-        Следующий шаг: подключаем Supabase Edge Function для /admin (я сделаю).
-        Пока ты видишь только свой профиль.
+        Ошибка вызова Edge Function: ${escapeHtml(error.message || String(error))}<br/>
+        Проверь, что функция <b>rapid-processor</b> задеплоена и что ты вошёл под админ-аккаунтом.
       </td></tr>`;
       all = [];
       countPill.textContent = "0 пользователей";
       return;
     }
 
-    all = data || [];
+    const users = (data && data.users) ? data.users : [];
+    all = users;
+
     statusText.textContent = "Готово";
     loader.style.display = "none";
     render();
