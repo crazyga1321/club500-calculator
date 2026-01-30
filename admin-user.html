@@ -188,7 +188,7 @@
     return { ok:true, me: session.user };
   }
 
-    async function loadAll(){
+  async function loadAll(){
     if(!targetUserId){
       profileHint.textContent = "Нужно открыть страницу с параметром ?id=USER_ID";
       accountsHint.textContent = "";
@@ -199,131 +199,81 @@
       return;
     }
 
-    // Admin user detail via Edge Function (requires rapid-processor to support { id } request)
-    profileHint.textContent = "Загрузка…";
-    accountsHint.textContent = "Загрузка…";
-    statsHint.textContent = "Загрузка…";
-    passiveHint.textContent = "Загрузка…";
-    tradesHint.textContent = "Загрузка…";
-    tradesBody.innerHTML = "";
-    btnExport.disabled = true;
-
     const { data: { session } } = await sb.auth.getSession();
-    let data = null;
-    let error = null;
-
     if(!session?.access_token){
-      error = { message: "Нет сессии. Открой index.html, войди, затем вернись в admin-user.html" };
-    } else {
-      const url = `${SUPABASE_URL}/functions/v1/rapid-processor?id=${encodeURIComponent(targetUserId)}`;
-      try{
-        const res = await fetch(url, {
-          method: "GET",
-          headers: { "Authorization": `Bearer ${session.access_token}` }
-        });
-        const json = await res.json();
-        if(!res.ok){
-          error = { message: json?.error || (`HTTP ${res.status}`) };
-        } else {
-          data = json;
-        }
-      }catch(e){
-        error = { message: e?.message || String(e) };
-      }
+      showGate("Нужен вход", "Нет сессии. Войди в ЛК и открой админку снова.", "login");
+      return;
     }
 
-    if(error){
-      const msg = "Ошибка вызова Edge Function: " + (error.message || String(error));
-      profileHint.textContent = msg;
+    // One server call (bypasses RLS, checks is_admin inside Edge Function)
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/rapid-processor`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ access_token: session.access_token, id: targetUserId })
+    });
+    const json = await res.json().catch(()=> ({}));
+
+    if(!res.ok){
+      console.error("Edge error", res.status, json);
+      profileHint.textContent = "Ошибка Edge Function: " + (json.error || ("HTTP " + res.status));
+      profileBox.innerHTML = `<div class="small">` + esc(json.error || ("HTTP " + res.status)) + `</div>`;
       accountsHint.textContent = "";
       statsHint.textContent = "";
       passiveHint.textContent = "";
       tradesHint.textContent = "";
-      profileBox.innerHTML = `<div class="small">${esc(msg)}<br/>Проверь, что функция <b>rapid-processor</b> обновлена и поддерживает выдачу данных по пользователю.</div>`;
-      accountsBox.innerHTML = "";
-      statsPre.textContent = "";
-      passivePre.textContent = "";
-      tradesBody.innerHTML = `<tr><td colspan="6" class="small">${esc(msg)}</td></tr>`;
+      tradesBody.innerHTML = `<tr><td colspan="6" class="small">` + esc(json.error || ("HTTP " + res.status)) + `</td></tr>`;
+      btnExport.disabled = true;
       return;
     }
 
-    // expected shape: { profile, account, trades, passive, stats }
-    const profile = data?.profile || null;
-    const account = data?.account || null;
-    const trades  = Array.isArray(data?.trades) ? data.trades : [];
-    const passive = data?.passive || null;
-    const stats   = data?.stats || null;
-
     // Profile
-    if(!profile){
-      profileHint.textContent = "Профиль не найден (или функция ещё не обновлена).";
-      profileBox.innerHTML = `<div class="small">Если ты видишь это, обнови код Edge Function rapid-processor (я дам ниже).</div>`;
-    }else{
-      profileHint.textContent = "";
-      profileBox.innerHTML = [
-        kv("Email", profile.email||""),
-        kv("Name", profile.name||""),
-        kv("Plan", profile.plan||""),
-        kv("is_admin", String(!!profile.is_admin)),
-        kv("Created", fmtTs(profile.created_at)),
-        kv("Updated", fmtTs(profile.updated_at)),
-      ].join("");
-    }
+    const p = json.profile || {};
+    profileHint.textContent = "";
+    profileBox.innerHTML = [
+      kv("Email", p.email||""),
+      kv("Name", p.name||""),
+      kv("Plan", p.plan||""),
+      kv("is_admin", String(!!p.is_admin)),
+      kv("Created", fmtTs(p.created_at)),
+      kv("Updated", fmtTs(p.updated_at)),
+    ].join("");
 
     // Accounts
-    if(!account){
-      accountsHint.textContent = "Нет данных (ещё не синхронизировано из ЛК).";
-      accountsBox.innerHTML = `<div class="small">После подключения синхронизации из ЛК сюда начнут приходить значения капитала/цикла.</div>`;
-    }else{
-      accountsHint.textContent = "";
-      accountsBox.innerHTML = [
-        kv("Start capital", num(account.start_capital)),
-        kv("Current capital", num(account.current_capital)),
-        kv("End capital", num(account.end_capital)),
-        kv("Cycle start", fmtTs(account.cycle_start_ts)),
-        kv("Cycle end", fmtTs(account.cycle_end_ts)),
-        kv("Updated", fmtTs(account.updated_at)),
-      ].join("");
-    }
+    const a = json.account || {};
+    accountsHint.textContent = a?.updated_at ? ("Updated: " + fmtTs(a.updated_at)) : "";
+    accountsBox.innerHTML = [
+      kv("Start capital", num(a.start_capital)),
+      kv("Current capital", num(a.current_capital)),
+      kv("End capital", num(a.end_capital)),
+      kv("Cycle start", fmtTs(a.cycle_start_ts)),
+      kv("Cycle end", fmtTs(a.cycle_end_ts)),
+    ].join("");
 
     // Stats snapshot
-    if(!stats){
-      statsHint.textContent = "Пока нет snapshot (или не синхронизировано).";
-      statsPre.textContent = "";
-    }else{
-      statsHint.textContent = stats.updated_at ? ("Updated: " + fmtTs(stats.updated_at)) : "";
-      statsPre.textContent = stats.payload ? JSON.stringify(stats.payload, null, 2) : "(пусто)";
-    }
+    const st = json.stats || null;
+    statsHint.textContent = st?.updated_at ? ("Updated: " + fmtTs(st.updated_at)) : "";
+    statsPre.textContent = st?.payload ? JSON.stringify(st.payload, null, 2) : "(пусто)";
 
     // Passive assets
-    if(!passive){
-      passiveHint.textContent = "Пока нет данных (или не PRO / не синхронизировано).";
-      passivePre.textContent = "";
-    }else{
-      passiveHint.textContent = passive.updated_at ? ("Updated: " + fmtTs(passive.updated_at)) : "";
-      passivePre.textContent = passive.payload ? JSON.stringify(passive.payload, null, 2) : "[]";
-    }
+    const pa = json.passive || null;
+    passiveHint.textContent = pa?.updated_at ? ("Updated: " + fmtTs(pa.updated_at)) : "";
+    passivePre.textContent = pa?.payload ? JSON.stringify(pa.payload, null, 2) : "(пусто)";
 
     // Trades
-    if(!trades.length){
-      tradesHint.textContent = "Пусто (или не синхронизировано).";
-      tradesBody.innerHTML = `<tr><td colspan="6" class="small">Сделок нет.</td></tr>`;
-      btnExport.disabled = true;
-    }else{
-      tradesHint.textContent = "Сделок: " + trades.length;
-      tradesBody.innerHTML = trades.map(r=>{
-        return `<tr>
-          <td>${esc(fmtTs(r.ts))}</td>
-          <td>${esc(r.asset||"")}</td>
-          <td>${esc(num(r.entry))}</td>
-          <td>${esc(num(r.exit))}</td>
-          <td>${esc(num(r.pnl))}</td>
-          <td>${esc(num(r.pct))}</td>
-        </tr>`;
-      }).join("");
-      btnExport.disabled = false;
-      btnExport._rows = trades;
-    }
+    const rows = json.trades || [];
+    tradesHint.textContent = rows.length ? ("Сделок: " + rows.length) : "Пока нет сделок (или не синхронизировано).";
+    tradesBody.innerHTML = rows.length ? rows.map(r=>{
+      return `<tr>
+        <td>${esc(fmtTs(r.ts))}</td>
+        <td>${esc(r.asset||"")}</td>
+        <td>${esc(num(r.entry))}</td>
+        <td>${esc(num(r.exit))}</td>
+        <td>${esc(num(r.pnl))}</td>
+        <td>${esc(num(r.pct))}</td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="6" class="small">Пусто.</td></tr>`;
+    btnExport.disabled = !rows.length;
+    btnExport._rows = rows;
   }
 
   function exportCSV(){
