@@ -5,90 +5,28 @@
   <title>CLUB500 — Admin (Users)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body{
-      margin:0;
-      background:#070b17;
-      color:#e9eefc;
-      font-family: Inter, Arial, sans-serif;
-    }
+    body{margin:0;background:#070b17;color:#e9eefc;font-family:Inter,Arial,sans-serif;}
     .wrap{max-width:1100px;margin:0 auto;padding:28px 18px 60px;}
-    .top{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; margin-bottom:18px;
-    }
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;}
     .title{font-size:28px;font-weight:800;letter-spacing:.2px;}
-    .pill{
-      padding:8px 12px;border:1px solid rgba(255,255,255,.12);
-      border-radius:999px;background:rgba(255,255,255,.04);
-      font-size:13px; color:rgba(233,238,252,.9);
-    }
-    .btn{
-      padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.06); color:#fff; cursor:pointer;
-      font-weight:700;
-    }
+    .pill{padding:8px 12px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(255,255,255,.04);font-size:13px;color:rgba(233,238,252,.9);}
+    .btn{padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;font-weight:700;}
     .btn.primary{background:#4f7cff;border-color:#4f7cff;}
     .btn.danger{background:rgba(255,66,66,.12);border-color:rgba(255,66,66,.25);color:#ffbcbc;}
-    .card{
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      border-radius:16px;
-      padding:16px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.35);
-    }
-    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .card{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);border-radius:16px;padding:16px;box-shadow:0 18px 60px rgba(0,0,0,.35);}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
     .grow{flex:1;}
-    input{
-      width:100%;
-      padding:12px 12px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
-      color:#fff;
-      outline:none;
-    }
-    .muted{color:rgba(233,238,252,.7); font-size:13px;}
-    .status{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size:12px;
-      white-space:pre-wrap;
-    }
-    table{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      overflow:hidden;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.02);
-      margin-top:14px;
-    }
-    th, td{
-      padding:12px 12px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      text-align:left;
-      font-size:13px;
-      vertical-align:middle;
-    }
-    th{color:rgba(233,238,252,.75); font-weight:800;}
+    input{width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#fff;outline:none;}
+    .muted{color:rgba(233,238,252,.7);font-size:13px;}
+    .status{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:12px;white-space:pre-wrap;}
+    table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.02);margin-top:14px;}
+    th,td{padding:12px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;font-size:13px;vertical-align:middle;}
+    th{color:rgba(233,238,252,.75);font-weight:800;}
     tr:last-child td{border-bottom:none;}
-    .tag{
-      display:inline-block;
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
-      font-size:12px;
-      color:rgba(233,238,252,.9);
-    }
-    .tag.admin{border-color:rgba(79,124,255,.45); background:rgba(79,124,255,.14);}
-    .right{display:flex; gap:10px; align-items:center; justify-content:flex-end;}
-    a.link{color:#9fb7ff; text-decoration:none; font-weight:800;}
+    .tag{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);font-size:12px;color:rgba(233,238,252,.9);}
+    .tag.admin{border-color:rgba(79,124,255,.45);background:rgba(79,124,255,.14);}
+    .right{display:flex;gap:10px;align-items:center;justify-content:flex-end;}
+    a.link{color:#9fb7ff;text-decoration:none;font-weight:800;}
     a.link:hover{text-decoration:underline;}
     .hidden{display:none !important;}
   </style>
@@ -106,25 +44,23 @@
 
     <!-- LOGIN CARD -->
     <div id="loginCard" class="card">
-      <div style="font-size:18px;font-weight:800;margin-bottom:10px;">Вход админа</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:10px;">Вход админа (Magic Link)</div>
       <div class="muted" style="margin-bottom:12px;">
-        Войди под почтой, у которой в <b>public.profiles.is_admin = TRUE</b>.
+        Введи email админа (у которого в <b>public.profiles.is_admin = TRUE</b>) и нажми
+        <b>“Отправить ссылку”</b>. Придёт письмо — открой ссылку, и ты вернёшься сюда уже залогиненным.
       </div>
 
       <div class="row">
         <div class="grow">
           <input id="email" type="email" placeholder="Email (например ygnivenko21@gmail.com)" />
         </div>
-        <div class="grow">
-          <input id="password" type="password" placeholder="Password" />
-        </div>
-        <button id="loginBtn" class="btn primary">Войти</button>
+        <button id="sendBtn" class="btn primary">Отправить ссылку</button>
       </div>
 
       <div id="status" class="status">Статус: ожидание...</div>
 
       <div class="muted" style="margin-top:10px;">
-        ⚠️ Если ты открываешь файл как <b>file:///...</b>, лучше открой через GitHub Pages/локальный сервер, чтобы не ловить блокировки браузера.
+        ⚠️ Открывай страницу через GitHub Pages (https://...), не через file://
       </div>
     </div>
 
@@ -155,13 +91,12 @@
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    // === ВСТАВЬ СВОИ ДАННЫЕ ===
+    // === ВСТАВЬ СВОИ ДАННЫЕ (ОДНОЙ СТРОКОЙ) ===
     const SUPABASE_URL = "https://jztvdlfaeopzinuinlt.supabase.co";
-    const SUPABASE_ANON_KEY ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8"; // <-- вставь полностью
-    console.log("KEY LEN:", SUPABASE_ANON_KEY.length);
-console.log("KEY START:", SUPABASE_ANON_KEY.slice(0, 12));
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // UI refs
     const loginCard = document.getElementById("loginCard");
     const usersCard = document.getElementById("usersCard");
@@ -172,8 +107,7 @@ console.log("KEY START:", SUPABASE_ANON_KEY.slice(0, 12));
     const usersTbody = document.getElementById("usersTbody");
 
     const emailEl = document.getElementById("email");
-    const passEl = document.getElementById("password");
-    const loginBtn = document.getElementById("loginBtn");
+    const sendBtn = document.getElementById("sendBtn");
 
     function setStatus(msg) {
       statusEl.textContent = "Статус: " + msg;
@@ -189,22 +123,29 @@ console.log("KEY START:", SUPABASE_ANON_KEY.slice(0, 12));
     }
 
     function baseUrlToAdminUser(id) {
-      // Открываем admin-user.html рядом (в той же папке GitHub Pages)
       const url = new URL(window.location.href);
       url.pathname = url.pathname.replace(/\/[^\/]*$/, "/admin-user.html");
       url.search = "?id=" + encodeURIComponent(id);
       return url.toString();
     }
 
+    function getRedirectUrl() {
+      // Возвращаемся на эту же страницу после клика по magic link
+      const url = new URL(window.location.href);
+      // чистим лишние параметры, если были
+      url.search = "";
+      return url.toString();
+    }
+
     async function requireAdmin() {
-      // 1) session?
       const { data: { session } } = await supabase.auth.getSession();
+
       if (!session?.user) {
         whoPill.classList.add("hidden");
         logoutBtn.classList.add("hidden");
         usersCard.classList.add("hidden");
         loginCard.classList.remove("hidden");
-        setStatus("нет сессии — войди.");
+        setStatus("нет сессии — отправь magic link и войди по письму.");
         return null;
       }
 
@@ -213,7 +154,7 @@ console.log("KEY START:", SUPABASE_ANON_KEY.slice(0, 12));
       whoPill.classList.remove("hidden");
       logoutBtn.classList.remove("hidden");
 
-      // 2) check is_admin in public.profiles
+      // Проверяем, что этот пользователь админ по твоей таблице public.profiles
       const { data: prof, error } = await supabase
         .from("profiles")
         .select("is_admin, plan, email")
@@ -234,7 +175,6 @@ console.log("KEY START:", SUPABASE_ANON_KEY.slice(0, 12));
         return null;
       }
 
-      // ok admin
       loginCard.classList.add("hidden");
       usersCard.classList.remove("hidden");
       setStatus("ты admin ✅ (" + (prof.plan || "—") + ")");
@@ -244,7 +184,6 @@ console.log("KEY START:", SUPABASE_ANON_KEY.slice(0, 12));
     async function loadUsers() {
       usersTbody.innerHTML = `<tr><td colspan="5" class="muted">Загрузка...</td></tr>`;
 
-      // читаем профили (2 пользователя ты уже видел в public.profiles)
       const { data, error } = await supabase
         .from("profiles")
         .select("user_id, email, plan, is_admin, created_at, updated_at")
@@ -278,34 +217,34 @@ console.log("KEY START:", SUPABASE_ANON_KEY.slice(0, 12));
             <td>${escapeHtml(email)}</td>
             <td><span class="tag">${escapeHtml(plan)}</span></td>
             <td>${adminTag}</td>
-            <td>
-              <a class="link" href="${escapeHtml(link)}">Открыть</a>
-            </td>
+            <td><a class="link" href="${escapeHtml(link)}">Открыть</a></td>
           </tr>
         `;
       }).join("");
     }
 
-    // Actions
-    loginBtn.addEventListener("click", async () => {
+    // Send magic link
+    sendBtn.addEventListener("click", async () => {
       const email = (emailEl.value || "").trim();
-      const password = (passEl.value || "").trim();
-      if (!email || !password) {
-        setStatus("введи email и password.");
+      if (!email) {
+        setStatus("введи email.");
         return;
       }
 
-      setStatus("входим...");
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      setStatus("отправляю magic link на email...");
+      const redirectTo = getRedirectUrl();
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: redirectTo }
+      });
 
       if (error) {
-        setStatus("ошибка входа: " + error.message);
+        setStatus("ошибка отправки: " + error.message);
         return;
       }
 
-      setStatus("вход успешен, проверяем права...");
-      const user = await requireAdmin();
-      if (user) await loadUsers();
+      setStatus("ссылка отправлена ✅ Открой письмо и кликни по ссылке (вернёшься сюда уже залогинен).");
     });
 
     logoutBtn.addEventListener("click", async () => {
@@ -324,7 +263,6 @@ console.log("KEY START:", SUPABASE_ANON_KEY.slice(0, 12));
     const admin = await requireAdmin();
     if (admin) await loadUsers();
 
-    // react on auth changes
     supabase.auth.onAuthStateChange(async () => {
       const admin2 = await requireAdmin();
       if (admin2) await loadUsers();
