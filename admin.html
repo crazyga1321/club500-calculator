@@ -198,31 +198,58 @@
     return { ok:true, user: session.user, profile: prof };
   }
 
-    async function loadUsers(){
+      async function loadUsers(){
     statusText.textContent = "Загрузка пользователей…";
     loader.style.display = "inline-block";
 
-    // Admin users list via Edge Function (bypasses RLS, but checks is_admin inside function)
-    const { data, error } = await sb.functions.invoke("rapid-processor");
-
-    if(error){
-      statusText.textContent = "Ошибка загрузки (Edge Function)";
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session?.access_token){
+      statusText.textContent = "Нет сессии";
       loader.style.display = "none";
       tbody.innerHTML = `<tr><td colspan="5" class="small">
-        Ошибка вызова Edge Function: ${escapeHtml(error.message || String(error))}<br/>
-        Проверь, что функция <b>rapid-processor</b> задеплоена и что ты вошёл под админ-аккаунтом.
+        Нет активной сессии. Открой <b>index.html</b>, войди, затем снова открой <b>admin.html</b>.
       </td></tr>`;
       all = [];
       countPill.textContent = "0 пользователей";
       return;
     }
 
-    const users = (data && data.users) ? data.users : [];
-    all = users;
+    const url = `${SUPABASE_URL}/functions/v1/rapid-processor`;
+    let res, json;
+    try{
+      res = await fetch(url, {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${session.access_token}` }
+      });
+      json = await res.json();
+    }catch(e){
+      statusText.textContent = "Ошибка сети";
+      loader.style.display = "none";
+      tbody.innerHTML = `<tr><td colspan="5" class="small">
+        Ошибка сети при вызове Edge Function: ${escapeHtml(e?.message || String(e))}
+      </td></tr>`;
+      all = [];
+      countPill.textContent = "0 пользователей";
+      return;
+    }
 
-    statusText.textContent = "Готово";
-    loader.style.display = "none";
+    if(!res.ok){
+      statusText.textContent = "Ошибка загрузки (Edge Function)";
+      loader.style.display = "none";
+      const msg = json?.error || `HTTP ${res.status}`;
+      tbody.innerHTML = `<tr><td colspan="5" class="small">
+        Edge Function вернула ошибку: <b>${escapeHtml(msg)}</b> (status ${res.status})<br/>
+        Проверь: ты вошёл под админом, и функция <b>rapid-processor</b> задеплоена, и secret <b>SERVICE_ROLE_KEY</b> задан.
+      </td></tr>`;
+      all = [];
+      countPill.textContent = "0 пользователей";
+      return;
+    }
+
+    all = Array.isArray(json?.users) ? json.users : [];
     render();
+    loader.style.display = "none";
+    statusText.textContent = "Готово";
   }
 
   btnLogin.addEventListener("click", ()=>{ window.location.href = "index.html"; });
