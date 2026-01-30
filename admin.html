@@ -90,6 +90,29 @@ const me = document.getElementById("me");
     </tr>
   `).join("");
 })();
+  console.log("ADMIN BOOT");
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  console.log("SESSION OK:", !!session, session?.user?.email);
+
+  if (!session) return;
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/rapid-processor`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify({ access_token: session.access_token })
+  });
+
+  console.log("EDGE STATUS:", res.status);
+  const json = await res.json();
+  console.log("EDGE RESPONSE:", json);
+})();
+
 </script>
 </body>
 </html>
