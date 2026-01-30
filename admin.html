@@ -204,35 +204,48 @@
 
     const { data: { session } } = await sb.auth.getSession();
     if(!session?.access_token){
-      statusText.textContent = "Нет сессии. Войди в ЛК и обнови страницу.";
+      statusText.textContent = "Нет сессии (войдите в ЛК заново)";
       loader.style.display = "none";
-      return;
-    }
-
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/rapid-processor`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ access_token: session.access_token })
-    });
-
-    const json = await res.json().catch(()=> ({}));
-
-    if(!res.ok){
-      console.error("Edge error", res.status, json);
-      statusText.textContent = "Ошибка загрузки пользователей: " + (json.error || ("HTTP " + res.status));
-      loader.style.display = "none";
-      tbody.innerHTML = `<tr><td colspan="5" class="small">
-        Ошибка доступа/загрузки (Edge Function): ${escapeHtml(json.error || ("HTTP " + res.status))}.
-      </td></tr>`;
       all = [];
       countPill.textContent = "0 пользователей";
+      tbody.innerHTML = `<tr><td colspan="5" class="small">Нет активной сессии. Открой <a href="index.html">ЛК</a>, войди и снова зайди в /admin.html.</td></tr>`;
       return;
     }
 
-    all = json.users || [];
-    statusText.textContent = "Готово";
-    loader.style.display = "none";
-    render();
+    try{
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/rapid-processor`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({ access_token: session.access_token })
+      });
+      const json = await res.json();
+      if(!res.ok){
+        statusText.textContent = `Ошибка загрузки (Edge Function)`;
+        loader.style.display = "none";
+        tbody.innerHTML = `<tr><td colspan="5" class="small">
+          Edge Function вернула ошибку: HTTP ${res.status}.<br/>
+          <span class="small">${escapeHtml(json?.error || json?.message || "Unknown error")}</span>
+        </td></tr>`;
+        all = [];
+        countPill.textContent = "0 пользователей";
+        return;
+      }
+
+      all = json.users || [];
+      statusText.textContent = "Готово";
+      loader.style.display = "none";
+      render();
+    }catch(e){
+      statusText.textContent = "Ошибка сети/вызова (Edge Function)";
+      loader.style.display = "none";
+      tbody.innerHTML = `<tr><td colspan="5" class="small">
+        Ошибка вызова Edge Function: ${escapeHtml(e?.message || String(e))}</td></tr>`;
+      all = [];
+      countPill.textContent = "0 пользователей";
+    }
   }
 
   btnLogin.addEventListener("click", ()=>{ window.location.href = "index.html"; });
