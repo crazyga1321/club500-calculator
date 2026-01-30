@@ -5,263 +5,91 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>CLUB500 — Admin</title>
   <style>
-    :root{
-      --bg:#020617; --panel:rgba(2,6,23,.72); --border:rgba(148,163,184,.18);
-      --text:rgba(226,232,240,.95); --muted:rgba(148,163,184,.95);
-      --accent:rgba(34,211,238,.18);
-    }
-    html,body{height:100%;}
-    body{margin:0;background:radial-gradient(1200px 700px at 20% 0%, rgba(56,189,248,.10), transparent 55%),
-                     radial-gradient(1000px 600px at 80% 20%, rgba(167,139,250,.10), transparent 55%),
-                     var(--bg);
-         color:var(--text); font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial;}
-    .wrap{max-width:1100px;margin:24px auto;padding:0 14px;}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
-    .brand{display:flex;flex-direction:column;gap:2px}
-    .brand b{font-size:16px;letter-spacing:.2px}
-    .brand span{color:var(--muted);font-size:12px}
-    .btn{height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--border);
-         background:rgba(2,6,23,.35);color:var(--text);font-weight:900;cursor:pointer}
-    .btn.primary{border-color:rgba(34,211,238,.28);background:rgba(34,211,238,.10)}
-    .card{border:1px solid var(--border);background:var(--panel);border-radius:18px;padding:14px;box-shadow:0 24px 80px rgba(0,0,0,.45)}
-    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
-    .pill.ok{border-color:rgba(34,211,238,.28);color:rgba(226,232,240,.95);background:rgba(34,211,238,.08)}
-    .pill.bad{border-color:rgba(248,113,113,.28);color:rgba(226,232,240,.95);background:rgba(248,113,113,.08)}
-    .search{height:40px;min-width:240px;flex:1;border-radius:12px;padding:0 12px;border:1px solid var(--border);
-            background:rgba(2,6,23,.55);color:var(--text)}
-    table{width:100%;border-collapse:separate;border-spacing:0;margin-top:12px;overflow:hidden;border-radius:14px}
-    th,td{padding:10px 10px;border-bottom:1px solid rgba(148,163,184,.12);text-align:left;vertical-align:top}
-    th{color:var(--muted);font-size:12px;font-weight:800;background:rgba(2,6,23,.35)}
-    tr:hover td{background:rgba(148,163,184,.04)}
-    a{color:rgba(56,189,248,.95);text-decoration:none;font-weight:900}
-    .small{font-size:12px;color:var(--muted)}
-    .right{display:flex;align-items:center;gap:10px}
-    .loader{display:inline-block;width:14px;height:14px;border-radius:999px;border:2px solid rgba(148,163,184,.25);border-top-color:rgba(34,211,238,.8);animation:spin .8s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;
-             background:rgba(2,6,23,.86);backdrop-filter:blur(10px)}
-    .modal{max-width:460px;width:calc(100% - 28px);border-radius:18px;border:1px solid rgba(148,163,184,.22);
-           background:rgba(2,6,23,.72);padding:16px;box-shadow:0 24px 80px rgba(0,0,0,.55)}
-    .modal b{font-size:16px}
+    body{background:#020617;color:#e5e7eb;font-family:system-ui;margin:0;padding:20px}
+    table{width:100%;border-collapse:collapse;margin-top:20px}
+    th,td{border-bottom:1px solid #334155;padding:10px;text-align:left}
+    th{color:#94a3b8;font-size:12px}
+    a{color:#38bdf8;text-decoration:none;font-weight:700}
+    .top{display:flex;justify-content:space-between;align-items:center}
+    .pill{padding:6px 10px;border-radius:999px;background:#0f172a;color:#e5e7eb;font-size:12px}
   </style>
 </head>
 <body>
-<div class="overlay" id="gate">
-  <div class="modal">
-    <b id="gateTitle">Проверка доступа…</b>
-    <div id="gateMsg" class="small" style="margin-top:8px">Ожидаю авторизацию.</div>
-    <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end">
-      <button class="btn" id="btnToApp" type="button" style="display:none">В кабинет</button>
-      <button class="btn primary" id="btnLogin" type="button" style="display:none">Войти</button>
-    </div>
-  </div>
+
+<div class="top">
+  <h2>CLUB500 — Admin</h2>
+  <span class="pill" id="me"></span>
 </div>
 
-<div class="wrap">
-  <div class="top">
-    <div class="brand">
-      <b>CLUB500 — Admin</b>
-      <span id="subtitle">Панель управления (MVP)</span>
-    </div>
-    <div class="right">
-      <span class="pill" id="mePill" style="display:none"></span>
-      <button class="btn" id="btnRefresh" type="button">Обновить</button>
-      <button class="btn" id="btnLogout" type="button">Выйти</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="row">
-      <div class="pill ok" id="statusPill"><span class="loader" id="loader"></span><span id="statusText">Загрузка пользователей…</span></div>
-      <input class="search" id="q" placeholder="Поиск: email, имя, plan…" />
-      <div class="pill" id="countPill">0 пользователей</div>
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Пользователь</th>
-          <th>Plan</th>
-          <th>Admin</th>
-          <th>Updated</th>
-          <th>Действие</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-    <div class="small" style="margin-top:10px">
-      Примечание: сделки/капитал появятся в админке после синхронизации из ЛК в базу (следующий шаг).
-    </div>
-  </div>
-</div>
+<table>
+  <thead>
+    <tr>
+      <th>Пользователь</th>
+      <th>Plan</th>
+      <th>Admin</th>
+      <th>Действие</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const $ = (id)=>document.getElementById(id);
-  const gate = $("gate"), gateTitle = $("gateTitle"), gateMsg = $("gateMsg");
-  const btnLogin = $("btnLogin"), btnToApp = $("btnToApp");
-  const btnLogout = $("btnLogout"), btnRefresh = $("btnRefresh");
-  const mePill = $("mePill");
-  const statusText = $("statusText"), loader = $("loader");
-  const tbody = $("tbody"), q = $("q"), countPill = $("countPill");
+const tbody = document.getElementById("tbody");
+const me = document.getElementById("me");
 
-  function showGate(title, msg, mode){
-    gate.style.display = "flex";
-    gateTitle.textContent = title;
-    gateMsg.textContent = msg || "";
-    btnLogin.style.display = mode === "login" ? "inline-flex" : "none";
-    btnToApp.style.display = mode === "app" ? "inline-flex" : "none";
-  }
-  function hideGate(){ gate.style.display = "none"; }
-
-  function fmtTs(ts){
-    if(!ts) return "";
-    try{
-      const d = new Date(ts);
-      return d.toLocaleString();
-    }catch(_){ return String(ts); }
+(async () => {
+  // 1. Проверяем сессию
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session?.user) {
+    alert("Нужно войти в ЛЧ");
+    location.href = "index.html";
+    return;
   }
 
-  let all = [];
-  function render(){
-    const term = (q.value || "").trim().toLowerCase();
-    const rows = all.filter(r=>{
-      if(!term) return true;
-      const hay = [
-        r.email||"", r.name||"", r.plan||"", String(r.is_admin||false), r.user_id||""
-      ].join(" ").toLowerCase();
-      return hay.includes(term);
-    });
+  me.textContent = session.user.email;
 
-    countPill.textContent = rows.length + " пользователей";
-    tbody.innerHTML = rows.map(r=>{
-      const userLabel = (r.name ? ("<div><b>"+escapeHtml(r.name)+"</b></div>") : "") +
-                        ("<div class='small'>"+escapeHtml(r.email||"")+"</div>") +
-                        ("<div class='small'>id: "+escapeHtml((r.user_id||"").slice(0,8))+"…</div>");
-      const plan = `<span class="pill">${escapeHtml(r.plan||"")}</span>`;
-      const adm = r.is_admin ? `<span class="pill ok">true</span>` : `<span class="pill">false</span>`;
-      const upd = `<div class="small">${escapeHtml(fmtTs(r.updated_at||r.created_at))}</div>`;
-      const link = `<a href="admin-user.html?id=${encodeURIComponent(r.user_id)}">Открыть</a>`;
-      return `<tr>
-        <td>${userLabel}</td>
-        <td>${plan}</td>
-        <td>${adm}</td>
-        <td>${upd}</td>
-        <td>${link}</td>
-      </tr>`;
-    }).join("");
-
-    if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="5" class="small">Ничего не найдено.</td></tr>`;
-    }
-  }
-
-  function escapeHtml(s){
-    return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-  }
-
-  async function requireAdmin(){
-    showGate("Проверка доступа…", "Ожидаю авторизацию.", null);
-
-    const { data: { session } } = await sb.auth.getSession();
-    if(!session?.user){
-      showGate("Нужен вход", "Ты не авторизован. Войди в ЛК, затем зайди в /admin.html", "login");
-      return { ok:false };
-    }
-
-    mePill.style.display = "inline-flex";
-    mePill.textContent = "Вы вошли: " + (session.user.email || "");
-    btnLogout.style.display = "inline-flex";
-
-    // check admin flag from profiles (RLS allows reading own row)
-    const { data: prof, error } = await sb
-      .from("profiles")
-      .select("is_admin, plan, email, name")
-      .eq("user_id", session.user.id)
-      .maybeSingle();
-
-    if(error){
-      showGate("Ошибка", "Не могу прочитать профиль: " + error.message, "app");
-      return { ok:false };
-    }
-    if(!prof?.is_admin){
-      showGate("Нет доступа", "Этот аккаунт не администратор. Выйди и войди под админ-почтой.", "app");
-      return { ok:false };
-    }
-
-    hideGate();
-    return { ok:true, user: session.user, profile: prof };
-  }
-
-  async function loadUsers(){
-    statusText.textContent = "Загрузка пользователей…";
-    loader.style.display = "inline-block";
-
-    const { data: { session } } = await sb.auth.getSession();
-    if(!session?.access_token){
-      statusText.textContent = "Нет сессии (войдите в ЛК заново)";
-      loader.style.display = "none";
-      all = [];
-      countPill.textContent = "0 пользователей";
-      tbody.innerHTML = `<tr><td colspan="5" class="small">Нет активной сессии. Открой <a href="index.html">ЛК</a>, войди и снова зайди в /admin.html.</td></tr>`;
-      return;
-    }
-
-    try{
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/rapid-processor`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify({ access_token: session.access_token })
-      });
-      const json = await res.json();
-      if(!res.ok){
-        statusText.textContent = `Ошибка загрузки (Edge Function)`;
-        loader.style.display = "none";
-        tbody.innerHTML = `<tr><td colspan="5" class="small">
-          Edge Function вернула ошибку: HTTP ${res.status}.<br/>
-          <span class="small">${escapeHtml(json?.error || json?.message || "Unknown error")}</span>
-        </td></tr>`;
-        all = [];
-        countPill.textContent = "0 пользователей";
-        return;
-      }
-
-      all = json.users || [];
-      statusText.textContent = "Готово";
-      loader.style.display = "none";
-      render();
-    }catch(e){
-      statusText.textContent = "Ошибка сети/вызова (Edge Function)";
-      loader.style.display = "none";
-      tbody.innerHTML = `<tr><td colspan="5" class="small">
-        Ошибка вызова Edge Function: ${escapeHtml(e?.message || String(e))}</td></tr>`;
-      all = [];
-      countPill.textContent = "0 пользователей";
-    }
-  }
-
-  btnLogin.addEventListener("click", ()=>{ window.location.href = "index.html"; });
-  btnToApp.addEventListener("click", ()=>{ window.location.href = "index.html"; });
-  btnLogout.addEventListener("click", async ()=>{
-    await sb.auth.signOut();
-    window.location.href = "index.html";
+  // 2. Запрос к Edge Function
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/rapid-processor`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify({
+      access_token: session.access_token
+    })
   });
-  btnRefresh.addEventListener("click", loadUsers);
-  q.addEventListener("input", render);
 
-  (async ()=>{
-    const gateRes = await requireAdmin();
-    if(!gateRes.ok) return;
-    await loadUsers();
-  })();
+  const json = await res.json();
+
+  if (!res.ok) {
+    console.error(json);
+    alert("Ошибка админки: " + (json.error || res.status));
+    return;
+  }
+
+  // 3. Рендерим пользователей
+  const users = json.users || [];
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td>
+        <b>${u.name || ""}</b><br/>
+        <small>${u.email}</small>
+      </td>
+      <td>${u.plan || ""}</td>
+      <td>${u.is_admin ? "true" : "false"}</td>
+      <td>
+        <a href="admin-user.html?id=${u.user_id}">Открыть</a>
+      </td>
+    </tr>
+  `).join("");
+})();
 </script>
 </body>
 </html>
