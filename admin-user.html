@@ -208,7 +208,29 @@
     tradesBody.innerHTML = "";
     btnExport.disabled = true;
 
-    const { data, error } = await sb.functions.invoke("rapid-processor", { body: { id: targetUserId } });
+    const { data: { session } } = await sb.auth.getSession();
+    let data = null;
+    let error = null;
+
+    if(!session?.access_token){
+      error = { message: "Нет сессии. Открой index.html, войди, затем вернись в admin-user.html" };
+    } else {
+      const url = `${SUPABASE_URL}/functions/v1/rapid-processor?id=${encodeURIComponent(targetUserId)}`;
+      try{
+        const res = await fetch(url, {
+          method: "GET",
+          headers: { "Authorization": `Bearer ${session.access_token}` }
+        });
+        const json = await res.json();
+        if(!res.ok){
+          error = { message: json?.error || (`HTTP ${res.status}`) };
+        } else {
+          data = json;
+        }
+      }catch(e){
+        error = { message: e?.message || String(e) };
+      }
+    }
 
     if(error){
       const msg = "Ошибка вызова Edge Function: " + (error.message || String(error));
