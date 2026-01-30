@@ -195,112 +195,144 @@
       statsHint.textContent = "";
       passiveHint.textContent = "";
       tradesHint.textContent = "";
+      tradesBody.innerHTML = "";
       btnExport.disabled = true;
       return;
     }
 
     const { data: { session } } = await sb.auth.getSession();
     if(!session?.access_token){
-      showGate("Нужен вход", "Нет сессии. Войди в ЛК и открой админку снова.", "login");
-      return;
-    }
-
-    // One server call (bypasses RLS, checks is_admin inside Edge Function)
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/rapid-processor`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ access_token: session.access_token, id: targetUserId })
-    });
-    const json = await res.json().catch(()=> ({}));
-
-    if(!res.ok){
-      console.error("Edge error", res.status, json);
-      profileHint.textContent = "Ошибка Edge Function: " + (json.error || ("HTTP " + res.status));
-      profileBox.innerHTML = `<div class="small">` + esc(json.error || ("HTTP " + res.status)) + `</div>`;
+      profileHint.textContent = "Нет сессии. Войдите в ЛК заново.";
       accountsHint.textContent = "";
       statsHint.textContent = "";
       passiveHint.textContent = "";
       tradesHint.textContent = "";
-      tradesBody.innerHTML = `<tr><td colspan="6" class="small">` + esc(json.error || ("HTTP " + res.status)) + `</td></tr>`;
       btnExport.disabled = true;
       return;
     }
 
-    // Profile
-    const p = json.profile || {};
-    profileHint.textContent = "";
-    profileBox.innerHTML = [
-      kv("Email", p.email||""),
-      kv("Name", p.name||""),
-      kv("Plan", p.plan||""),
-      kv("is_admin", String(!!p.is_admin)),
-      kv("Created", fmtTs(p.created_at)),
-      kv("Updated", fmtTs(p.updated_at)),
-    ].join("");
+    // UI loading states
+    profileHint.textContent = "Загрузка…";
+    accountsHint.textContent = "Загрузка…";
+    statsHint.textContent = "Загрузка…";
+    passiveHint.textContent = "Загрузка…";
+    tradesHint.textContent = "Загрузка…";
+    btnExport.disabled = true;
+    tradesBody.innerHTML = "";
 
-    // Accounts
-    const a = json.account || {};
-    accountsHint.textContent = a?.updated_at ? ("Updated: " + fmtTs(a.updated_at)) : "";
-    accountsBox.innerHTML = [
-      kv("Start capital", num(a.start_capital)),
-      kv("Current capital", num(a.current_capital)),
-      kv("End capital", num(a.end_capital)),
-      kv("Cycle start", fmtTs(a.cycle_start_ts)),
-      kv("Cycle end", fmtTs(a.cycle_end_ts)),
-    ].join("");
+    let json = null;
+    try{
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/rapid-processor`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({ access_token: session.access_token, id: targetUserId })
+      });
+      json = await res.json();
+      if(!res.ok){
+        const msg = json?.error || json?.message || `HTTP ${res.status}`;
+        profileHint.textContent = `Ошибка Edge: ${res.status}`;
+        accountsHint.textContent = "";
+        statsHint.textContent = "";
+        passiveHint.textContent = "";
+        tradesHint.textContent = "";
+        profileBox.innerHTML = `<div class="small">${esc(msg)}</div>`;
+        accountsBox.innerHTML = "";
+        statsPre.textContent = "";
+        passivePre.textContent = "";
+        tradesBody.innerHTML = `<tr><td colspan="6" class="small">${esc(msg)}</td></tr>`;
+        return;
+      }
+    }catch(e){
+      const msg = e?.message || String(e);
+      profileHint.textContent = "Ошибка вызова Edge Function";
+      profileBox.innerHTML = `<div class="small">${esc(msg)}</div>`;
+      accountsBox.innerHTML = "";
+      statsPre.textContent = "";
+      passivePre.textContent = "";
+      tradesBody.innerHTML = `<tr><td colspan="6" class="small">${esc(msg)}</td></tr>`;
+      return;
+    }
 
-    // Stats snapshot
-    const st = json.stats || null;
-    statsHint.textContent = st?.updated_at ? ("Updated: " + fmtTs(st.updated_at)) : "";
-    statsPre.textContent = st?.payload ? JSON.stringify(st.payload, null, 2) : "(пусто)";
+    const p = json?.profile || null;
+    const a = json?.account || null;
+    const trades = Array.isArray(json?.trades) ? json.trades : [];
+    const stats = json?.stats || null;
+    const passive = json?.passive || null;
 
-    // Passive assets
-    const pa = json.passive || null;
-    passiveHint.textContent = pa?.updated_at ? ("Updated: " + fmtTs(pa.updated_at)) : "";
-    passivePre.textContent = pa?.payload ? JSON.stringify(pa.payload, null, 2) : "(пусто)";
+    // Profile render
+    if(!p){
+      profileHint.textContent = "Профиль не найден";
+      profileBox.innerHTML = `<div class="small">Нет данных профиля.</div>`;
+    }else{
+      profileHint.textContent = "";
+      profileBox.innerHTML = [
+        kv("Email", p.email||""),
+        kv("Name", p.name||""),
+        kv("Plan", p.plan||""),
+        kv("Admin", String(!!p.is_admin)),
+        kv("User ID", p.user_id||""),
+        kv("Created", fmtTs(p.created_at)),
+        kv("Updated", fmtTs(p.updated_at)),
+      ].join("");
+    }
+
+    // Accounts render
+    if(!a){
+      accountsHint.textContent = "Нет данных";
+      accountsBox.innerHTML = `<div class="small">Пока нет синхронизации капитала из ЛК.</div>`;
+    }else{
+      accountsHint.textContent = "";
+      accountsBox.innerHTML = [
+        kv("Start capital", a.start_capital ?? ""),
+        kv("Current capital", a.current_capital ?? ""),
+        kv("End capital", a.end_capital ?? ""),
+        kv("Cycle start", fmtTs(a.cycle_start_ts)),
+        kv("Cycle end", fmtTs(a.cycle_end_ts)),
+        kv("Updated", fmtTs(a.updated_at)),
+      ].join("");
+    }
+
+    // Stats
+    if(stats?.payload){
+      statsHint.textContent = "";
+      statsPre.textContent = JSON.stringify(stats.payload, null, 2);
+    }else{
+      statsHint.textContent = "Нет данных";
+      statsPre.textContent = "";
+    }
+
+    // Passive
+    if(passive?.payload){
+      passiveHint.textContent = "";
+      passivePre.textContent = JSON.stringify(passive.payload, null, 2);
+    }else{
+      passiveHint.textContent = "Нет данных";
+      passivePre.textContent = "";
+    }
 
     // Trades
-    const rows = json.trades || [];
-    tradesHint.textContent = rows.length ? ("Сделок: " + rows.length) : "Пока нет сделок (или не синхронизировано).";
-    tradesBody.innerHTML = rows.length ? rows.map(r=>{
-      return `<tr>
-        <td>${esc(fmtTs(r.ts))}</td>
-        <td>${esc(r.asset||"")}</td>
-        <td>${esc(num(r.entry))}</td>
-        <td>${esc(num(r.exit))}</td>
-        <td>${esc(num(r.pnl))}</td>
-        <td>${esc(num(r.pct))}</td>
-      </tr>`;
-    }).join("") : `<tr><td colspan="6" class="small">Пусто.</td></tr>`;
-    btnExport.disabled = !rows.length;
-    btnExport._rows = rows;
+    if(!trades.length){
+      tradesHint.textContent = "Пока нет сделок (или не синхронизировано).";
+      tradesBody.innerHTML = `<tr><td colspan="6" class="small">Нет сделок.</td></tr>`;
+    }else{
+      tradesHint.textContent = "Сделок: " + trades.length;
+      tradesBody.innerHTML = trades.map(r=>{
+        return `<tr>
+          <td>${esc(fmtTs(r.ts || r.created_at))}</td>
+          <td>${esc(r.asset||"")}</td>
+          <td>${esc(num(r.entry))}</td>
+          <td>${esc(num(r.exit))}</td>
+          <td>${esc(num(r.pnl))}</td>
+          <td>${esc(num(r.pct))}</td>
+        </tr>`;
+      }).join("");
+      btnExport.disabled = false;
+    }
   }
 
-  function exportCSV(){
-    const rows = btnExport._rows || [];
-    if(!rows.length) return;
-
-    const headers = ["ts","asset","entry","exit","pnl","pct"];
-    const lines = [headers.join(",")].concat(rows.map(r=>{
-      return headers.map(h=>{
-        const v = r[h];
-        const s = (v===null||v===undefined) ? "" : String(v);
-        // escape CSV
-        if(/[",\n]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
-        return s;
-      }).join(",");
-    }));
-    const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `trades_${targetUserId.slice(0,8)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
-  }
-
-  btnLogin.addEventListener("click", ()=>{ window.location.href = "index.html"; });
   btnBack.addEventListener("click", ()=>{ window.location.href = "admin.html"; });
   btnUsers.addEventListener("click", ()=>{ window.location.href = "admin.html"; });
   btnLogout.addEventListener("click", async ()=>{
