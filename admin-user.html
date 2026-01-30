@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>CLUB500 — Admin / User</title>
+  <title>CLUB500 — Admin User</title>
   <style>
     :root{
       --bg:#020617; --panel:rgba(2,6,23,.72); --border:rgba(148,163,184,.18);
@@ -15,336 +15,200 @@
                      var(--bg);
          color:var(--text); font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial;}
     .wrap{max-width:1100px;margin:24px auto;padding:0 14px;}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+    .brand{display:flex;flex-direction:column;gap:2px}
+    .brand b{font-size:16px;letter-spacing:.2px}
+    .brand span{color:var(--muted);font-size:12px}
     .btn{height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--border);
          background:rgba(2,6,23,.35);color:var(--text);font-weight:900;cursor:pointer}
     .btn.primary{border-color:rgba(34,211,238,.28);background:rgba(34,211,238,.10)}
-    .card{border:1px solid var(--border);background:var(--panel);border-radius:18px;padding:14px;box-shadow:0 24px 80px rgba(0,0,0,.45);margin-bottom:12px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width:900px){.grid{grid-template-columns:1fr}}
-    .k{color:var(--muted);font-size:12px;font-weight:800}
-    .v{font-weight:950}
-    table{width:100%;border-collapse:separate;border-spacing:0;border-radius:14px;overflow:hidden}
+    .card{border:1px solid var(--border);background:var(--panel);border-radius:18px;padding:14px;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
+    .small{font-size:12px;color:var(--muted)}
+    table{width:100%;border-collapse:separate;border-spacing:0;margin-top:12px;overflow:hidden;border-radius:14px}
     th,td{padding:10px 10px;border-bottom:1px solid rgba(148,163,184,.12);text-align:left;vertical-align:top}
     th{color:var(--muted);font-size:12px;font-weight:800;background:rgba(2,6,23,.35)}
     tr:hover td{background:rgba(148,163,184,.04)}
-    .small{font-size:12px;color:var(--muted)}
-    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
-    .pill.ok{border-color:rgba(34,211,238,.28);color:rgba(226,232,240,.95);background:rgba(34,211,238,.08)}
-    .pill.bad{border-color:rgba(248,113,113,.28);color:rgba(226,232,240,.95);background:rgba(248,113,113,.08)}
-    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;
-             background:rgba(2,6,23,.86);backdrop-filter:blur(10px)}
-    .modal{max-width:520px;width:calc(100% - 28px);border-radius:18px;border:1px solid rgba(148,163,184,.22);
-           background:rgba(2,6,23,.72);padding:16px;box-shadow:0 24px 80px rgba(0,0,0,.55)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr;} }
+    pre{white-space:pre-wrap;word-break:break-word;margin:0}
     a{color:rgba(56,189,248,.95);text-decoration:none;font-weight:900}
   </style>
 </head>
 <body>
-<div class="overlay" id="gate">
-  <div class="modal">
-    <b id="gateTitle">Проверка доступа…</b>
-    <div id="gateMsg" class="small" style="margin-top:8px">Ожидаю авторизацию.</div>
-    <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end">
-      <button class="btn" id="btnBack" type="button" style="display:none">Назад</button>
-      <button class="btn primary" id="btnLogin" type="button" style="display:none">Войти</button>
-    </div>
-  </div>
-</div>
-
 <div class="wrap">
   <div class="top">
-    <div>
-      <div style="font-weight:950;font-size:16px">CLUB500 — Admin / User</div>
-      <div class="small" id="userIdLine"></div>
+    <div class="brand">
+      <b><a href="admin.html">← CLUB500 — Admin</a></b>
+      <span id="subtitle">Детали пользователя</span>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn" id="btnUsers" type="button">Все пользователи</button>
+    <div class="row">
+      <span class="pill" id="mePill" style="display:none"></span>
+      <button class="btn" id="btnReload" type="button">Обновить</button>
       <button class="btn" id="btnLogout" type="button">Выйти</button>
     </div>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <div style="font-weight:950;margin-bottom:10px">Профиль</div>
-      <div class="small" id="profileHint">Загрузка…</div>
-      <div id="profileBox" style="margin-top:10px;display:grid;gap:10px"></div>
+  <div class="card">
+    <div class="row">
+      <div>
+        <div class="small">User ID</div>
+        <div><b id="uid">—</b></div>
+      </div>
+      <div>
+        <div class="small">Статус</div>
+        <div id="status"><b>Загрузка…</b></div>
+      </div>
     </div>
 
-    <div class="card">
-      <div style="font-weight:950;margin-bottom:10px">Капитал / Цикл</div>
-      <div class="small" id="accountsHint">Загрузка…</div>
-      <div id="accountsBox" style="margin-top:10px;display:grid;gap:10px"></div>
+    <div class="grid">
+      <div class="card">
+        <b>Профиль</b>
+        <div class="small" style="margin-top:8px"><pre id="profile">—</pre></div>
+      </div>
+      <div class="card">
+        <b>Аккаунт</b>
+        <div class="small" style="margin-top:8px"><pre id="account">—</pre></div>
+      </div>
     </div>
-  </div>
 
-  <div class="card">
-    <div style="font-weight:950;margin-bottom:10px">Статистика (snapshot)</div>
-    <div class="small" id="statsHint">Загрузка…</div>
-    <pre id="statsPre" class="small" style="white-space:pre-wrap;margin:0"></pre>
-  </div>
-
-  <div class="card">
-    <div style="font-weight:950;margin-bottom:10px">Пассивные активы (PRO)</div>
-    <div class="small" id="passiveHint">Загрузка…</div>
-    <pre id="passivePre" class="small" style="white-space:pre-wrap;margin:0"></pre>
-  </div>
-
-  <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-      <div style="font-weight:950">Сделки (trades)</div>
-      <button class="btn primary" id="btnExport" type="button">Экспорт CSV</button>
-    </div>
-    <div class="small" id="tradesHint" style="margin-top:8px">Загрузка…</div>
-
-    <div style="overflow:auto;margin-top:10px">
+    <div class="card" style="margin-top:12px">
+      <b>Сделки (последние 300)</b>
       <table>
         <thead>
           <tr>
-            <th>Дата</th><th>Asset</th><th>Entry</th><th>Exit</th><th>PNL</th><th>%</th>
+            <th>Дата</th>
+            <th>Актив</th>
+            <th>Сторона</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>PnL</th>
           </tr>
         </thead>
-        <tbody id="tradesBody"></tbody>
+        <tbody id="tbody"></tbody>
       </table>
+      <div class="small" style="margin-top:8px" id="tradesHint"></div>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+  // CONFIG
   const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
+  const EDGE_FN = "rapid-processor";
+
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
   const $ = (id)=>document.getElementById(id);
-  const gate = $("gate"), gateTitle = $("gateTitle"), gateMsg = $("gateMsg");
-  const btnLogin = $("btnLogin"), btnBack = $("btnBack");
-  const btnUsers = $("btnUsers"), btnLogout = $("btnLogout"), btnExport = $("btnExport");
-  const userIdLine = $("userIdLine");
 
-  const profileBox = $("profileBox"), profileHint = $("profileHint");
-  const accountsBox = $("accountsBox"), accountsHint = $("accountsHint");
-  const statsPre = $("statsPre"), statsHint = $("statsHint");
-  const passivePre = $("passivePre"), passiveHint = $("passiveHint");
-  const tradesBody = $("tradesBody"), tradesHint = $("tradesHint");
+  const uidEl = $("uid"), statusEl = $("status"), mePill = $("mePill");
+  const profileEl = $("profile"), accountEl = $("account"), tbody = $("tbody"), tradesHint = $("tradesHint");
+  const btnReload = $("btnReload"), btnLogout = $("btnLogout");
 
-  function showGate(title, msg, mode){
-    gate.style.display = "flex";
-    gateTitle.textContent = title;
-    gateMsg.textContent = msg || "";
-    btnLogin.style.display = mode === "login" ? "inline-flex" : "none";
-    btnBack.style.display = mode === "back" ? "inline-flex" : "none";
-  }
-  function hideGate(){ gate.style.display = "none"; }
-
-  function fmtTs(ts){
-    if(!ts) return "";
-    try{ return new Date(ts).toLocaleString(); }catch(_){ return String(ts); }
-  }
-  function esc(s){
-    return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-  }
-  function kv(k,v){
-    return `<div><div class="k">${esc(k)}</div><div class="v">${esc(v ?? "")}</div></div>`;
-  }
-  function num(x){
-    if(x===null || x===undefined || x==="") return "";
-    const n = Number(x);
-    if(Number.isFinite(n)) return n.toLocaleString(undefined,{maximumFractionDigits:2});
-    return String(x);
-  }
-
-  function getParam(name){
-    const u = new URL(window.location.href);
+  function qp(name){
+    const u = new URL(location.href);
     return u.searchParams.get(name);
   }
-  const targetUserId = getParam("id") || "";
-  userIdLine.textContent = targetUserId ? ("user_id: " + targetUserId) : "user_id не указан (?id=...)";
 
-  async function requireAdmin(){
-    showGate("Проверка доступа…", "Ожидаю авторизацию.", null);
+  function pretty(x){
+    try{ return JSON.stringify(x, null, 2); }catch(_){ return String(x); }
+  }
 
+  async function callEdge(payload){
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session?.access_token) throw new Error("Нет сессии. Войди в ЛК.");
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/${EDGE_FN}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({
+        access_token: session.access_token,
+        ...(payload || {})
+      })
+    });
+
+    const json = await res.json().catch(()=> ({}));
+    if(!res.ok){
+      const msg = json?.error || json?.message || ("HTTP " + res.status);
+      throw new Error(msg);
+    }
+    return json;
+  }
+
+  async function boot(){
     const { data: { session } } = await sb.auth.getSession();
     if(!session?.user){
-      showGate("Нужен вход", "Ты не авторизован. Войди в ЛК, затем вернись в админку.", "login");
-      return { ok:false };
+      location.href = "index.html";
+      return;
     }
-
-    const { data: prof, error } = await sb
-      .from("profiles")
-      .select("is_admin,email")
-      .eq("user_id", session.user.id)
-      .maybeSingle();
-
-    if(error){
-      showGate("Ошибка", "Не могу прочитать профиль: " + error.message, "back");
-      return { ok:false };
-    }
-    if(!prof?.is_admin){
-      showGate("Нет доступа", "Этот аккаунт не администратор.", "back");
-      return { ok:false };
-    }
-
-    hideGate();
-    return { ok:true, me: session.user };
+    mePill.style.display = "inline-flex";
+    mePill.textContent = session.user.email || "";
   }
 
-  async function loadAll(){
-    if(!targetUserId){
-      profileHint.textContent = "Нужно открыть страницу с параметром ?id=USER_ID";
-      accountsHint.textContent = "";
-      statsHint.textContent = "";
-      passiveHint.textContent = "";
-      tradesHint.textContent = "";
-      tradesBody.innerHTML = "";
-      btnExport.disabled = true;
+  async function load(){
+    const id = qp("id");
+    uidEl.textContent = id || "—";
+    if(!id){
+      statusEl.innerHTML = "<b>Нет параметра ?id=</b>";
       return;
     }
 
-    const { data: { session } } = await sb.auth.getSession();
-    if(!session?.access_token){
-      profileHint.textContent = "Нет сессии. Войдите в ЛК заново.";
-      accountsHint.textContent = "";
-      statsHint.textContent = "";
-      passiveHint.textContent = "";
-      tradesHint.textContent = "";
-      btnExport.disabled = true;
-      return;
-    }
+    statusEl.innerHTML = "<b>Загрузка…</b>";
+    profileEl.textContent = "—";
+    accountEl.textContent = "—";
+    tbody.innerHTML = "";
+    tradesHint.textContent = "";
 
-    // UI loading states
-    profileHint.textContent = "Загрузка…";
-    accountsHint.textContent = "Загрузка…";
-    statsHint.textContent = "Загрузка…";
-    passiveHint.textContent = "Загрузка…";
-    tradesHint.textContent = "Загрузка…";
-    btnExport.disabled = true;
-    tradesBody.innerHTML = "";
-
-    let json = null;
     try{
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/rapid-processor`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify({ access_token: session.access_token, id: targetUserId })
-      });
-      json = await res.json();
-      if(!res.ok){
-        const msg = json?.error || json?.message || `HTTP ${res.status}`;
-        profileHint.textContent = `Ошибка Edge: ${res.status}`;
-        accountsHint.textContent = "";
-        statsHint.textContent = "";
-        passiveHint.textContent = "";
-        tradesHint.textContent = "";
-        profileBox.innerHTML = `<div class="small">${esc(msg)}</div>`;
-        accountsBox.innerHTML = "";
-        statsPre.textContent = "";
-        passivePre.textContent = "";
-        tradesBody.innerHTML = `<tr><td colspan="6" class="small">${esc(msg)}</td></tr>`;
-        return;
+      const out = await callEdge({ id });
+
+      profileEl.textContent = pretty(out.profile);
+      accountEl.textContent = pretty(out.account);
+
+      const trades = out.trades || [];
+      if(!trades.length){
+        tbody.innerHTML = `<tr><td colspan="6" class="small">Сделок нет.</td></tr>`;
+      } else {
+        tbody.innerHTML = trades.map(t=>{
+          const dt = t.created_at ? new Date(t.created_at).toLocaleString() : "";
+          const sym = t.symbol || t.asset || t.ticker || "";
+          const side = t.side || t.type || "";
+          const qty = t.qty ?? t.amount ?? "";
+          const price = t.price ?? "";
+          const pnl = t.pnl ?? t.pnl_usd ?? "";
+          return `<tr>
+            <td class="small">${dt}</td>
+            <td>${sym}</td>
+            <td class="small">${side}</td>
+            <td class="small">${qty}</td>
+            <td class="small">${price}</td>
+            <td class="small">${pnl}</td>
+          </tr>`;
+        }).join("");
       }
+
+      statusEl.innerHTML = "<b>OK</b>";
     }catch(e){
-      const msg = e?.message || String(e);
-      profileHint.textContent = "Ошибка вызова Edge Function";
-      profileBox.innerHTML = `<div class="small">${esc(msg)}</div>`;
-      accountsBox.innerHTML = "";
-      statsPre.textContent = "";
-      passivePre.textContent = "";
-      tradesBody.innerHTML = `<tr><td colspan="6" class="small">${esc(msg)}</td></tr>`;
-      return;
-    }
-
-    const p = json?.profile || null;
-    const a = json?.account || null;
-    const trades = Array.isArray(json?.trades) ? json.trades : [];
-    const stats = json?.stats || null;
-    const passive = json?.passive || null;
-
-    // Profile render
-    if(!p){
-      profileHint.textContent = "Профиль не найден";
-      profileBox.innerHTML = `<div class="small">Нет данных профиля.</div>`;
-    }else{
-      profileHint.textContent = "";
-      profileBox.innerHTML = [
-        kv("Email", p.email||""),
-        kv("Name", p.name||""),
-        kv("Plan", p.plan||""),
-        kv("Admin", String(!!p.is_admin)),
-        kv("User ID", p.user_id||""),
-        kv("Created", fmtTs(p.created_at)),
-        kv("Updated", fmtTs(p.updated_at)),
-      ].join("");
-    }
-
-    // Accounts render
-    if(!a){
-      accountsHint.textContent = "Нет данных";
-      accountsBox.innerHTML = `<div class="small">Пока нет синхронизации капитала из ЛК.</div>`;
-    }else{
-      accountsHint.textContent = "";
-      accountsBox.innerHTML = [
-        kv("Start capital", a.start_capital ?? ""),
-        kv("Current capital", a.current_capital ?? ""),
-        kv("End capital", a.end_capital ?? ""),
-        kv("Cycle start", fmtTs(a.cycle_start_ts)),
-        kv("Cycle end", fmtTs(a.cycle_end_ts)),
-        kv("Updated", fmtTs(a.updated_at)),
-      ].join("");
-    }
-
-    // Stats
-    if(stats?.payload){
-      statsHint.textContent = "";
-      statsPre.textContent = JSON.stringify(stats.payload, null, 2);
-    }else{
-      statsHint.textContent = "Нет данных";
-      statsPre.textContent = "";
-    }
-
-    // Passive
-    if(passive?.payload){
-      passiveHint.textContent = "";
-      passivePre.textContent = JSON.stringify(passive.payload, null, 2);
-    }else{
-      passiveHint.textContent = "Нет данных";
-      passivePre.textContent = "";
-    }
-
-    // Trades
-    if(!trades.length){
-      tradesHint.textContent = "Пока нет сделок (или не синхронизировано).";
-      tradesBody.innerHTML = `<tr><td colspan="6" class="small">Нет сделок.</td></tr>`;
-    }else{
-      tradesHint.textContent = "Сделок: " + trades.length;
-      tradesBody.innerHTML = trades.map(r=>{
-        return `<tr>
-          <td>${esc(fmtTs(r.ts || r.created_at))}</td>
-          <td>${esc(r.asset||"")}</td>
-          <td>${esc(num(r.entry))}</td>
-          <td>${esc(num(r.exit))}</td>
-          <td>${esc(num(r.pnl))}</td>
-          <td>${esc(num(r.pct))}</td>
-        </tr>`;
-      }).join("");
-      btnExport.disabled = false;
+      statusEl.innerHTML = "<b style='color:#fda4af'>Ошибка</b>";
+      tradesHint.textContent = "Ошибка: " + (e?.message || String(e));
+      tbody.innerHTML = `<tr><td colspan="6" class="small">${(e?.message || String(e))}</td></tr>`;
     }
   }
 
-  btnBack.addEventListener("click", ()=>{ window.location.href = "admin.html"; });
-  btnUsers.addEventListener("click", ()=>{ window.location.href = "admin.html"; });
+  btnReload.addEventListener("click", ()=>load());
   btnLogout.addEventListener("click", async ()=>{
     await sb.auth.signOut();
-    window.location.href = "index.html";
+    location.href = "index.html";
   });
-  btnExport.addEventListener("click", exportCSV);
 
   (async ()=>{
-    const gateRes = await requireAdmin();
-    if(!gateRes.ok) return;
-    await loadAll();
+    await boot();
+    await load();
   })();
 </script>
 </body>
