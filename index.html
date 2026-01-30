@@ -3391,6 +3391,49 @@ input, select, textarea, button{
 
 </head>
 <body>
+
+<!-- AUTH OVERLAY -->
+<div id="authOverlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(2,6,23,.86); backdrop-filter: blur(10px);">
+  <div style="max-width:420px; margin:7vh auto; padding:18px; border-radius:18px; border:1px solid rgba(148,163,184,.22); background:rgba(2,6,23,.72); box-shadow:0 24px 80px rgba(0,0,0,.55)">
+    <div style="font-weight:950; font-size:16px; letter-spacing:.2px">CLUB500 — вход</div>
+    <div style="margin-top:6px; color:rgba(148,163,184,.95); font-size:12px; line-height:1.4">
+      Доступ только для участников клуба.
+    </div>
+
+    <div style="margin-top:14px; display:grid; gap:10px">
+      <label style="display:grid; gap:6px; font-size:12px; color:rgba(226,232,240,.92)">
+        Email
+        <input id="authEmail" type="email" placeholder="you@email.com"
+          style="height:44px; border-radius:14px; padding:0 12px; border:1px solid rgba(148,163,184,.22); background:rgba(2,6,23,.75); color:rgba(226,232,240,.95)" />
+      </label>
+
+      <label style="display:grid; gap:6px; font-size:12px; color:rgba(226,232,240,.92)">
+        Пароль
+        <input id="authPass" type="password" placeholder="••••••••"
+          style="height:44px; border-radius:14px; padding:0 12px; border:1px solid rgba(148,163,184,.22); background:rgba(2,6,23,.75); color:rgba(226,232,240,.95)" />
+      </label>
+
+      <div style="display:flex; gap:10px; margin-top:6px">
+        <button id="btnLogin" type="button"
+          style="flex:1; height:44px; border-radius:14px; border:1px solid rgba(34,211,238,.28); background:rgba(34,211,238,.10); color:rgba(226,232,240,.95); font-weight:900; cursor:pointer">
+          Войти
+        </button>
+        <button id="btnSignup" type="button"
+          style="flex:1; height:44px; border-radius:14px; border:1px solid rgba(167,139,250,.28); background:rgba(167,139,250,.10); color:rgba(226,232,240,.95); font-weight:900; cursor:pointer">
+          Регистрация
+        </button>
+      </div>
+
+      <button id="btnForgot" type="button"
+        style="height:40px; border-radius:14px; border:1px solid rgba(148,163,184,.18); background:transparent; color:rgba(148,163,184,.95); font-weight:800; cursor:pointer">
+        Восстановить пароль
+      </button>
+
+      <div id="authHint" style="margin-top:6px; color:rgba(148,163,184,.9); font-size:12px; line-height:1.4"></div>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="topbar" id="topbar">
     <header class="hero" aria-label="CLUB500">
@@ -3402,6 +3445,14 @@ input, select, textarea, button{
           <div class="brandRow"><h1>CLUB500</h1></div>
           <p>Финансовая панель для партнёров: быстро считай доходность, фиксируй сделки и контролируй пассивный поток — в одном интерфейсе.</p>
           <div class="hero-meta">Валюта: калькулятор и сделки — $ • объекты в пассивном доходе — ₽</div>
+          <div style="margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button id="btnLogout" type="button"
+              style="display:none; padding:8px 12px; border-radius:12px; border:1px solid rgba(148,163,184,.18); background:rgba(2,6,23,.35); color:rgba(226,232,240,.92); font-weight:900; cursor:pointer">
+              Выйти
+            </button>
+            <span id="authUserBadge" style="display:none; font-size:12px; color:rgba(148,163,184,.95)"></span>
+          </div>
+
         </div>
         </div>
       </div>
@@ -3868,6 +3919,8 @@ input, select, textarea, button{
   </div>
 </div>
   <div id="toast" class="toast" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 /* ===== Helpers ===== */
@@ -6441,6 +6494,122 @@ document.addEventListener('DOMContentLoaded', ()=>{
   window.addEventListener('resize', late);
   new MutationObserver(late).observe(document.documentElement, {attributes:true, attributeFilter:['data-mode']});
 })();
+
+/* ===== SUPABASE AUTH (email+password) ===== */
+(function(){
+  if(!window.supabase) {
+    console.error('supabase-js not loaded');
+    return;
+  }
+  const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const overlay = document.getElementById('authOverlay');
+  const emailEl = document.getElementById('authEmail');
+  const passEl  = document.getElementById('authPass');
+  const hintEl  = document.getElementById('authHint');
+  const btnLogin = document.getElementById('btnLogin');
+  const btnSignup = document.getElementById('btnSignup');
+  const btnForgot = document.getElementById('btnForgot');
+  const btnLogout = document.getElementById('btnLogout');
+  const badge = document.getElementById('authUserBadge');
+
+  function toast(msg){
+    if(typeof window.showToast === 'function') window.showToast(msg);
+    else alert(msg);
+  }
+  function setOverlay(on, msg){
+    if(!overlay) return;
+    overlay.style.display = on ? 'block' : 'none';
+    if(hintEl) hintEl.textContent = msg || '';
+  }
+  function setLoggedUI(user){
+    const isLogged = !!user;
+    if(btnLogout) btnLogout.style.display = isLogged ? 'inline-flex' : 'none';
+    if(badge){
+      badge.style.display = isLogged ? 'inline' : 'none';
+      badge.textContent = isLogged ? ('Вы вошли: ' + (user.email || '')) : '';
+    }
+  }
+
+  async function ensureProfile(){
+    const { data: { user } } = await sb.auth.getUser();
+    if(!user) return;
+    try{
+      await sb.from('profiles').upsert({
+        user_id: user.id,
+        email: user.email,
+        name: (user.email || '').split('@')[0],
+      });
+    }catch(_e){}
+  }
+
+  async function initAuth(){
+    const { data: { session } } = await sb.auth.getSession();
+    if(session?.user){
+      setOverlay(false);
+      setLoggedUI(session.user);
+      await ensureProfile();
+    } else {
+      setLoggedUI(null);
+      setOverlay(true, 'Войдите, чтобы продолжить.');
+    }
+
+    sb.auth.onAuthStateChange(async (_event, session2) => {
+      if(session2?.user){
+        setOverlay(false);
+        setLoggedUI(session2.user);
+        await ensureProfile();
+        toast('Вход выполнен');
+      } else {
+        setLoggedUI(null);
+        setOverlay(true, 'Сессия завершена. Войдите снова.');
+      }
+    });
+  }
+
+  async function doLogin(){
+    const email = (emailEl?.value || '').trim();
+    const password = passEl?.value || '';
+    if(!email || !password) return toast('Введите email и пароль');
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if(error) toast('Ошибка входа: ' + error.message);
+  }
+
+  async function doSignup(){
+    const email = (emailEl?.value || '').trim();
+    const password = passEl?.value || '';
+    if(!email || !password) return toast('Введите email и пароль');
+    const { error } = await sb.auth.signUp({ email, password });
+    if(error) toast('Ошибка регистрации: ' + error.message);
+    else toast('Регистрация создана. Если включено подтверждение email — проверь почту.');
+  }
+
+  async function doForgot(){
+    const email = (emailEl?.value || '').trim();
+    if(!email) return toast('Введите email для восстановления');
+    const { error } = await sb.auth.resetPasswordForEmail(email);
+    if(error) toast('Ошибка: ' + error.message);
+    else toast('Письмо для восстановления отправлено (если email существует).');
+  }
+
+  async function doLogout(){
+    const { error } = await sb.auth.signOut();
+    if(error) toast('Ошибка выхода: ' + error.message);
+  }
+
+  btnLogin?.addEventListener('click', doLogin);
+  btnSignup?.addEventListener('click', doSignup);
+  btnForgot?.addEventListener('click', doForgot);
+  btnLogout?.addEventListener('click', doLogout);
+
+  [emailEl, passEl].forEach(el => el?.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') doLogin(); }));
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAuth);
+  else initAuth();
+})();
+
 </script>
 
 </body>
