@@ -1,255 +1,77 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="UTF-8" />
   <title>CLUB500 — Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    :root{
-      --bg:#020617; --panel:rgba(2,6,23,.72); --border:rgba(148,163,184,.18);
-      --text:rgba(226,232,240,.95); --muted:rgba(148,163,184,.95);
-      --accent:rgba(34,211,238,.18);
+    body {
+      background: #0b0f1a;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      padding: 40px;
     }
-    html,body{height:100%;}
-    body{margin:0;background:radial-gradient(1200px 700px at 20% 0%, rgba(56,189,248,.10), transparent 55%),
-                     radial-gradient(1000px 600px at 80% 20%, rgba(167,139,250,.10), transparent 55%),
-                     var(--bg);
-         color:var(--text); font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial;}
-    .wrap{max-width:1100px;margin:24px auto;padding:0 14px;}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
-    .brand{display:flex;flex-direction:column;gap:2px}
-    .brand b{font-size:16px;letter-spacing:.2px}
-    .brand span{color:var(--muted);font-size:12px}
-    .btn{height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--border);
-         background:rgba(2,6,23,.35);color:var(--text);font-weight:900;cursor:pointer}
-    .btn.primary{border-color:rgba(34,211,238,.28);background:rgba(34,211,238,.10)}
-    .card{border:1px solid var(--border);background:var(--panel);border-radius:18px;padding:14px;box-shadow:0 24px 80px rgba(0,0,0,.45)}
-    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
-    .pill.ok{border-color:rgba(34,211,238,.28);color:rgba(226,232,240,.95);background:rgba(34,211,238,.08)}
-    .pill.bad{border-color:rgba(248,113,113,.28);color:rgba(226,232,240,.95);background:rgba(248,113,113,.08)}
-    .search{height:40px;min-width:240px;flex:1;border-radius:12px;padding:0 12px;border:1px solid var(--border);
-            background:rgba(2,6,23,.55);color:var(--text)}
-    table{width:100%;border-collapse:separate;border-spacing:0;margin-top:12px;overflow:hidden;border-radius:14px}
-    th,td{padding:10px 10px;border-bottom:1px solid rgba(148,163,184,.12);text-align:left;vertical-align:top}
-    th{color:var(--muted);font-size:12px;font-weight:800;background:rgba(2,6,23,.35)}
-    tr:hover td{background:rgba(148,163,184,.04)}
-    a{color:rgba(56,189,248,.95);text-decoration:none;font-weight:900}
-    .small{font-size:12px;color:var(--muted)}
-    .right{display:flex;align-items:center;gap:10px}
-    .loader{display:inline-block;width:14px;height:14px;border-radius:999px;border:2px solid rgba(148,163,184,.25);border-top-color:rgba(34,211,238,.8);animation:spin .8s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;
-             background:rgba(2,6,23,.86);backdrop-filter:blur(10px)}
-    .modal{max-width:460px;width:calc(100% - 28px);border-radius:18px;border:1px solid rgba(148,163,184,.22);
-           background:rgba(2,6,23,.72);padding:16px;box-shadow:0 24px 80px rgba(0,0,0,.55)}
-    .modal b{font-size:16px}
-    .err{white-space:pre-wrap}
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #4f7cff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    pre {
+      margin-top: 20px;
+      background: #11162a;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
   </style>
 </head>
 <body>
-<div class="overlay" id="gate">
-  <div class="modal">
-    <b id="gateTitle">Проверка доступа…</b>
-    <div id="gateMsg" class="small" style="margin-top:8px">Ожидаю авторизацию.</div>
-    <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end">
-      <button class="btn" id="btnToApp" type="button" style="display:none">В кабинет</button>
-      <button class="btn primary" id="btnLogin" type="button" style="display:none">Войти</button>
-    </div>
-  </div>
-</div>
 
-<div class="wrap">
-  <div class="top">
-    <div class="brand">
-      <b>CLUB500 — Admin</b>
-      <span id="subtitle">Панель управления (MVP)</span>
-    </div>
-    <div class="right">
-      <span class="pill" id="mePill" style="display:none"></span>
-      <button class="btn" id="btnRefresh" type="button">Обновить</button>
-      <button class="btn" id="btnLogout" type="button">Выйти</button>
-    </div>
-  </div>
+  <h1>CLUB500 — Admin Panel</h1>
+  <button onclick="callRapid()">Вызвать rapid-processor</button>
 
-  <div class="card">
-    <div class="row">
-      <div class="pill ok" id="statusPill"><span class="loader" id="loader"></span><span id="statusText">Загрузка пользователей…</span></div>
-      <input class="search" id="q" placeholder="Поиск: email, имя, plan…" />
-      <div class="pill" id="countPill">0 пользователей</div>
-    </div>
+  <pre id="output">Ожидание...</pre>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Пользователь</th>
-          <th>Plan</th>
-          <th>Admin</th>
-          <th>Updated</th>
-          <th>Действие</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
+  <script>
+    // === НАСТРОЙКИ SUPABASE ===
+    const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
 
-    <div class="small" style="margin-top:10px">
-      Примечание: сделки/капитал в деталях пользователя появятся после синхронизации из ЛК в базу (следующий шаг).
-    </div>
-  </div>
-</div>
+    async function callRapid() {
+      const output = document.getElementById("output");
+      output.textContent = "Запрос отправляется...";
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  // === CONFIG (вставь свой ANON KEY, если отличается) ===
-  const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
-  const EDGE_FN = "rapid-processor"; // имя функции
+      try {
+        const response = await fetch(
+          `${SUPABASE_URL}/functions/v1/rapid-processor`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+              "apikey": SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({
+              source: "admin.html",
+              test: true
+            })
+          }
+        );
 
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const text = await response.text();
 
-  const $ = (id)=>document.getElementById(id);
-  const gate = $("gate"), gateTitle = $("gateTitle"), gateMsg = $("gateMsg");
-  const btnLogin = $("btnLogin"), btnToApp = $("btnToApp");
-  const btnLogout = $("btnLogout"), btnRefresh = $("btnRefresh");
-  const mePill = $("mePill");
-  const statusText = $("statusText"), loader = $("loader"), statusPill = $("statusPill");
-  const tbody = $("tbody"), q = $("q"), countPill = $("countPill");
+        output.textContent =
+          `STATUS: ${response.status}\n\nRESPONSE:\n${text}`;
 
-  function showGate(title, msg, mode){
-    gate.style.display = "flex";
-    gateTitle.textContent = title;
-    gateMsg.textContent = msg || "";
-    btnLogin.style.display = mode === "login" ? "inline-flex" : "none";
-    btnToApp.style.display = mode === "app" ? "inline-flex" : "none";
-  }
-  function hideGate(){ gate.style.display = "none"; }
-
-  function fmtTs(ts){
-    if(!ts) return "";
-    try{
-      const d = new Date(ts);
-      return d.toLocaleString();
-    }catch(_){ return String(ts); }
-  }
-
-  function escapeHtml(s){
-    return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-  }
-
-  function setStatus(kind, text){
-    statusText.textContent = text;
-    loader.style.display = (kind === "loading") ? "inline-block" : "none";
-    statusPill.classList.remove("ok","bad");
-    statusPill.classList.add(kind === "bad" ? "bad" : "ok");
-  }
-
-  let all = [];
-  function render(){
-    const term = (q.value || "").trim().toLowerCase();
-    const rows = all.filter(r=>{
-      if(!term) return true;
-      const hay = [
-        r.email||"", r.name||"", r.plan||"", String(r.is_admin||false), r.user_id||""
-      ].join(" ").toLowerCase();
-      return hay.includes(term);
-    });
-
-    countPill.textContent = rows.length + " пользователей";
-    tbody.innerHTML = rows.map(r=>{
-      const userLabel = (r.name ? ("<div><b>"+escapeHtml(r.name)+"</b></div>") : "") +
-                        ("<div class='small'>"+escapeHtml(r.email||"")+"</div>") +
-                        ("<div class='small'>id: "+escapeHtml((r.user_id||"").slice(0,8))+"…</div>");
-      const plan = `<span class="pill">${escapeHtml(r.plan||"")}</span>`;
-      const adm = r.is_admin ? `<span class="pill ok">true</span>` : `<span class="pill">false</span>`;
-      const upd = `<div class="small">${escapeHtml(fmtTs(r.updated_at||r.created_at))}</div>`;
-      const link = `<a href="admin-user.html?id=${encodeURIComponent(r.user_id)}">Открыть</a>`;
-      return `<tr>
-        <td>${userLabel}</td>
-        <td>${plan}</td>
-        <td>${adm}</td>
-        <td>${upd}</td>
-        <td>${link}</td>
-      </tr>`;
-    }).join("");
-
-    if(!rows.length){
-      tbody.innerHTML = `<tr><td colspan="5" class="small">Ничего не найдено.</td></tr>`;
+      } catch (err) {
+        output.textContent = "ERROR:\n" + err.message;
+      }
     }
-  }
+  </script>
 
-  async function requireLogin(){
-    showGate("Проверка доступа…", "Ожидаю авторизацию.", null);
-
-    const { data: { session } } = await sb.auth.getSession();
-    if(!session?.user){
-      showGate("Нужен вход", "Ты не авторизован. Войди в ЛК, затем зайди в /admin.html", "login");
-      return { ok:false };
-    }
-
-    mePill.style.display = "inline-flex";
-    mePill.textContent = "Вы вошли: " + (session.user.email || "");
-    btnLogout.style.display = "inline-flex";
-    hideGate();
-    return { ok:true, session };
-  }
-
-  async function callEdge(payload){
-    const { data: { session } } = await sb.auth.getSession();
-    if(!session?.access_token) throw new Error("Нет сессии. Войди в ЛК.");
-
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/${EDGE_FN}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY
-      },
-      body: JSON.stringify({
-        access_token: session.access_token,
-        ...(payload || {})
-      })
-    });
-
-    const json = await res.json().catch(()=> ({}));
-    if(!res.ok){
-      const msg = json?.error || json?.message || ("HTTP " + res.status);
-      throw new Error(msg);
-    }
-    return json;
-  }
-
-  async function loadUsers(){
-    setStatus("loading","Загрузка пользователей…");
-    tbody.innerHTML = "";
-
-    try{
-      const out = await callEdge({});
-      all = out.users || [];
-      setStatus("ok","Готово");
-      render();
-    }catch(e){
-      all = [];
-      countPill.textContent = "0 пользователей";
-      setStatus("bad","Ошибка загрузки (Edge Function)");
-      tbody.innerHTML = `<tr><td colspan="5" class="small err">
-Ошибка вызова Edge Function: ${escapeHtml(e?.message || String(e))}
-</td></tr>`;
-    }
-  }
-
-  btnLogin.addEventListener("click", ()=>{ window.location.href = "index.html"; });
-  btnToApp.addEventListener("click", ()=>{ window.location.href = "index.html"; });
-  btnLogout.addEventListener("click", async ()=>{
-    await sb.auth.signOut();
-    window.location.href = "index.html";
-  });
-  btnRefresh.addEventListener("click", loadUsers);
-  q.addEventListener("input", render);
-
-  (async ()=>{
-    const gateRes = await requireLogin();
-    if(!gateRes.ok) return;
-    await loadUsers();
-  })();
-</script>
 </body>
 </html>
