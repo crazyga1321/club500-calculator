@@ -291,20 +291,37 @@
     });
 
     async function checkAdminRole(userId) {
-      // Безопасно: если таблица/политики не дают — вернем false
-      try {
-        const { data, error } = await sb
-          .from("profiles")
-          .select("role")
-          .eq("user_Id", userId)
-          .single();
+  try {
+    const { data, error } = await sb
+      .from("profiles")
+      .select("role,is_admin,user_id,email")
+      .eq("user_id", userId)
+      .maybeSingle();
 
-        if (error) return false;
-        return data?.role === "admin";
-      } catch {
-        return false;
-      }
+    if (error) {
+      // покажем причину прямо в UI
+      adminRoleBadge.textContent = "role-check error";
+      adminRoleBadge.className = "badge err";
+      setMsg("Ошибка чтения profiles: " + error.message, "err");
+      return false;
     }
+
+    // покажем, что реально пришло
+    const role = (data?.role || "").toLowerCase();
+    const isAdmin = data?.is_admin === true || role === "admin";
+
+    adminRoleBadge.textContent = "role=" + (data?.role ?? "null") + " / is_admin=" + (data?.is_admin ?? "null");
+    adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
+
+    return isAdmin;
+  } catch (e) {
+    adminRoleBadge.textContent = "role-check exception";
+    adminRoleBadge.className = "badge err";
+    setMsg("Исключение: " + (e?.message || e), "err");
+    return false;
+  }
+}
+
 
     async function boot() {
       setMsg("");
@@ -391,6 +408,7 @@
   </script>
 </body>
 </html>
+
 
 
 
