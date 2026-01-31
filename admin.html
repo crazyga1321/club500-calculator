@@ -333,30 +333,39 @@
       showOnly("admin");
     }
 
-   document.getElementById("loginBtn").addEventListener("click", async () => {
+document.getElementById("loginBtn").addEventListener("click", async () => {
   try {
     setMsg("Входим…");
+
     const email = emailEl.value.trim();
     const password = passEl.value;
 
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    // страховка: если запрос завис — покажем сообщение
+    const timeout = new Promise((_, rej) =>
+      setTimeout(() => rej(new Error("Таймаут. Проверь интернет/блокировки и доступ к supabase.co")), 8000)
+    );
+
+    const loginReq = sb.auth.signInWithPassword({ email, password });
+
+    const { data, error } = await Promise.race([loginReq, timeout]);
 
     if (error) {
-      setMsg(error.message, "err");
+      setMsg("Ошибка входа: " + error.message, "err");
       return;
     }
 
     if (!data?.session) {
-      setMsg("Сессия не создана. Проверь ключи Supabase в admin.html.", "err");
+      setMsg("Сессия не создалась. Проверь ключи/проект Supabase.", "err");
       return;
     }
 
     setMsg("Успешный вход", "ok");
     await boot();
   } catch (e) {
-    setMsg("Ошибка JS: " + (e?.message || e), "err");
+    setMsg("Ошибка: " + (e?.message || e), "err");
   }
 });
+
 
 
     document.getElementById("signupBtn").addEventListener("click", async () => {
@@ -380,4 +389,5 @@
   </script>
 </body>
 </html>
+
 
