@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CLUB500 — Admin</title>
+  <style>
+    :root{
+      --bg:#0b0f17; --panel:#101827; --panel2:#0f172a;
+      --text:#e6edf7; --muted:#9aa7bd;
+      --accent:#4ea1ff; --danger:#ff5c5c; --ok:#35d07f; --warn:#ffcc66;
+      --border:rgba(255,255,255,.08);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:14px;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    body{margin:0;background:radial-gradient(1200px 700px at 10% 10%, rgba(78,161,255,.15), transparent 60%),
+                         radial-gradient(900px 500px at 90% 30%, rgba(53,208,127,.10), transparent 55%),
+                         var(--bg);
+         color:var(--text);}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px;}
+    .topbar{
+      display:flex;gap:12px;align-items:center;justify-content:space-between;
+      background:rgba(16,24,39,.7); border:1px solid var(--border);
+      border-radius: var(--radius); padding:12px 14px; box-shadow:var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .brand{display:flex;flex-direction:column;gap:2px}
+    .brand .t{font-weight:700;letter-spacing:.3px}
+    .brand .s{color:var(--muted);font-size:12px}
+    .right{display:flex;gap:10px;align-items:center}
+    .pill{font-size:12px;color:var(--muted);border:1px solid var(--border);padding:6px 10px;border-radius:999px}
+    .btn{
+      background:linear-gradient(180deg, rgba(78,161,255,.95), rgba(78,161,255,.70));
+      border:1px solid rgba(78,161,255,.35);
+      color:#06101f; font-weight:700;
+      padding:8px 12px; border-radius:12px; cursor:pointer;
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn.secondary{
+      background:transparent;color:var(--text);border:1px solid var(--border);
+      font-weight:600;
+    }
+    .grid{display:grid;grid-template-columns: 1fr; gap:12px; margin-top:12px;}
+    .card{
+      background:rgba(16,24,39,.72);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      padding:14px;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.02);
+      color:var(--muted);
+      padding:8px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      user-select:none;
+      font-weight:600;
+      font-size:13px;
+    }
+    .tab.active{
+      color:var(--text);
+      border-color: rgba(78,161,255,.40);
+      box-shadow:0 0 0 2px rgba(78,161,255,.12) inset;
+      background:rgba(78,161,255,.08);
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:220px;flex:1}
+    label{font-size:12px;color:var(--muted)}
+    input{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      outline:none;
+    }
+    input:focus{border-color: rgba(78,161,255,.45); box-shadow:0 0 0 3px rgba(78,161,255,.12)}
+    .hint{color:var(--muted);font-size:12px;line-height:1.35}
+    .msg{font-size:13px;margin-top:8px;color:var(--muted)}
+    .msg.ok{color:var(--ok)}
+    .msg.warn{color:var(--warn)}
+    .msg.err{color:var(--danger)}
+    .divider{height:1px;background:var(--border);margin:10px 0}
+    .panelTitle{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .panelTitle h2{margin:0;font-size:14px}
+    .panelTitle .meta{color:var(--muted);font-size:12px}
+    .view{display:none}
+    .view.active{display:block}
+    .empty{
+      padding:12px;border-radius:12px;border:1px dashed rgba(255,255,255,.12);
+      color:var(--muted);background:rgba(255,255,255,.02);
+      font-size:13px;line-height:1.4
+    }
+    .badge{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+    .badge.ok{border-color:rgba(53,208,127,.35); color:rgba(53,208,127,.95)}
+    .badge.err{border-color:rgba(255,92,92,.35); color:rgba(255,92,92,.95)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="t">CLUB500 — Admin</div>
+        <div class="s">Шаг 1: каркас + вход + вкладки (без данных)</div>
+      </div>
+      <div class="right">
+        <span id="authPill" class="pill">Не в системе</span>
+        <button id="logoutBtn" class="btn secondary" style="display:none;">Выйти</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LOGIN CARD -->
+      <div id="loginCard" class="card">
+        <div class="panelTitle">
+          <h2>Вход в админку</h2>
+          <span class="meta">Только авторизация — без логики</span>
+        </div>
+        <div class="divider"></div>
+
+        <div class="row">
+          <div class="field">
+            <label>Email</label>
+            <input id="email" type="email" placeholder="you@email.com" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label>Пароль</label>
+            <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button id="loginBtn" class="btn">Войти</button>
+          <button id="signupBtn" class="btn secondary">Регистрация</button>
+          <span class="hint">Используется Supabase Auth. Ключи — в коде файла.</span>
+        </div>
+
+        <div id="loginMsg" class="msg"></div>
+        <div class="hint" style="margin-top:10px;">
+          ВАЖНО: этот файл ничего не ломает в ЛК — это отдельная страница.
+        </div>
+      </div>
+
+      <!-- ADMIN SHELL -->
+      <div id="adminShell" class="card" style="display:none;">
+        <div class="panelTitle">
+          <h2>Карточка партнёра</h2>
+          <div class="meta" id="adminMeta">—</div>
+        </div>
+        <div class="divider"></div>
+
+        <div class="row">
+          <div class="field">
+            <label>Партнёр</label>
+            <input id="partnerSearch" placeholder="поиск (пока заглушка)" disabled />
+          </div>
+          <div class="field">
+            <label>Статус обновления</label>
+            <input id="lastUpdate" placeholder="—" disabled />
+          </div>
+          <div style="display:flex;gap:8px;align-items:end;">
+            <span id="adminRoleBadge" class="badge">роль: ?</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="tabs" id="tabs">
+          <div class="tab active" data-tab="calc">Калькулятор</div>
+          <div class="tab" data-tab="deals">Сделки</div>
+          <div class="tab" data-tab="passive">Пассивный доход</div>
+          <div class="tab" data-tab="stats">Статистика</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <div id="view-calc" class="view active">
+            <div class="empty">
+              <b>Калькулятор (каркас)</b><br/>
+              Здесь будет: капитал, доступный капитал, тумблер “выходим”, комиссия (10% при equity ≥ 5000), кнопка “Закрыть цикл”.<br/>
+              Сейчас это заглушка, чтобы вкладки работали.
+            </div>
+          </div>
+
+          <div id="view-deals" class="view">
+            <div class="empty">
+              <b>Сделки (каркас)</b><br/>
+              Здесь будет: активы партнёра + equity/available + рост за период.<br/>
+              На следующем шаге подключим чтение “Result”-сводки.
+            </div>
+          </div>
+
+          <div id="view-passive" class="view">
+            <div class="empty">
+              <b>Пассивный доход (каркас)</b><br/>
+              Здесь будет read-only: цель, текущий капитал, выбранные/купленные объекты.<br/>
+              Редактирует только партнёр (как ты зафиксировал).
+            </div>
+          </div>
+
+          <div id="view-stats" class="view">
+            <div class="empty">
+              <b>Статистика (каркас)</b><br/>
+              Здесь будет: годовой доход + FACT пополнений (USD/RUB), read-only для админа.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCESS DENIED -->
+      <div id="denyCard" class="card" style="display:none;">
+        <div class="panelTitle">
+          <h2>Доступ запрещён</h2>
+          <span class="meta">нужна роль admin</span>
+        </div>
+        <div class="divider"></div>
+        <div class="empty">
+          Вы вошли, но роль <b>admin</b> не подтверждена.<br/>
+          На шаге 2 мы подключим проверку по таблице <b>profiles</b> (role = admin).<br/><br/>
+          Сейчас эта страница специально “пустая и безопасная”.
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <button id="denyLogoutBtn" class="btn secondary">Выйти</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase -->
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    // === ВСТАВЬ СЮДА СВОИ ДАННЫЕ (те же, что в ЛК) ===
+    const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
+
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // UI refs
+    const loginCard = document.getElementById("loginCard");
+    const adminShell = document.getElementById("adminShell");
+    const denyCard = document.getElementById("denyCard");
+    const authPill = document.getElementById("authPill");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const denyLogoutBtn = document.getElementById("denyLogoutBtn");
+
+    const emailEl = document.getElementById("email");
+    const passEl = document.getElementById("password");
+    const loginMsg = document.getElementById("loginMsg");
+
+    const adminMeta = document.getElementById("adminMeta");
+    const adminRoleBadge = document.getElementById("adminRoleBadge");
+
+    function setMsg(text, type = "") {
+      loginMsg.className = "msg " + (type || "");
+      loginMsg.textContent = text || "";
+    }
+
+    function showOnly(which) {
+      loginCard.style.display = which === "login" ? "block" : "none";
+      adminShell.style.display = which === "admin" ? "block" : "none";
+      denyCard.style.display = which === "deny" ? "block" : "none";
+    }
+
+    async function signOut() {
+      await sb.auth.signOut();
+      authPill.textContent = "Не в системе";
+      logoutBtn.style.display = "none";
+      showOnly("login");
+      setMsg("");
+    }
+
+    logoutBtn.addEventListener("click", signOut);
+    denyLogoutBtn.addEventListener("click", signOut);
+
+    // Tabs (client-only)
+    document.getElementById("tabs").addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab");
+      if (!tab) return;
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      const key = tab.dataset.tab;
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      document.getElementById("view-" + key).classList.add("active");
+    });
+
+    async function checkAdminRole(userId) {
+      // Безопасно: если profiles/role нет — вернём false и не пустим.
+      try {
+        const { data, error } = await sb
+          .from("profiles")
+          .select("role")
+          .eq("id", userId)
+          .single();
+
+        if (error) return false;
+        return data?.role === "admin";
+      } catch {
+        return false;
+      }
+    }
+
+    async function boot() {
+      const { data } = await sb.auth.getSession();
+      const session = data?.session;
+
+      if (!session?.user) {
+        showOnly("login");
+        return;
+      }
+
+      const user = session.user;
+      authPill.textContent = "В системе: " + (user.email || "user");
+      logoutBtn.style.display = "inline-block";
+
+      // На шаге 1 мы показываем каркас ТОЛЬКО если роль admin подтверждена
+      const isAdmin = await checkAdminRole(user.id);
+
+      adminRoleBadge.textContent = "роль: " + (isAdmin ? "admin" : "не admin");
+      adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
+
+      if (!isAdmin) {
+        showOnly("deny");
+        return;
+      }
+
+      adminMeta.textContent = `user_id: ${user.id.slice(0,8)}…`;
+      showOnly("admin");
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      setMsg("Входим…");
+      const email = emailEl.value.trim();
+      const password = passEl.value;
+
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        setMsg(error.message, "err");
+        return;
+      }
+      setMsg("Успешный вход", "ok");
+      await boot();
+    });
+
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      setMsg("Регистрируем…");
+      const email = emailEl.value.trim();
+      const password = passEl.value;
+
+      const { error } = await sb.auth.signUp({ email, password });
+      if (error) {
+        setMsg(error.message, "err");
+        return;
+      }
+      setMsg("Аккаунт создан. Теперь нажмите “Войти”.", "ok");
+    });
+
+    // React to auth changes
+    sb.auth.onAuthStateChange(() => boot());
+
+    // Start
+    boot();
+  </script>
+</body>
+</html>
