@@ -333,19 +333,31 @@
       showOnly("admin");
     }
 
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      setMsg("Входим…");
-      const email = emailEl.value.trim();
-      const password = passEl.value;
+   document.getElementById("loginBtn").addEventListener("click", async () => {
+  try {
+    setMsg("Входим…");
+    const email = emailEl.value.trim();
+    const password = passEl.value;
 
-      const { error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) {
-        setMsg(error.message, "err");
-        return;
-      }
-      setMsg("Успешный вход", "ok");
-      await boot();
-    });
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setMsg(error.message, "err");
+      return;
+    }
+
+    if (!data?.session) {
+      setMsg("Сессия не создана. Проверь ключи Supabase в admin.html.", "err");
+      return;
+    }
+
+    setMsg("Успешный вход", "ok");
+    await boot();
+  } catch (e) {
+    setMsg("Ошибка JS: " + (e?.message || e), "err");
+  }
+});
+
 
     document.getElementById("signupBtn").addEventListener("click", async () => {
       setMsg("Регистрируем…");
@@ -368,3 +380,4 @@
   </script>
 </body>
 </html>
+
