@@ -296,7 +296,7 @@
         const { data, error } = await sb
           .from("profiles")
           .select("role")
-          .eq("id", userId)
+          .eq("user_Id", userId)
           .single();
 
         if (error) return false;
@@ -391,5 +391,6 @@
   </script>
 </body>
 </html>
+
 
 
