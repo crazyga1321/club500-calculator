@@ -260,10 +260,17 @@
     const adminMeta = document.getElementById("adminMeta");
     const adminRoleBadge = document.getElementById("adminRoleBadge");
 
-    function setMsg(text, type = "") {
-      loginMsg.className = "msg " + (type || "");
-      loginMsg.textContent = text || "";
-    }
+   function setMsg(text, type = "") {
+  if (loginMsg) {
+    loginMsg.className = "msg " + (type || "");
+    loginMsg.textContent = text || "";
+  }
+  if (denyMsg) {
+    denyMsg.className = "msg " + (type || "");
+    denyMsg.textContent = text || "";
+  }
+}
+
 
     function showOnly(which) {
       loginCard.style.display = which === "login" ? "block" : "none";
@@ -412,6 +419,7 @@
   </script>
 </body>
 </html>
+
 
 
 
