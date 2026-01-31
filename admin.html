@@ -306,13 +306,48 @@
     }
 
     async function boot() {
-      const { data } = await sb.auth.getSession();
-      const session = data?.session;
+  try {
+    const { data, error } = await sb.auth.getSession();
 
-      if (!session?.user) {
-        showOnly("login");
-        return;
-      }
+    // если сессия/токен битые — чистим и показываем логин
+    if (error) {
+      await sb.auth.signOut();
+      authPill.textContent = "Не в системе";
+      logoutBtn.style.display = "none";
+      showOnly("login");
+      setMsg("Сессия была сбита — войдите заново.", "warn");
+      return;
+    }
+
+    const session = data?.session;
+
+    if (!session?.user) {
+      showOnly("login");
+      return;
+    }
+
+    const user = session.user;
+    authPill.textContent = "В системе: " + (user.email || "user");
+    logoutBtn.style.display = "inline-block";
+
+    const isAdmin = await checkAdminRole(user.id);
+    adminRoleBadge.textContent = "роль: " + (isAdmin ? "admin" : "не admin");
+    adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
+
+    if (!isAdmin) {
+      showOnly("deny");
+      return;
+    }
+
+    adminMeta.textContent = `user_id: ${user.id.slice(0,8)}…`;
+    showOnly("admin");
+  } catch (e) {
+    // на всякий — чтобы не зависало
+    showOnly("login");
+    setMsg("Ошибка старта: " + (e?.message || e), "err");
+  }
+}
+
 
       const user = session.user;
       authPill.textContent = "В системе: " + (user.email || "user");
@@ -389,5 +424,6 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   </script>
 </body>
 </html>
+
 
 
