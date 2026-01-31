@@ -14,10 +14,14 @@
       --radius:14px;
       font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
     }
-    body{margin:0;background:radial-gradient(1200px 700px at 10% 10%, rgba(78,161,255,.15), transparent 60%),
-                         radial-gradient(900px 500px at 90% 30%, rgba(53,208,127,.10), transparent 55%),
-                         var(--bg);
-         color:var(--text);}
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 700px at 10% 10%, rgba(78,161,255,.15), transparent 60%),
+        radial-gradient(900px 500px at 90% 30%, rgba(53,208,127,.10), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
     .wrap{max-width:1100px;margin:0 auto;padding:18px;}
     .topbar{
       display:flex;gap:12px;align-items:center;justify-content:space-between;
@@ -81,7 +85,7 @@
     }
     input:focus{border-color: rgba(78,161,255,.45); box-shadow:0 0 0 3px rgba(78,161,255,.12)}
     .hint{color:var(--muted);font-size:12px;line-height:1.35}
-    .msg{font-size:13px;margin-top:8px;color:var(--muted)}
+    .msg{font-size:13px;margin-top:8px;color:var(--muted);white-space:pre-wrap}
     .msg.ok{color:var(--ok)}
     .msg.warn{color:var(--warn)}
     .msg.err{color:var(--danger)}
@@ -137,12 +141,12 @@
         <div class="row" style="margin-top:10px;">
           <button id="loginBtn" class="btn">Войти</button>
           <button id="signupBtn" class="btn secondary">Регистрация</button>
-          <span class="hint">Используется Supabase Auth. Ключи — в коде файла.</span>
+          <span class="hint">Supabase Auth. Ключи — в коде файла.</span>
         </div>
 
         <div id="loginMsg" class="msg"></div>
         <div class="hint" style="margin-top:10px;">
-          ВАЖНО: этот файл ничего не ломает в ЛК — это отдельная страница.
+          Важно: это отдельная страница, ЛК не ломает.
         </div>
       </div>
 
@@ -181,31 +185,28 @@
           <div id="view-calc" class="view active">
             <div class="empty">
               <b>Калькулятор (каркас)</b><br/>
-              Здесь будет: капитал, доступный капитал, тумблер “выходим”, комиссия (10% при equity ≥ 5000), кнопка “Закрыть цикл”.<br/>
-              Сейчас это заглушка, чтобы вкладки работали.
+              Здесь будет: капитал, доступный капитал, тумблер “выходим”, комиссия (10% при equity ≥ 5000), кнопка “Закрыть цикл”.
             </div>
           </div>
 
           <div id="view-deals" class="view">
             <div class="empty">
               <b>Сделки (каркас)</b><br/>
-              Здесь будет: активы партнёра + equity/available + рост за период.<br/>
-              На следующем шаге подключим чтение “Result”-сводки.
+              Здесь будет: активы партнёра + equity/available + рост.
             </div>
           </div>
 
           <div id="view-passive" class="view">
             <div class="empty">
               <b>Пассивный доход (каркас)</b><br/>
-              Здесь будет read-only: цель, текущий капитал, выбранные/купленные объекты.<br/>
-              Редактирует только партнёр (как ты зафиксировал).
+              Read-only для админа. Редактирует только партнёр.
             </div>
           </div>
 
           <div id="view-stats" class="view">
             <div class="empty">
               <b>Статистика (каркас)</b><br/>
-              Здесь будет: годовой доход + FACT пополнений (USD/RUB), read-only для админа.
+              Read-only для админа: годовой доход + FACT USD/RUB.
             </div>
           </div>
         </div>
@@ -220,8 +221,7 @@
         <div class="divider"></div>
         <div class="empty">
           Вы вошли, но роль <b>admin</b> не подтверждена.<br/>
-          На шаге 2 мы подключим проверку по таблице <b>profiles</b> (role = admin).<br/><br/>
-          Сейчас эта страница специально “пустая и безопасная”.
+          Нужна запись в таблице <b>profiles</b> с <b>role = 'admin'</b>.
         </div>
         <div class="row" style="margin-top:10px;">
           <button id="denyLogoutBtn" class="btn secondary">Выйти</button>
@@ -230,15 +230,16 @@
     </div>
   </div>
 
-  <!-- Supabase -->
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    // === ВСТАВЬ СЮДА СВОИ ДАННЫЕ (те же, что в ЛК) ===
-    const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
+    // === ВСТАВЬ СЮДА СВОИ ДАННЫЕ ===
+    const SUPABASE_URL = "PASTE_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "PASTE_SUPABASE_ANON_KEY";
 
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
 
     // UI refs
     const loginCard = document.getElementById("loginCard");
@@ -267,7 +268,7 @@
     }
 
     async function signOut() {
-      await sb.auth.signOut();
+      try { await sb.auth.signOut(); } catch {}
       authPill.textContent = "Не в системе";
       logoutBtn.style.display = "none";
       showOnly("login");
@@ -290,7 +291,7 @@
     });
 
     async function checkAdminRole(userId) {
-      // Безопасно: если profiles/role нет — вернём false и не пустим.
+      // Безопасно: если таблица/политики не дают — вернем false
       try {
         const { data, error } = await sb
           .from("profiles")
@@ -306,74 +307,23 @@
     }
 
     async function boot() {
-  setMsg(""); // очистить сообщение
-  const { data } = await sb.auth.getSession();
-  const session = data?.session;
+      setMsg("");
 
-  if (!session?.user) {
-    authPill.textContent = "Не в системе";
-    logoutBtn.style.display = "none";
-    showOnly("login");
-    return;
-  }
+      const { data } = await sb.auth.getSession();
+      const session = data?.session;
 
-  const user = session.user;
-  authPill.textContent = "В системе: " + (user.email || "user");
-  logoutBtn.style.display = "inline-block";
-
-  const isAdmin = await checkAdminRole(user.id);
-
-  adminRoleBadge.textContent = "роль: " + (isAdmin ? "admin" : "не admin");
-  adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
-
-  if (!isAdmin) {
-    showOnly("deny");
-    return;
-  }
-
-  adminMeta.textContent = `user_id: ${user.id.slice(0,8)}…`;
-  showOnly("admin");
-}
-
-
-
-    const session = data?.session;
-
-    if (!session?.user) {
-      showOnly("login");
-      return;
-    }
-
-    const user = session.user;
-    authPill.textContent = "В системе: " + (user.email || "user");
-    logoutBtn.style.display = "inline-block";
-
-    const isAdmin = await checkAdminRole(user.id);
-    adminRoleBadge.textContent = "роль: " + (isAdmin ? "admin" : "не admin");
-    adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
-
-    if (!isAdmin) {
-      showOnly("deny");
-      return;
-    }
-
-    adminMeta.textContent = `user_id: ${user.id.slice(0,8)}…`;
-    showOnly("admin");
-  } catch (e) {
-    // на всякий — чтобы не зависало
-    showOnly("login");
-    setMsg("Ошибка старта: " + (e?.message || e), "err");
-  }
-}
-
+      if (!session?.user) {
+        authPill.textContent = "Не в системе";
+        logoutBtn.style.display = "none";
+        showOnly("login");
+        return;
+      }
 
       const user = session.user;
       authPill.textContent = "В системе: " + (user.email || "user");
       logoutBtn.style.display = "inline-block";
 
-      // На шаге 1 мы показываем каркас ТОЛЬКО если роль admin подтверждена
       const isAdmin = await checkAdminRole(user.id);
-
       adminRoleBadge.textContent = "роль: " + (isAdmin ? "admin" : "не admin");
       adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
 
@@ -386,64 +336,58 @@
       showOnly("admin");
     }
 
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  try {
-    setMsg("Входим…");
-
-    const email = emailEl.value.trim();
-    const password = passEl.value;
-
-    // страховка: если запрос завис — покажем сообщение
-    const timeout = new Promise((_, rej) =>
-      setTimeout(() => rej(new Error("Таймаут. Проверь интернет/блокировки и доступ к supabase.co")), 8000)
-    );
-
-    const loginReq = sb.auth.signInWithPassword({ email, password });
-
-    const { data, error } = await Promise.race([loginReq, timeout]);
-
-    if (error) {
-      setMsg("Ошибка входа: " + error.message, "err");
-      return;
+    async function loginWithTimeout(email, password) {
+      const timeout = new Promise((_, rej) =>
+        setTimeout(() => rej(new Error("Таймаут. Проверь блокировки/расширения/доступ к supabase.co")), 8000)
+      );
+      const req = sb.auth.signInWithPassword({ email, password });
+      return Promise.race([req, timeout]);
     }
 
-    if (!data?.session) {
-      setMsg("Сессия не создалась. Проверь ключи/проект Supabase.", "err");
-      return;
-    }
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      try {
+        setMsg("Входим…");
+        const email = emailEl.value.trim();
+        const password = passEl.value;
 
-    setMsg("Успешный вход", "ok");
-    await boot();
-  } catch (e) {
-    setMsg("Ошибка: " + (e?.message || e), "err");
-  }
-});
+        const { data, error } = await loginWithTimeout(email, password);
 
+        if (error) {
+          setMsg("Ошибка входа: " + error.message, "err");
+          return;
+        }
 
+        if (!data?.session) {
+          setMsg("Сессия не создалась. Проверь ключи SUPABASE_URL/ANON_KEY.", "err");
+          return;
+        }
 
-    document.getElementById("signupBtn").addEventListener("click", async () => {
-      setMsg("Регистрируем…");
-      const email = emailEl.value.trim();
-      const password = passEl.value;
-
-      const { error } = await sb.auth.signUp({ email, password });
-      if (error) {
-        setMsg(error.message, "err");
-        return;
+        setMsg("Успешный вход", "ok");
+        await boot();
+      } catch (e) {
+        setMsg("Ошибка: " + (e?.message || e), "err");
       }
-      setMsg("Аккаунт создан. Теперь нажмите “Войти”.", "ok");
     });
 
-    // React to auth changes
-    sb.auth.onAuthStateChange(() => boot());
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      try {
+        setMsg("Регистрируем…");
+        const email = emailEl.value.trim();
+        const password = passEl.value;
 
-    // Start
+        const { error } = await sb.auth.signUp({ email, password });
+        if (error) {
+          setMsg("Ошибка регистрации: " + error.message, "err");
+          return;
+        }
+        setMsg("Аккаунт создан. Теперь нажмите “Войти”.", "ok");
+      } catch (e) {
+        setMsg("Ошибка: " + (e?.message || e), "err");
+      }
+    });
+
+    sb.auth.onAuthStateChange(() => boot());
     boot();
   </script>
 </body>
 </html>
-
-
-
-
-
