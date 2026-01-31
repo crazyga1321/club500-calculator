@@ -349,6 +349,36 @@
 }
 
 
+    const session = data?.session;
+
+    if (!session?.user) {
+      showOnly("login");
+      return;
+    }
+
+    const user = session.user;
+    authPill.textContent = "В системе: " + (user.email || "user");
+    logoutBtn.style.display = "inline-block";
+
+    const isAdmin = await checkAdminRole(user.id);
+    adminRoleBadge.textContent = "роль: " + (isAdmin ? "admin" : "не admin");
+    adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
+
+    if (!isAdmin) {
+      showOnly("deny");
+      return;
+    }
+
+    adminMeta.textContent = `user_id: ${user.id.slice(0,8)}…`;
+    showOnly("admin");
+  } catch (e) {
+    // на всякий — чтобы не зависало
+    showOnly("login");
+    setMsg("Ошибка старта: " + (e?.message || e), "err");
+  }
+}
+
+
       const user = session.user;
       authPill.textContent = "В системе: " + (user.email || "user");
       logoutBtn.style.display = "inline-block";
@@ -424,6 +454,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   </script>
 </body>
 </html>
+
 
 
 
