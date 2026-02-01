@@ -6,7 +6,7 @@
   <title>CLUB500 — Admin</title>
   <style>
     :root{
-      --bg:#0b0f17; --panel:#101827; --panel2:#0f172a;
+      --bg:#0b0f17; --panel:#101827;
       --text:#e6edf7; --muted:#9aa7bd;
       --accent:#4ea1ff; --danger:#ff5c5c; --ok:#35d07f; --warn:#ffcc66;
       --border:rgba(255,255,255,.08);
@@ -103,6 +103,14 @@
     .badge{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
     .badge.ok{border-color:rgba(53,208,127,.35); color:rgba(53,208,127,.95)}
     .badge.err{border-color:rgba(255,92,92,.35); color:rgba(255,92,92,.95)}
+    pre{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      padding:10px;
+      border-radius:12px;
+      overflow:auto;
+      max-height:280px;
+    }
   </style>
 </head>
 <body>
@@ -110,7 +118,7 @@
     <div class="topbar">
       <div class="brand">
         <div class="t">CLUB500 — Admin</div>
-        <div class="s">Шаг 1: каркас + вход + вкладки (без данных)</div>
+        <div class="s">Шаг 2: читаем deal_stats_snapshot</div>
       </div>
       <div class="right">
         <span id="authPill" class="pill">Не в системе</span>
@@ -123,7 +131,7 @@
       <div id="loginCard" class="card">
         <div class="panelTitle">
           <h2>Вход в админку</h2>
-          <span class="meta">Только авторизация — без логики</span>
+          <span class="meta">Supabase Auth</span>
         </div>
         <div class="divider"></div>
 
@@ -141,7 +149,7 @@
         <div class="row" style="margin-top:10px;">
           <button id="loginBtn" class="btn">Войти</button>
           <button id="signupBtn" class="btn secondary">Регистрация</button>
-          <span class="hint">Supabase Auth. Ключи — в коде файла.</span>
+          <span class="hint">Ключи — в коде файла.</span>
         </div>
 
         <div id="loginMsg" class="msg"></div>
@@ -189,10 +197,9 @@
             </div>
           </div>
 
-         <div id="view-deals" class="view">
-  <div id="dealsBox" class="empty">Нет данных…</div>
-</div>
-
+          <div id="view-deals" class="view">
+            <div id="dealsBox" class="empty">Открой вкладку «Сделки» — данные загрузятся.</div>
+          </div>
 
           <div id="view-passive" class="view">
             <div class="empty">
@@ -219,10 +226,9 @@
         <div class="divider"></div>
         <div class="empty">
           Вы вошли, но роль <b>admin</b> не подтверждена.<br/>
-          Нужна запись в таблице <b>profiles</b> с <b>role = 'admin'</b>.
-          <div id="denyMsg" class="msg err" style="margin-top:10px;"></div>
-
+          Нужна запись в таблице <b>profiles</b> с <b>role = 'admin'</b> или <b>is_admin = true</b>.
         </div>
+        <div id="denyMsg" class="msg err" style="margin-top:10px;"></div>
         <div class="row" style="margin-top:10px;">
           <button id="denyLogoutBtn" class="btn secondary">Выйти</button>
         </div>
@@ -233,7 +239,7 @@
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    // === ВСТАВЬ СЮДА СВОИ ДАННЫЕ ===
+    // === ВСТАВЬ СЮДА СВОИ ДАННЫЕ (те же, что в ЛК) ===
     const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
 
@@ -251,24 +257,23 @@
 
     const emailEl = document.getElementById("email");
     const passEl = document.getElementById("password");
-    const loginMsg = document.getElementById("loginMsg");
-    const denyMsg = document.getElementById("denyMsg");
 
+    const loginMsg = document.getElementById("loginMsg");
+    const denyMsg  = document.getElementById("denyMsg");
 
     const adminMeta = document.getElementById("adminMeta");
     const adminRoleBadge = document.getElementById("adminRoleBadge");
 
-   function setMsg(text, type = "") {
-  if (loginMsg) {
-    loginMsg.className = "msg " + (type || "");
-    loginMsg.textContent = text || "";
-  }
-  if (denyMsg) {
-    denyMsg.className = "msg " + (type || "");
-    denyMsg.textContent = text || "";
-  }
-}
-
+    function setMsg(text, type = "") {
+      if (loginMsg) {
+        loginMsg.className = "msg " + (type || "");
+        loginMsg.textContent = text || "";
+      }
+      if (denyMsg) {
+        denyMsg.className = "msg " + (type || "");
+        denyMsg.textContent = text || "";
+      }
+    }
 
     function showOnly(which) {
       loginCard.style.display = which === "login" ? "block" : "none";
@@ -287,50 +292,96 @@
     logoutBtn.addEventListener("click", signOut);
     denyLogoutBtn.addEventListener("click", signOut);
 
-    // Tabs (client-only)
-    document.getElementById("tabs").addEventListener("click", (e) => {
+    // Tabs (client-only) + подгрузка deals при открытии
+    document.getElementById("tabs").addEventListener("click", async (e) => {
       const tab = e.target.closest(".tab");
       if (!tab) return;
+
       document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
 
       const key = tab.dataset.tab;
       document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
       document.getElementById("view-" + key).classList.add("active");
+
+      if (key === "deals") {
+        const { data } = await sb.auth.getSession();
+        const user = data?.session?.user;
+        if (user) loadDealsSnapshot(user.id);
+      }
     });
 
     async function checkAdminRole(userId) {
-  try {
-    const { data, error } = await sb
-      .from("profiles")
-      .select("role,is_admin,user_id,email")
-      .eq("user_id", userId)
-      .maybeSingle();
+      try {
+        const { data, error } = await sb
+          .from("profiles")
+          .select("role,is_admin,user_id,email")
+          .eq("user_id", userId)
+          .maybeSingle();
 
-    if (error) {
-      // покажем причину прямо в UI
-      adminRoleBadge.textContent = "role-check error";
-      adminRoleBadge.className = "badge err";
-      setMsg("Ошибка чтения profiles: " + error.message, "err");
-      return false;
+        if (error) {
+          adminRoleBadge.textContent = "role-check error";
+          adminRoleBadge.className = "badge err";
+          setMsg("Ошибка чтения profiles: " + error.message, "err");
+          return false;
+        }
+
+        const role = ((data?.role ?? "") + "").toLowerCase();
+        const isAdmin = data?.is_admin === true || role === "admin";
+
+        adminRoleBadge.textContent = "роль: " + (isAdmin ? "admin" : "нет");
+        adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
+
+        return isAdmin;
+      } catch (e) {
+        adminRoleBadge.textContent = "role-check exception";
+        adminRoleBadge.className = "badge err";
+        setMsg("Исключение: " + (e?.message || e), "err");
+        return false;
+      }
     }
 
-    // покажем, что реально пришло
-    const role = (data?.role || "").toLowerCase();
-    const isAdmin = data?.is_admin === true || role === "admin";
+    async function loadDealsSnapshot(userId) {
+      const box = document.getElementById("dealsBox");
+      if (!box) return;
 
-    adminRoleBadge.textContent = "role=" + (data?.role ?? "null") + " / is_admin=" + (data?.is_admin ?? "null");
-    adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
+      box.textContent = "Загрузка snapshot…";
 
-    return isAdmin;
-  } catch (e) {
-    adminRoleBadge.textContent = "role-check exception";
-    adminRoleBadge.className = "badge err";
-    setMsg("Исключение: " + (e?.message || e), "err");
-    return false;
-  }
-}
+      const { data, error } = await sb
+        .from("deal_stats_snapshot")
+        .select("payload, updated_at")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
+      if (error) {
+        box.textContent = "Ошибка чтения: " + error.message;
+        return;
+      }
+      if (!data) {
+        box.textContent = "Snapshot не найден.";
+        return;
+      }
+
+      const p = data.payload || {};
+      const equity = p.equity ?? "—";
+      const available = p.available ?? "—";
+      const assets = Array.isArray(p.assets) ? p.assets : [];
+
+      box.innerHTML = `
+        <div><b>Equity:</b> ${equity}</div>
+        <div><b>Available:</b> ${available}</div>
+        <div style="margin-top:10px;"><b>Assets:</b></div>
+        <pre style="white-space:pre-wrap;opacity:.9;margin:8px 0 0;">${JSON.stringify(assets, null, 2)}</pre>
+        <div style="opacity:.6;font-size:12px;margin-top:8px;">
+          Updated: ${new Date(data.updated_at).toLocaleString()}
+        </div>
+      `;
+
+      const lastUpdate = document.getElementById("lastUpdate");
+      if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
+    }
 
     async function boot() {
       setMsg("");
@@ -350,9 +401,6 @@
       logoutBtn.style.display = "inline-block";
 
       const isAdmin = await checkAdminRole(user.id);
-      adminRoleBadge.textContent = "роль: " + (isAdmin ? "admin" : "не admin");
-      adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
-
       if (!isAdmin) {
         showOnly("deny");
         return;
@@ -373,6 +421,7 @@
     document.getElementById("loginBtn").addEventListener("click", async () => {
       try {
         setMsg("Входим…");
+
         const email = emailEl.value.trim();
         const password = passEl.value;
 
@@ -398,6 +447,7 @@
     document.getElementById("signupBtn").addEventListener("click", async () => {
       try {
         setMsg("Регистрируем…");
+
         const email = emailEl.value.trim();
         const password = passEl.value;
 
@@ -417,11 +467,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
