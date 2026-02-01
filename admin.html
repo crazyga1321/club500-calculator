@@ -369,15 +369,52 @@
       const available = p.available ?? "—";
       const assets = Array.isArray(p.assets) ? p.assets : [];
 
-      box.innerHTML = `
-        <div><b>Equity:</b> ${equity}</div>
-        <div><b>Available:</b> ${available}</div>
-        <div style="margin-top:10px;"><b>Assets:</b></div>
-        <pre style="white-space:pre-wrap;opacity:.9;margin:8px 0 0;">${JSON.stringify(assets, null, 2)}</pre>
-        <div style="opacity:.6;font-size:12px;margin-top:8px;">
-          Updated: ${new Date(data.updated_at).toLocaleString()}
-        </div>
-      `;
+      const rows = assets.map((a) => {
+  const symbol = a?.symbol ?? "—";
+  const side = a?.side ?? "—";
+  const qty = a?.qty ?? "—";
+  const entry = a?.entry ?? "—";
+  const pnl = a?.pnl ?? "—";
+  return `
+    <tr>
+      <td>${symbol}</td>
+      <td>${side}</td>
+      <td style="text-align:right;">${qty}</td>
+      <td style="text-align:right;">${entry}</td>
+      <td style="text-align:right;">${pnl}</td>
+    </tr>
+  `;
+}).join("");
+
+const table = assets.length
+  ? `
+    <div style="margin-top:10px;">
+      <table style="width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid rgba(255,255,255,.08); border-radius:12px;">
+        <thead>
+          <tr style="background:rgba(255,255,255,.03);">
+            <th style="text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Symbol</th>
+            <th style="text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Side</th>
+            <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Qty</th>
+            <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Entry</th>
+            <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">PnL</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </div>
+  `
+  : `<div class="hint" style="margin-top:10px;">Активов нет.</div>`;
+
+box.innerHTML = `
+  <div><b>Equity:</b> ${equity}</div>
+  <div><b>Available:</b> ${available}</div>
+  ${table}
+  <div style="opacity:.6;font-size:12px;margin-top:10px;">
+    Updated: ${new Date(data.updated_at).toLocaleString()}
+  </div>
+`;
 
       const lastUpdate = document.getElementById("lastUpdate");
       if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
@@ -467,3 +504,4 @@
   </script>
 </body>
 </html>
+
