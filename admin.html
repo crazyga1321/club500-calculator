@@ -75,7 +75,7 @@
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .field{display:flex;flex-direction:column;gap:6px;min-width:220px;flex:1}
     label{font-size:12px;color:var(--muted)}
-    input{
+    input, select{
       background:rgba(255,255,255,.03);
       border:1px solid var(--border);
       color:var(--text);
@@ -83,7 +83,7 @@
       padding:10px 12px;
       outline:none;
     }
-    input:focus{border-color: rgba(78,161,255,.45); box-shadow:0 0 0 3px rgba(78,161,255,.12)}
+    input:focus, select:focus{border-color: rgba(78,161,255,.45); box-shadow:0 0 0 3px rgba(78,161,255,.12)}
     .hint{color:var(--muted);font-size:12px;line-height:1.35}
     .msg{font-size:13px;margin-top:8px;color:var(--muted);white-space:pre-wrap}
     .msg.ok{color:var(--ok)}
@@ -103,14 +103,6 @@
     .badge{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
     .badge.ok{border-color:rgba(53,208,127,.35); color:rgba(53,208,127,.95)}
     .badge.err{border-color:rgba(255,92,92,.35); color:rgba(255,92,92,.95)}
-    pre{
-      background:rgba(255,255,255,.03);
-      border:1px solid var(--border);
-      padding:10px;
-      border-radius:12px;
-      overflow:auto;
-      max-height:280px;
-    }
   </style>
 </head>
 <body>
@@ -118,7 +110,7 @@
     <div class="topbar">
       <div class="brand">
         <div class="t">CLUB500 — Admin</div>
-        <div class="s">Шаг 2: читаем deal_stats_snapshot</div>
+        <div class="s">Шаг C: выбор партнёра + сделки</div>
       </div>
       <div class="right">
         <span id="authPill" class="pill">Не в системе</span>
@@ -169,12 +161,17 @@
         <div class="row">
           <div class="field">
             <label>Партнёр</label>
-            <input id="partnerSearch" placeholder="поиск (пока заглушка)" disabled />
+            <select id="partnerSelect">
+              <option value="">Загрузка списка…</option>
+            </select>
+            <div class="hint" style="margin-top:6px;">Выбери партнёра — данные подгрузятся во вкладках.</div>
           </div>
+
           <div class="field">
             <label>Статус обновления</label>
             <input id="lastUpdate" placeholder="—" disabled />
           </div>
+
           <div style="display:flex;gap:8px;align-items:end;">
             <span id="adminRoleBadge" class="badge">роль: ?</span>
           </div>
@@ -264,6 +261,9 @@
     const adminMeta = document.getElementById("adminMeta");
     const adminRoleBadge = document.getElementById("adminRoleBadge");
 
+    const partnerSelect = document.getElementById("partnerSelect");
+    let currentPartnerId = null;
+
     function setMsg(text, type = "") {
       if (loginMsg) {
         loginMsg.className = "msg " + (type || "");
@@ -285,6 +285,7 @@
       try { await sb.auth.signOut(); } catch {}
       authPill.textContent = "Не в системе";
       logoutBtn.style.display = "none";
+      currentPartnerId = null;
       showOnly("login");
       setMsg("");
     }
@@ -292,7 +293,7 @@
     logoutBtn.addEventListener("click", signOut);
     denyLogoutBtn.addEventListener("click", signOut);
 
-    // Tabs (client-only) + подгрузка deals при открытии
+    // Tabs (client-only)
     document.getElementById("tabs").addEventListener("click", async (e) => {
       const tab = e.target.closest(".tab");
       if (!tab) return;
@@ -305,11 +306,68 @@
       document.getElementById("view-" + key).classList.add("active");
 
       if (key === "deals") {
-        const { data } = await sb.auth.getSession();
-        const user = data?.session?.user;
-        if (user) loadDealsSnapshot(user.id);
+        if (currentPartnerId) loadDealsSnapshot(currentPartnerId);
       }
     });
+
+    function setPartner(userId) {
+      currentPartnerId = userId || null;
+
+      if (adminMeta) {
+        adminMeta.textContent = currentPartnerId
+          ? `partner_id: ${currentPartnerId.slice(0,8)}…`
+          : "partner_id: —";
+      }
+
+      // если вкладка "Сделки" уже активна — обновим сразу
+      const dealsActive = document.getElementById("view-deals")?.classList.contains("active");
+      if (dealsActive && currentPartnerId) loadDealsSnapshot(currentPartnerId);
+    }
+
+    async function loadPartnersList() {
+      if (!partnerSelect) return;
+
+      partnerSelect.innerHTML = `<option value="">Загрузка…</option>`;
+      partnerSelect.disabled = true;
+
+      // ВНИМАНИЕ: если RLS не разрешает читать profiles, тут будет ошибка.
+      const { data, error } = await sb
+        .from("profiles")
+        .select("user_id,email,name,created_at")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) {
+        partnerSelect.innerHTML = `<option value="">Нет доступа к profiles</option>`;
+        partnerSelect.disabled = true;
+        setMsg("Ошибка чтения списка партнёров (profiles): " + error.message, "err");
+        return;
+      }
+
+      const rows = Array.isArray(data) ? data : [];
+      if (!rows.length) {
+        partnerSelect.innerHTML = `<option value="">Партнёров нет</option>`;
+        partnerSelect.disabled = true;
+        return;
+      }
+
+      partnerSelect.innerHTML = rows.map(p => {
+        const label = (p.name || p.email || p.user_id).toString();
+        return `<option value="${p.user_id}">${label}</option>`;
+      }).join("");
+
+      partnerSelect.disabled = false;
+
+      // По умолчанию — выбрать себя, если есть, иначе первого
+      const { data: sess } = await sb.auth.getSession();
+      const me = sess?.session?.user?.id;
+
+      const defaultId = rows.find(p => p.user_id === me)?.user_id || rows[0].user_id;
+      partnerSelect.value = defaultId;
+      setPartner(defaultId);
+    }
+
+    partnerSelect?.addEventListener("change", (e) => setPartner(e.target.value));
 
     async function checkAdminRole(userId) {
       try {
@@ -331,7 +389,6 @@
 
         adminRoleBadge.textContent = "роль: " + (isAdmin ? "admin" : "нет");
         adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
-
         return isAdmin;
       } catch (e) {
         adminRoleBadge.textContent = "role-check exception";
@@ -361,6 +418,8 @@
       }
       if (!data) {
         box.textContent = "Snapshot не найден.";
+        const lastUpdate = document.getElementById("lastUpdate");
+        if (lastUpdate) lastUpdate.value = "—";
         return;
       }
 
@@ -370,51 +429,49 @@
       const assets = Array.isArray(p.assets) ? p.assets : [];
 
       const rows = assets.map((a) => {
-  const symbol = a?.symbol ?? "—";
-  const side = a?.side ?? "—";
-  const qty = a?.qty ?? "—";
-  const entry = a?.entry ?? "—";
-  const pnl = a?.pnl ?? "—";
-  return `
-    <tr>
-      <td>${symbol}</td>
-      <td>${side}</td>
-      <td style="text-align:right;">${qty}</td>
-      <td style="text-align:right;">${entry}</td>
-      <td style="text-align:right;">${pnl}</td>
-    </tr>
-  `;
-}).join("");
-
-const table = assets.length
-  ? `
-    <div style="margin-top:10px;">
-      <table style="width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid rgba(255,255,255,.08); border-radius:12px;">
-        <thead>
-          <tr style="background:rgba(255,255,255,.03);">
-            <th style="text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Symbol</th>
-            <th style="text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Side</th>
-            <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Qty</th>
-            <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Entry</th>
-            <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">PnL</th>
+        const symbol = a?.symbol ?? "—";
+        const side = a?.side ?? "—";
+        const qty = a?.qty ?? "—";
+        const entry = a?.entry ?? "—";
+        const pnl = a?.pnl ?? "—";
+        return `
+          <tr>
+            <td style="padding:10px;border-top:1px solid rgba(255,255,255,.06);">${symbol}</td>
+            <td style="padding:10px;border-top:1px solid rgba(255,255,255,.06);">${side}</td>
+            <td style="padding:10px;border-top:1px solid rgba(255,255,255,.06);text-align:right;">${qty}</td>
+            <td style="padding:10px;border-top:1px solid rgba(255,255,255,.06);text-align:right;">${entry}</td>
+            <td style="padding:10px;border-top:1px solid rgba(255,255,255,.06);text-align:right;">${pnl}</td>
           </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
-      </table>
-    </div>
-  `
-  : `<div class="hint" style="margin-top:10px;">Активов нет.</div>`;
+        `;
+      }).join("");
 
-box.innerHTML = `
-  <div><b>Equity:</b> ${equity}</div>
-  <div><b>Available:</b> ${available}</div>
-  ${table}
-  <div style="opacity:.6;font-size:12px;margin-top:10px;">
-    Updated: ${new Date(data.updated_at).toLocaleString()}
-  </div>
-`;
+      const table = assets.length
+        ? `
+          <div style="margin-top:10px;">
+            <table style="width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid rgba(255,255,255,.08); border-radius:12px;">
+              <thead>
+                <tr style="background:rgba(255,255,255,.03);">
+                  <th style="text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Symbol</th>
+                  <th style="text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Side</th>
+                  <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Qty</th>
+                  <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Entry</th>
+                  <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">PnL</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        `
+        : `<div class="hint" style="margin-top:10px;">Активов нет.</div>`;
+
+      box.innerHTML = `
+        <div><b>Equity:</b> ${equity}</div>
+        <div><b>Available:</b> ${available}</div>
+        ${table}
+        <div style="opacity:.6;font-size:12px;margin-top:10px;">
+          Updated: ${new Date(data.updated_at).toLocaleString()}
+        </div>
+      `;
 
       const lastUpdate = document.getElementById("lastUpdate");
       if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
@@ -443,8 +500,8 @@ box.innerHTML = `
         return;
       }
 
-      adminMeta.textContent = `user_id: ${user.id.slice(0,8)}…`;
       showOnly("admin");
+      await loadPartnersList(); // загрузим список партнёров + выберем дефолт
     }
 
     async function loginWithTimeout(email, password) {
@@ -504,4 +561,3 @@ box.innerHTML = `
   </script>
 </body>
 </html>
-
