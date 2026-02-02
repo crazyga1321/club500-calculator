@@ -140,7 +140,7 @@
     <div class="topbar">
       <div class="brand">
         <div class="t">CLUB500 — Admin</div>
-        <div class="s">Выбор партнёра + сделки + калькулятор (комиссия)</div>
+        <div class="s">Выбор партнёра + сделки (KPI) + калькулятор</div>
       </div>
       <div class="right">
         <span id="authPill" class="pill">Не в системе</span>
@@ -246,7 +246,7 @@
                 <input id="exitToggle" type="checkbox" />
                 <div>
                   <div style="font-weight:700;">Выходим (начислить комиссию)</div>
-                  <div class="hint">Ты можешь включать/выключать это вручную — как ты и говорил.</div>
+                  <div class="hint">Ты включаешь/выключаешь вручную — как и планировали.</div>
                 </div>
               </div>
 
@@ -472,7 +472,6 @@
       currentSnapshot = data;
       renderCalc();
 
-      // синхронизируем поле “Статус обновления” сверху
       const lastUpdate = document.getElementById("lastUpdate");
       if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
     }
@@ -496,12 +495,21 @@
         return;
       }
 
-      currentSnapshot = data; // обновим общий state
+      currentSnapshot = data;
 
       const p = data.payload || {};
       const equity = p.equity ?? "—";
       const available = p.available ?? "—";
       const assets = Array.isArray(p.assets) ? p.assets : [];
+
+      // KPI: безопасно приводим pnl к числу (и строки тоже)
+      const toNum = (v) => {
+        if (v === null || v === undefined) return 0;
+        const n = Number(String(v).replace(",", "."));
+        return Number.isFinite(n) ? n : 0;
+      };
+      const totalPnl = assets.reduce((sum, a) => sum + toNum(a?.pnl), 0);
+      const assetsCount = assets.length;
 
       const rows = assets.map((a) => {
         const symbol = a?.symbol ?? "—";
@@ -540,8 +548,22 @@
         : `<div class="hint" style="margin-top:10px;">Активов нет.</div>`;
 
       box.innerHTML = `
-        <div><b>Equity:</b> ${formatMoney(equity)}</div>
-        <div><b>Available:</b> ${formatMoney(available)}</div>
+        <div class="kpi" style="margin-top:6px;">
+          <div class="box">
+            <div class="k">Активов</div>
+            <div class="v">${assetsCount}</div>
+          </div>
+          <div class="box">
+            <div class="k">Total PnL</div>
+            <div class="v">${formatMoney(totalPnl)}</div>
+          </div>
+          <div class="box">
+            <div class="k">Available</div>
+            <div class="v">${formatMoney(available)}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;"><b>Equity:</b> ${formatMoney(equity)}</div>
         ${table}
         <div style="opacity:.6;font-size:12px;margin-top:10px;">
           Updated: ${new Date(data.updated_at).toLocaleString()}
@@ -581,7 +603,7 @@
         .from("profiles")
         .select("user_id,email,name,created_at")
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(500);
 
       if (error) {
         partnerSelect.innerHTML = `<option value="">Нет доступа к profiles</option>`;
@@ -604,7 +626,6 @@
 
       partnerSelect.disabled = false;
 
-      // По умолчанию — выбрать себя, если есть, иначе первого
       const { data: sess } = await sb.auth.getSession();
       const me = sess?.session?.user?.id;
 
@@ -645,9 +666,7 @@
     }
 
     // calc controls
-    exitToggle.addEventListener("change", () => {
-      renderCalc();
-    });
+    exitToggle.addEventListener("change", () => renderCalc());
 
     closeCycleBtn.addEventListener("click", () => {
       const p = currentSnapshot?.payload || {};
@@ -704,7 +723,6 @@
       showOnly("admin");
       await loadPartnersList();
 
-      // После загрузки партнёра — подгрузим калькулятор (если активен)
       if (currentPartnerId && getActiveTabKey() === "calc") {
         await loadCalcForPartner(currentPartnerId);
       }
