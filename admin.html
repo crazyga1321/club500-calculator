@@ -229,7 +229,7 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 /* ========= ВСТАВЬ СЮДА СВОИ ДАННЫЕ ========= */
 const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_PUBLIC_ANON_KEY";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
 /* =========================================== */
 
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -574,3 +574,4 @@ sb.auth.onAuthStateChange(async (_event, session) => {
 </script>
 </body>
 </html>
+
