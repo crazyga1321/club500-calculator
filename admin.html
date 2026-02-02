@@ -45,6 +45,11 @@
       background:transparent;color:var(--text);border:1px solid var(--border);
       font-weight:600;
     }
+    .btn.danger{
+      background:linear-gradient(180deg, rgba(255,92,92,.95), rgba(255,92,92,.70));
+      border:1px solid rgba(255,92,92,.35);
+      color:#1b0707;
+    }
     .grid{display:grid;grid-template-columns: 1fr; gap:12px; margin-top:12px;}
     .card{
       background:rgba(16,24,39,.72);
@@ -103,14 +108,39 @@
     .badge{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
     .badge.ok{border-color:rgba(53,208,127,.35); color:rgba(53,208,127,.95)}
     .badge.err{border-color:rgba(255,92,92,.35); color:rgba(255,92,92,.95)}
+    .kpi{
+      display:grid;grid-template-columns: repeat(3, minmax(160px, 1fr));
+      gap:10px;margin-top:10px;
+    }
+    .kpi .box{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px;
+      background:rgba(255,255,255,.02);
+    }
+    .kpi .k{color:var(--muted);font-size:12px}
+    .kpi .v{font-size:18px;font-weight:800;margin-top:4px}
+    .switchRow{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+    .switch{
+      display:flex;align-items:center;gap:10px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.02);
+      padding:10px 12px;border-radius:12px;
+    }
+    .switch input{width:18px;height:18px}
+    table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid rgba(255,255,255,.08); border-radius:12px;}
+    thead tr{background:rgba(255,255,255,.03);}
+    th{ text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);}
+    td{ padding:10px;border-top:1px solid rgba(255,255,255,.06);}
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <div class="topbar">
       <div class="brand">
         <div class="t">CLUB500 — Admin</div>
-        <div class="s">Шаг C: выбор партнёра + сделки</div>
+        <div class="s">Выбор партнёра + сделки + калькулятор (комиссия)</div>
       </div>
       <div class="right">
         <span id="authPill" class="pill">Не в системе</span>
@@ -187,17 +217,52 @@
         </div>
 
         <div style="margin-top:12px;">
+          <!-- CALC -->
           <div id="view-calc" class="view active">
             <div class="empty">
-              <b>Калькулятор (каркас)</b><br/>
-              Здесь будет: капитал, доступный капитал, тумблер “выходим”, комиссия (10% при equity ≥ 5000), кнопка “Закрыть цикл”.
+              <b>Калькулятор</b><br/>
+              Данные берутся из последнего snapshot выбранного партнёра (<code>deal_stats_snapshot</code>).
+              Комиссия считается только при “выходе с рынка”.
             </div>
+
+            <div class="kpi">
+              <div class="box">
+                <div class="k">Equity</div>
+                <div class="v" id="calcEquity">—</div>
+              </div>
+              <div class="box">
+                <div class="k">Available</div>
+                <div class="v" id="calcAvailable">—</div>
+              </div>
+              <div class="box">
+                <div class="k">Комиссия</div>
+                <div class="v" id="calcFee">—</div>
+                <div class="hint" id="calcFeeHint" style="margin-top:6px;">10% при equity ≥ 5000 и только если включён “выходим”.</div>
+              </div>
+            </div>
+
+            <div class="switchRow">
+              <div class="switch">
+                <input id="exitToggle" type="checkbox" />
+                <div>
+                  <div style="font-weight:700;">Выходим (начислить комиссию)</div>
+                  <div class="hint">Ты можешь включать/выключать это вручную — как ты и говорил.</div>
+                </div>
+              </div>
+
+              <button id="closeCycleBtn" class="btn danger">Закрыть цикл</button>
+              <span id="calcStatus" class="hint"></span>
+            </div>
+
+            <div id="calcResult" class="msg" style="margin-top:10px;"></div>
           </div>
 
+          <!-- DEALS -->
           <div id="view-deals" class="view">
             <div id="dealsBox" class="empty">Открой вкладку «Сделки» — данные загрузятся.</div>
           </div>
 
+          <!-- PASSIVE -->
           <div id="view-passive" class="view">
             <div class="empty">
               <b>Пассивный доход (каркас)</b><br/>
@@ -205,6 +270,7 @@
             </div>
           </div>
 
+          <!-- STATS -->
           <div id="view-stats" class="view">
             <div class="empty">
               <b>Статистика (каркас)</b><br/>
@@ -264,6 +330,19 @@
     const partnerSelect = document.getElementById("partnerSelect");
     let currentPartnerId = null;
 
+    // Calc refs
+    const calcEquity = document.getElementById("calcEquity");
+    const calcAvailable = document.getElementById("calcAvailable");
+    const calcFee = document.getElementById("calcFee");
+    const calcFeeHint = document.getElementById("calcFeeHint");
+    const exitToggle = document.getElementById("exitToggle");
+    const closeCycleBtn = document.getElementById("closeCycleBtn");
+    const calcStatus = document.getElementById("calcStatus");
+    const calcResult = document.getElementById("calcResult");
+
+    // State: последний snapshot выбранного партнёра
+    let currentSnapshot = null; // { payload, updated_at }
+
     function setMsg(text, type = "") {
       if (loginMsg) {
         loginMsg.className = "msg " + (type || "");
@@ -286,6 +365,7 @@
       authPill.textContent = "Не в системе";
       logoutBtn.style.display = "none";
       currentPartnerId = null;
+      currentSnapshot = null;
       showOnly("login");
       setMsg("");
     }
@@ -293,7 +373,11 @@
     logoutBtn.addEventListener("click", signOut);
     denyLogoutBtn.addEventListener("click", signOut);
 
-    // Tabs (client-only)
+    function getActiveTabKey() {
+      return document.querySelector(".tab.active")?.dataset?.tab || "calc";
+    }
+
+    // Tabs
     document.getElementById("tabs").addEventListener("click", async (e) => {
       const tab = e.target.closest(".tab");
       if (!tab) return;
@@ -305,13 +389,174 @@
       document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
       document.getElementById("view-" + key).classList.add("active");
 
-      if (key === "deals") {
-        if (currentPartnerId) loadDealsSnapshot(currentPartnerId);
+      if (currentPartnerId) {
+        if (key === "deals") await loadDealsForPartner(currentPartnerId);
+        if (key === "calc") await loadCalcForPartner(currentPartnerId);
       }
     });
 
+    function formatMoney(x) {
+      if (x === null || x === undefined || x === "—") return "—";
+      const n = Number(x);
+      if (!Number.isFinite(n)) return String(x);
+      return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+    }
+
+    function computeFee(equity, isExitOn) {
+      const threshold = 5000;
+      const rate = 0.10;
+      const n = Number(equity);
+      if (!Number.isFinite(n)) return { fee: 0, eligible:false };
+      const eligible = n >= threshold;
+      const fee = (eligible && isExitOn) ? n * rate : 0;
+      return { fee, eligible };
+    }
+
+    function renderCalc() {
+      const p = currentSnapshot?.payload || {};
+      const equity = p.equity ?? "—";
+      const available = p.available ?? "—";
+
+      calcEquity.textContent = formatMoney(equity);
+      calcAvailable.textContent = formatMoney(available);
+
+      const { fee, eligible } = computeFee(equity, exitToggle.checked);
+      calcFee.textContent = fee ? formatMoney(fee) : "0";
+
+      if (!eligible) {
+        calcFeeHint.textContent = "Комиссия не активна: equity < 5000.";
+      } else if (!exitToggle.checked) {
+        calcFeeHint.textContent = "Комиссия готова, но “выходим” выключен.";
+      } else {
+        calcFeeHint.textContent = "Комиссия начисляется (10% от equity).";
+      }
+
+      const upd = currentSnapshot?.updated_at ? new Date(currentSnapshot.updated_at).toLocaleString() : "—";
+      calcStatus.textContent = "snapshot: " + upd;
+    }
+
+    async function fetchLatestSnapshot(userId) {
+      const { data, error } = await sb
+        .from("deal_stats_snapshot")
+        .select("payload, updated_at")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      return { data, error };
+    }
+
+    async function loadCalcForPartner(userId) {
+      if (!userId) return;
+      calcResult.textContent = "";
+      calcResult.className = "msg";
+
+      const { data, error } = await fetchLatestSnapshot(userId);
+
+      if (error) {
+        calcResult.textContent = "Ошибка чтения snapshot: " + error.message;
+        calcResult.className = "msg err";
+        currentSnapshot = null;
+        renderCalc();
+        return;
+      }
+      if (!data) {
+        calcResult.textContent = "Snapshot не найден. Добавь snapshot партнёру в deal_stats_snapshot.";
+        calcResult.className = "msg warn";
+        currentSnapshot = null;
+        renderCalc();
+        return;
+      }
+
+      currentSnapshot = data;
+      renderCalc();
+
+      // синхронизируем поле “Статус обновления” сверху
+      const lastUpdate = document.getElementById("lastUpdate");
+      if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
+    }
+
+    async function loadDealsForPartner(userId) {
+      const box = document.getElementById("dealsBox");
+      if (!box) return;
+
+      box.textContent = "Загрузка snapshot…";
+
+      const { data, error } = await fetchLatestSnapshot(userId);
+
+      if (error) {
+        box.textContent = "Ошибка чтения: " + error.message;
+        return;
+      }
+      if (!data) {
+        box.textContent = "Snapshot не найден.";
+        const lastUpdate = document.getElementById("lastUpdate");
+        if (lastUpdate) lastUpdate.value = "—";
+        return;
+      }
+
+      currentSnapshot = data; // обновим общий state
+
+      const p = data.payload || {};
+      const equity = p.equity ?? "—";
+      const available = p.available ?? "—";
+      const assets = Array.isArray(p.assets) ? p.assets : [];
+
+      const rows = assets.map((a) => {
+        const symbol = a?.symbol ?? "—";
+        const side = a?.side ?? "—";
+        const qty = a?.qty ?? "—";
+        const entry = a?.entry ?? "—";
+        const pnl = a?.pnl ?? "—";
+        return `
+          <tr>
+            <td>${symbol}</td>
+            <td>${side}</td>
+            <td style="text-align:right;">${qty}</td>
+            <td style="text-align:right;">${entry}</td>
+            <td style="text-align:right;">${pnl}</td>
+          </tr>
+        `;
+      }).join("");
+
+      const table = assets.length
+        ? `
+          <div style="margin-top:10px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Side</th>
+                  <th style="text-align:right;">Qty</th>
+                  <th style="text-align:right;">Entry</th>
+                  <th style="text-align:right;">PnL</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        `
+        : `<div class="hint" style="margin-top:10px;">Активов нет.</div>`;
+
+      box.innerHTML = `
+        <div><b>Equity:</b> ${formatMoney(equity)}</div>
+        <div><b>Available:</b> ${formatMoney(available)}</div>
+        ${table}
+        <div style="opacity:.6;font-size:12px;margin-top:10px;">
+          Updated: ${new Date(data.updated_at).toLocaleString()}
+        </div>
+      `;
+
+      const lastUpdate = document.getElementById("lastUpdate");
+      if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
+    }
+
     function setPartner(userId) {
       currentPartnerId = userId || null;
+      currentSnapshot = null;
+      calcResult.textContent = "";
+      calcResult.className = "msg";
 
       if (adminMeta) {
         adminMeta.textContent = currentPartnerId
@@ -319,9 +564,11 @@
           : "partner_id: —";
       }
 
-      // если вкладка "Сделки" уже активна — обновим сразу
-      const dealsActive = document.getElementById("view-deals")?.classList.contains("active");
-      if (dealsActive && currentPartnerId) loadDealsSnapshot(currentPartnerId);
+      const active = getActiveTabKey();
+      if (currentPartnerId) {
+        if (active === "deals") loadDealsForPartner(currentPartnerId);
+        if (active === "calc") loadCalcForPartner(currentPartnerId);
+      }
     }
 
     async function loadPartnersList() {
@@ -330,12 +577,11 @@
       partnerSelect.innerHTML = `<option value="">Загрузка…</option>`;
       partnerSelect.disabled = true;
 
-      // ВНИМАНИЕ: если RLS не разрешает читать profiles, тут будет ошибка.
       const { data, error } = await sb
         .from("profiles")
         .select("user_id,email,name,created_at")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(200);
 
       if (error) {
         partnerSelect.innerHTML = `<option value="">Нет доступа к profiles</option>`;
@@ -398,84 +644,39 @@
       }
     }
 
-    async function loadDealsSnapshot(userId) {
-      const box = document.getElementById("dealsBox");
-      if (!box) return;
+    // calc controls
+    exitToggle.addEventListener("change", () => {
+      renderCalc();
+    });
 
-      box.textContent = "Загрузка snapshot…";
+    closeCycleBtn.addEventListener("click", () => {
+      const p = currentSnapshot?.payload || {};
+      const equity = p.equity ?? null;
 
-      const { data, error } = await sb
-        .from("deal_stats_snapshot")
-        .select("payload, updated_at")
-        .eq("user_id", userId)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { fee, eligible } = computeFee(equity, exitToggle.checked);
+      const eqNum = Number(equity);
 
-      if (error) {
-        box.textContent = "Ошибка чтения: " + error.message;
-        return;
-      }
-      if (!data) {
-        box.textContent = "Snapshot не найден.";
-        const lastUpdate = document.getElementById("lastUpdate");
-        if (lastUpdate) lastUpdate.value = "—";
+      if (!Number.isFinite(eqNum)) {
+        calcResult.textContent = "Нет корректного equity в snapshot — нечего закрывать.";
+        calcResult.className = "msg err";
         return;
       }
 
-      const p = data.payload || {};
-      const equity = p.equity ?? "—";
-      const available = p.available ?? "—";
-      const assets = Array.isArray(p.assets) ? p.assets : [];
+      const net = eqNum - fee;
 
-      const rows = assets.map((a) => {
-        const symbol = a?.symbol ?? "—";
-        const side = a?.side ?? "—";
-        const qty = a?.qty ?? "—";
-        const entry = a?.entry ?? "—";
-        const pnl = a?.pnl ?? "—";
-        return `
-          <tr>
-            <td style="padding:10px;border-top:1px solid rgba(255,255,255,.06);">${symbol}</td>
-            <td style="padding:10px;border-top:1px solid rgba(255,255,255,.06);">${side}</td>
-            <td style="padding:10px;border-top:1px solid rgba(255,255,255,.06);text-align:right;">${qty}</td>
-            <td style="padding:10px;border-top:1px solid rgba(255,255,255,.06);text-align:right;">${entry}</td>
-            <td style="padding:10px;border-top:1px solid rgba(255,255,255,.06);text-align:right;">${pnl}</td>
-          </tr>
-        `;
-      }).join("");
+      const lines = [];
+      lines.push("Закрытие цикла (только расчёт, без записи в БД):");
+      lines.push("Equity: " + formatMoney(eqNum));
+      lines.push("Порог 5000: " + (eligible ? "да" : "нет"));
+      lines.push("Выходим: " + (exitToggle.checked ? "включено" : "выключено"));
+      lines.push("Комиссия: " + formatMoney(fee));
+      lines.push("Итого после комиссии: " + formatMoney(net));
+      lines.push("");
+      lines.push("Дальше: комиссию ты отображаешь и пишешь партнёру вручную — без платежной системы.");
 
-      const table = assets.length
-        ? `
-          <div style="margin-top:10px;">
-            <table style="width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid rgba(255,255,255,.08); border-radius:12px;">
-              <thead>
-                <tr style="background:rgba(255,255,255,.03);">
-                  <th style="text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Symbol</th>
-                  <th style="text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Side</th>
-                  <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Qty</th>
-                  <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">Entry</th>
-                  <th style="text-align:right; padding:10px; font-size:12px; color:rgba(154,167,189,.9);">PnL</th>
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-        `
-        : `<div class="hint" style="margin-top:10px;">Активов нет.</div>`;
-
-      box.innerHTML = `
-        <div><b>Equity:</b> ${equity}</div>
-        <div><b>Available:</b> ${available}</div>
-        ${table}
-        <div style="opacity:.6;font-size:12px;margin-top:10px;">
-          Updated: ${new Date(data.updated_at).toLocaleString()}
-        </div>
-      `;
-
-      const lastUpdate = document.getElementById("lastUpdate");
-      if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
-    }
+      calcResult.textContent = lines.join("\n");
+      calcResult.className = "msg ok";
+    });
 
     async function boot() {
       setMsg("");
@@ -501,7 +702,12 @@
       }
 
       showOnly("admin");
-      await loadPartnersList(); // загрузим список партнёров + выберем дефолт
+      await loadPartnersList();
+
+      // После загрузки партнёра — подгрузим калькулятор (если активен)
+      if (currentPartnerId && getActiveTabKey() === "calc") {
+        await loadCalcForPartner(currentPartnerId);
+      }
     }
 
     async function loginWithTimeout(email, password) {
