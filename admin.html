@@ -1,215 +1,197 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>CLUB500 — Admin</title>
+
   <style>
     :root{
-      --bg:#0b0f17; --panel:#101827;
-      --text:#e6edf7; --muted:#9aa7bd;
-      --accent:#4ea1ff; --danger:#ff5c5c; --ok:#35d07f; --warn:#ffcc66;
-      --border:rgba(255,255,255,.08);
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius:14px;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      --bg:#0b1220;
+      --card:#0f172a;
+      --muted:#9aa7bd;
+      --line:rgba(255,255,255,.10);
+      --ok:#22c55e;
+      --err:#ef4444;
+      --accent:#3b82f6;
     }
+    *{ box-sizing:border-box; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
     body{
       margin:0;
+      color:#e5e7eb;
       background:
-        radial-gradient(1200px 700px at 10% 10%, rgba(78,161,255,.15), transparent 60%),
-        radial-gradient(900px 500px at 90% 30%, rgba(53,208,127,.10), transparent 55%),
+        radial-gradient(1200px 600px at 20% -10%, #0f1c3a 0%, transparent 60%),
+        radial-gradient(900px 500px at 95% 20%, rgba(59,130,246,.18) 0%, transparent 55%),
         var(--bg);
-      color:var(--text);
+      min-height:100vh;
     }
-    .wrap{max-width:1100px;margin:0 auto;padding:18px;}
-    .topbar{
-      display:flex;gap:12px;align-items:center;justify-content:space-between;
-      background:rgba(16,24,39,.7); border:1px solid var(--border);
-      border-radius: var(--radius); padding:12px 14px; box-shadow:var(--shadow);
-      backdrop-filter: blur(8px);
-    }
-    .brand{display:flex;flex-direction:column;gap:2px}
-    .brand .t{font-weight:700;letter-spacing:.3px}
-    .brand .s{color:var(--muted);font-size:12px}
-    .right{display:flex;gap:10px;align-items:center}
-    .pill{font-size:12px;color:var(--muted);border:1px solid var(--border);padding:6px 10px;border-radius:999px}
-    .btn{
-      background:linear-gradient(180deg, rgba(78,161,255,.95), rgba(78,161,255,.70));
-      border:1px solid rgba(78,161,255,.35);
-      color:#06101f; font-weight:700;
-      padding:8px 12px; border-radius:12px; cursor:pointer;
-    }
-    .btn:active{transform:translateY(1px)}
-    .btn.secondary{
-      background:transparent;color:var(--text);border:1px solid var(--border);
-      font-weight:600;
-    }
-    .btn.danger{
-      background:linear-gradient(180deg, rgba(255,92,92,.95), rgba(255,92,92,.70));
-      border:1px solid rgba(255,92,92,.35);
-      color:#1b0707;
-    }
-    .grid{display:grid;grid-template-columns: 1fr; gap:12px; margin-top:12px;}
+    .container{ max-width:1200px; margin:38px auto; padding:0 18px; }
     .card{
-      background:rgba(16,24,39,.72);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      padding:14px;
-      box-shadow:var(--shadow);
-      backdrop-filter: blur(8px);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      margin-bottom:16px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.25);
     }
-    .tabs{display:flex;gap:8px;flex-wrap:wrap}
-    .tab{
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.02);
-      color:var(--muted);
-      padding:8px 10px;
-      border-radius:12px;
-      cursor:pointer;
-      user-select:none;
-      font-weight:600;
-      font-size:13px;
+    .header{
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
     }
-    .tab.active{
-      color:var(--text);
-      border-color: rgba(78,161,255,.40);
-      box-shadow:0 0 0 2px rgba(78,161,255,.12) inset;
-      background:rgba(78,161,255,.08);
-    }
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .field{display:flex;flex-direction:column;gap:6px;min-width:220px;flex:1}
-    label{font-size:12px;color:var(--muted)}
-    input, select{
-      background:rgba(255,255,255,.03);
-      border:1px solid var(--border);
-      color:var(--text);
+    h1{ font-size:18px; margin:0; letter-spacing:.2px;}
+    .small{ font-size:12px; color:var(--muted); margin-top:4px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row.spread{ justify-content:space-between; }
+    input, select, button{
+      background:#020617;
+      border:1px solid var(--line);
+      color:#e5e7eb;
       border-radius:12px;
       padding:10px 12px;
+      font-size:14px;
       outline:none;
     }
-    input:focus, select:focus{border-color: rgba(78,161,255,.45); box-shadow:0 0 0 3px rgba(78,161,255,.12)}
-    .hint{color:var(--muted);font-size:12px;line-height:1.35}
-    .msg{font-size:13px;margin-top:8px;color:var(--muted);white-space:pre-wrap}
-    .msg.ok{color:var(--ok)}
-    .msg.warn{color:var(--warn)}
-    .msg.err{color:var(--danger)}
-    .divider{height:1px;background:var(--border);margin:10px 0}
-    .panelTitle{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .panelTitle h2{margin:0;font-size:14px}
-    .panelTitle .meta{color:var(--muted);font-size:12px}
-    .view{display:none}
-    .view.active{display:block}
-    .empty{
-      padding:12px;border-radius:12px;border:1px dashed rgba(255,255,255,.12);
-      color:var(--muted);background:rgba(255,255,255,.02);
-      font-size:13px;line-height:1.4
+    input{ min-width:240px; }
+    select{ min-width:320px; }
+    button{ cursor:pointer; }
+    button.primary{ background:var(--accent); border:none; font-weight:700; }
+    button.secondary{ background:transparent; }
+    button:active{ transform: translateY(1px); }
+    .badge{
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid var(--line);
+      color:#cbd5e1;
+      background:rgba(0,0,0,.18);
+      white-space:nowrap;
     }
-    .badge{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
-    .badge.ok{border-color:rgba(53,208,127,.35); color:rgba(53,208,127,.95)}
-    .badge.err{border-color:rgba(255,92,92,.35); color:rgba(255,92,92,.95)}
+    .badge.ok{ color:var(--ok); border-color: rgba(34,197,94,.45); }
+    .badge.err{ color:var(--err); border-color: rgba(239,68,68,.45); }
+    .msg{ margin-top:10px; font-size:13px; }
+    .msg.err{ color: var(--err); }
+    .msg.ok{ color: var(--ok); }
+
+    .tabs{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+    .tab{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      cursor:pointer;
+      font-size:13px;
+      color:var(--muted);
+      background:rgba(0,0,0,.18);
+      user-select:none;
+    }
+    .tab.active{
+      color:#fff;
+      border-color: rgba(59,130,246,.55);
+      background: rgba(59,130,246,.16);
+      box-shadow: 0 0 0 2px rgba(59,130,246,.08) inset;
+    }
+
+    .view{ display:none; margin-top:14px; }
+    .view.active{ display:block; }
+
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(160px, 1fr));
+      gap:10px;
+      margin-bottom:10px;
+    }
     .kpi{
-      display:grid;grid-template-columns: repeat(3, minmax(160px, 1fr));
-      gap:10px;margin-top:10px;
-    }
-    .kpi .box{
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
       background:rgba(255,255,255,.02);
     }
-    .kpi .k{color:var(--muted);font-size:12px}
-    .kpi .v{font-size:18px;font-weight:800;margin-top:4px}
-    .switchRow{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
-    .switch{
-      display:flex;align-items:center;gap:10px;
-      border:1px solid var(--border);
+    .kpi .label{ font-size:12px; color:var(--muted); }
+    .kpi .value{ font-size:20px; font-weight:900; margin-top:6px; letter-spacing:.2px; }
+
+    table{ width:100%; border-collapse:collapse; margin-top:10px; }
+    th,td{ border-bottom:1px solid var(--line); padding:10px 10px; text-align:left; font-size:13px; }
+    th{ color:var(--muted); font-weight:600; }
+    .right{ text-align:right; }
+    .muted{ color:var(--muted); }
+    .box{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
       background:rgba(255,255,255,.02);
-      padding:10px 12px;border-radius:12px;
     }
-    .switch input{width:18px;height:18px}
-    table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid rgba(255,255,255,.08); border-radius:12px;}
-    thead tr{background:rgba(255,255,255,.03);}
-    th{ text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);}
-    td{ padding:10px;border-top:1px solid rgba(255,255,255,.06);}
-    td.num, th.num{text-align:right;}
-    code{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-    .miniTools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
-    .smallBtn{padding:7px 10px;border-radius:10px;font-size:12px}
+    .big{
+      font-size:30px;
+      font-weight:950;
+      letter-spacing:.3px;
+      margin-top:10px;
+    }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <div class="t">CLUB500 — Admin</div>
-        <div class="s">Выбор партнёра + калькулятор + сделки + пассивный доход + статистика целей</div>
+  <div class="container">
+
+    <!-- LOGIN -->
+    <div id="loginCard" class="card">
+      <div class="header">
+        <div>
+          <h1>CLUB500 — Admin</h1>
+          <div class="small">Вход через Supabase Auth</div>
+        </div>
+        <span class="badge">только авторизация</span>
       </div>
-      <div class="right">
-        <span id="authPill" class="pill">Не в системе</span>
-        <button id="logoutBtn" class="btn secondary" style="display:none;">Выйти</button>
+
+      <div class="row" style="margin-top:14px">
+        <input id="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Пароль">
+        <button id="loginBtn" class="primary">Войти</button>
+      </div>
+
+      <div id="loginMsg" class="msg"></div>
+      <div class="small" style="margin-top:10px">
+        Важно: это отдельная страница — ЛК не ломает.
       </div>
     </div>
 
-    <div class="grid">
-      <!-- LOGIN -->
-      <div id="loginCard" class="card">
-        <div class="panelTitle">
-          <h2>Вход в админку</h2>
-          <span class="meta">Supabase Auth</span>
+    <!-- DENY -->
+    <div id="denyCard" class="card" style="display:none">
+      <div class="header">
+        <div>
+          <h1>Доступ запрещён</h1>
+          <div class="small">Нужна роль admin</div>
         </div>
-        <div class="divider"></div>
+        <span class="badge err">нет доступа</span>
+      </div>
+      <div id="denyMsg" class="msg err" style="margin-top:12px"></div>
+      <button id="denyLogoutBtn" class="secondary" style="margin-top:10px">Выйти</button>
+    </div>
 
+    <!-- ADMIN -->
+    <div id="adminShell" style="display:none">
+
+      <div class="card header">
+        <div>
+          <h1>CLUB500 — Admin</h1>
+          <div class="small">Выбор партнёра + калькулятор + сделки + пассивный доход + статистика целей</div>
+        </div>
         <div class="row">
-          <div class="field">
-            <label>Email</label>
-            <input id="email" type="email" placeholder="you@email.com" autocomplete="email" />
-          </div>
-          <div class="field">
-            <label>Пароль</label>
-            <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
-          </div>
+          <span id="authPill" class="badge">—</span>
+          <button id="logoutBtn" class="secondary">Выйти</button>
         </div>
-
-        <div class="row" style="margin-top:10px;">
-          <button id="loginBtn" class="btn">Войти</button>
-          <button id="signupBtn" class="btn secondary">Регистрация</button>
-          <span class="hint">Ключи — в коде файла.</span>
-        </div>
-
-        <div id="loginMsg" class="msg"></div>
-        <div class="hint" style="margin-top:10px;">Важно: это отдельная страница, ЛК не ломает.</div>
       </div>
 
-      <!-- ADMIN -->
-      <div id="adminShell" class="card" style="display:none;">
-        <div class="panelTitle">
-          <h2>Карточка партнёра</h2>
-          <div class="meta" id="adminMeta">—</div>
-        </div>
-        <div class="divider"></div>
-
-        <div class="row">
-          <div class="field">
-            <label>Партнёр</label>
-            <select id="partnerSelect">
-              <option value="">Загрузка списка…</option>
-            </select>
-            <div class="hint" style="margin-top:6px;">Выбери партнёра — данные подгрузятся во вкладках.</div>
+      <div class="card">
+        <div class="row spread">
+          <div class="row">
+            <div style="min-width:120px" class="muted">Партнёр</div>
+            <select id="partnerSelect"></select>
           </div>
 
-          <div class="field">
-            <label>Статус обновления</label>
-            <input id="lastUpdate" placeholder="—" disabled />
-          </div>
-
-          <div style="display:flex;gap:8px;align-items:end;">
-            <span id="adminRoleBadge" class="badge">роль: ?</span>
+          <div class="row">
+            <div style="min-width:170px" class="muted">Статус обновления</div>
+            <input id="updatedAt" readonly style="min-width:260px">
+            <span id="adminRoleBadge" class="badge">role: ?</span>
           </div>
         </div>
-
-        <div class="divider"></div>
 
         <div class="tabs" id="tabs">
           <div class="tab active" data-tab="calc">Калькулятор</div>
@@ -218,804 +200,377 @@
           <div class="tab" data-tab="stats">Статистика</div>
         </div>
 
-        <div style="margin-top:12px;">
-          <!-- CALC -->
-          <div id="view-calc" class="view active">
-            <div class="empty">
-              <b>Калькулятор</b><br/>
-              Данные берутся из последнего snapshot выбранного партнёра (<code>deal_stats_snapshot</code>).
-              Комиссия считается только при “выходе с рынка”.
-            </div>
-
-            <div class="kpi">
-              <div class="box">
-                <div class="k">Equity</div>
-                <div class="v" id="calcEquity">—</div>
-              </div>
-              <div class="box">
-                <div class="k">Available</div>
-                <div class="v" id="calcAvailable">—</div>
-              </div>
-              <div class="box">
-                <div class="k">Комиссия</div>
-                <div class="v" id="calcFee">—</div>
-                <div class="hint" id="calcFeeHint" style="margin-top:6px;">10% при equity ≥ 5000 и только если включён “выходим”.</div>
-              </div>
-            </div>
-
-            <div class="switchRow">
-              <div class="switch">
-                <input id="exitToggle" type="checkbox" />
-                <div>
-                  <div style="font-weight:700;">Выходим (начислить комиссию)</div>
-                  <div class="hint">Ты включаешь/выключаешь вручную — как и планировали.</div>
-                </div>
-              </div>
-
-              <button id="closeCycleBtn" class="btn danger">Закрыть цикл</button>
-              <span id="calcStatus" class="hint"></span>
-            </div>
-
-            <div id="calcResult" class="msg" style="margin-top:10px;"></div>
+        <!-- CALC -->
+        <div id="view-calc" class="view active">
+          <div class="kpis">
+            <div class="kpi"><div class="label">Equity</div><div id="calcEquity" class="value">—</div></div>
+            <div class="kpi"><div class="label">Available</div><div id="calcAvail" class="value">—</div></div>
+            <div class="kpi"><div class="label">Комиссия 10% (если equity ≥ 5000)</div><div id="calcComm" class="value">—</div></div>
           </div>
-
-          <!-- DEALS -->
-          <div id="view-deals" class="view">
-            <div id="dealsBox" class="empty">Открой вкладку «Сделки» — данные загрузятся.</div>
-          </div>
-
-          <!-- PASSIVE -->
-          <div id="view-passive" class="view">
-            <div class="empty">
-              <b>Пассивный доход</b><br/>
-              Читаем из snapshot: <code>financial_goal</code> и <code>passive_objects</code>.
-              Ниже — общая статистика целей по всем партнёрам.
-            </div>
-
-            <div class="kpi">
-              <div class="box">
-                <div class="k">Financial goal ($)</div>
-                <div class="v" id="financialGoal">—</div>
-                <div class="hint" id="financialGoalHint" style="margin-top:6px;">Поле: <code>payload.financial_goal</code></div>
-              </div>
-              <div class="box">
-                <div class="k">Current equity ($)</div>
-                <div class="v" id="passiveEquity">—</div>
-                <div class="hint" style="margin-top:6px;">Берём из <code>payload.equity</code></div>
-              </div>
-              <div class="box">
-                <div class="k">Objects</div>
-                <div class="v" id="passiveCount">—</div>
-                <div class="hint" style="margin-top:6px;">Поле: <code>payload.passive_objects</code></div>
-              </div>
-            </div>
-
-            <div id="passiveObjectsBox" class="empty" style="margin-top:10px;">Открой вкладку — данные загрузятся.</div>
-            <div id="passiveMsg" class="msg" style="margin-top:10px;"></div>
-
-            <div class="divider"></div>
-
-            <div class="panelTitle">
-              <h2>Статистика целей партнёров</h2>
-              <span class="meta" id="goalsMeta">—</span>
-            </div>
-
-            <div class="miniTools">
-              <button id="refreshGoalsBtn" class="btn secondary smallBtn">Обновить таблицу целей</button>
-              <span class="hint">Берём последний snapshot каждого партнёра. Для 20–50 людей ок.</span>
-            </div>
-
-            <div id="goalsBox" class="empty" style="margin-top:10px;">Нажми “Обновить таблицу целей”.</div>
-            <div id="goalsMsg" class="msg" style="margin-top:10px;"></div>
-          </div>
-
-          <!-- STATS -->
-          <div id="view-stats" class="view">
-            <div class="empty">
-              <b>Статистика (каркас)</b><br/>
-              Следующий шаг: годовой доход + FACT USD/RUB.
-            </div>
-          </div>
+          <div class="small">Источник: последний snapshot из <b>deal_stats_snapshot.payload</b></div>
         </div>
-      </div>
 
-      <!-- DENY -->
-      <div id="denyCard" class="card" style="display:none;">
-        <div class="panelTitle">
-          <h2>Доступ запрещён</h2>
-          <span class="meta">нужна роль admin</span>
-        </div>
-        <div class="divider"></div>
-        <div class="empty">
-          Вы вошли, но роль <b>admin</b> не подтверждена.<br/>
-          Нужна запись в таблице <b>profiles</b> с <b>role = 'admin'</b> или <b>is_admin = true</b>.
-        </div>
-        <div id="denyMsg" class="msg err" style="margin-top:10px;"></div>
-        <div class="row" style="margin-top:10px;">
-          <button id="denyLogoutBtn" class="btn secondary">Выйти</button>
-        </div>
+        <!-- DEALS -->
+        <div id="view-deals" class="view"></div>
+
+        <!-- PASSIVE -->
+        <div id="view-passive" class="view"></div>
+
+        <!-- STATS -->
+        <div id="view-stats" class="view"></div>
+
       </div>
     </div>
+
   </div>
 
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    // === ВСТАВЬ СЮДА СВОИ ДАННЫЕ (те же, что в ЛК) ===
-    const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
+/* ========= ВСТАВЬ СЮДА СВОИ ДАННЫЕ ========= */
+const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_PUBLIC_ANON_KEY";
+/* =========================================== */
 
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true }
-    });
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // UI refs
-    const loginCard = document.getElementById("loginCard");
-    const adminShell = document.getElementById("adminShell");
-    const denyCard = document.getElementById("denyCard");
-    const authPill = document.getElementById("authPill");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const denyLogoutBtn = document.getElementById("denyLogoutBtn");
+// refs
+const loginCard = document.getElementById("loginCard");
+const denyCard  = document.getElementById("denyCard");
+const adminShell= document.getElementById("adminShell");
 
-    const emailEl = document.getElementById("email");
-    const passEl = document.getElementById("password");
-    const loginMsg = document.getElementById("loginMsg");
-    const denyMsg  = document.getElementById("denyMsg");
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+const loginBtn = document.getElementById("loginBtn");
+const loginMsg = document.getElementById("loginMsg");
 
-    const adminMeta = document.getElementById("adminMeta");
-    const adminRoleBadge = document.getElementById("adminRoleBadge");
+const denyMsg = document.getElementById("denyMsg");
+const denyLogoutBtn = document.getElementById("denyLogoutBtn");
 
-    const partnerSelect = document.getElementById("partnerSelect");
-    let currentPartnerId = null;
+const authPill = document.getElementById("authPill");
+const logoutBtn = document.getElementById("logoutBtn");
+const adminRoleBadge = document.getElementById("adminRoleBadge");
 
-    // Calc refs
-    const calcEquity = document.getElementById("calcEquity");
-    const calcAvailable = document.getElementById("calcAvailable");
-    const calcFee = document.getElementById("calcFee");
-    const calcFeeHint = document.getElementById("calcFeeHint");
-    const exitToggle = document.getElementById("exitToggle");
-    const closeCycleBtn = document.getElementById("closeCycleBtn");
-    const calcStatus = document.getElementById("calcStatus");
-    const calcResult = document.getElementById("calcResult");
+const partnerSelect = document.getElementById("partnerSelect");
+const updatedAt = document.getElementById("updatedAt");
 
-    // Passive refs
-    const financialGoal = document.getElementById("financialGoal");
-    const financialGoalHint = document.getElementById("financialGoalHint");
-    const passiveEquity = document.getElementById("passiveEquity");
-    const passiveCount = document.getElementById("passiveCount");
-    const passiveObjectsBox = document.getElementById("passiveObjectsBox");
-    const passiveMsg = document.getElementById("passiveMsg");
+const tabs = document.getElementById("tabs");
+const calcEquity = document.getElementById("calcEquity");
+const calcAvail  = document.getElementById("calcAvail");
+const calcComm   = document.getElementById("calcComm");
 
-    // Goals stats refs
-    const refreshGoalsBtn = document.getElementById("refreshGoalsBtn");
-    const goalsBox = document.getElementById("goalsBox");
-    const goalsMsg = document.getElementById("goalsMsg");
-    const goalsMeta = document.getElementById("goalsMeta");
+const $ = (id) => document.getElementById(id);
 
-    // State
-    let currentSnapshot = null; // latest snapshot for selected partner
-    let partnersCache = [];     // profiles list [{user_id,email,name,created_at}]
+function fmt(n){
+  const x = Number(n || 0);
+  return x.toLocaleString("en-US", { maximumFractionDigits: 2 });
+}
 
-    function setMsg(text, type = "") {
-      if (loginMsg) {
-        loginMsg.className = "msg " + (type || "");
-        loginMsg.textContent = text || "";
-      }
-      if (denyMsg) {
-        denyMsg.className = "msg " + (type || "");
-        denyMsg.textContent = text || "";
-      }
+function showOnly(which){
+  loginCard.style.display = (which === "login") ? "block" : "none";
+  denyCard.style.display  = (which === "deny")  ? "block" : "none";
+  adminShell.style.display= (which === "admin") ? "block" : "none";
+}
+
+async function signIn(){
+  loginMsg.textContent = "";
+  loginMsg.className = "msg";
+  const { error } = await sb.auth.signInWithPassword({
+    email: email.value.trim(),
+    password: password.value
+  });
+  if(error){
+    loginMsg.textContent = error.message;
+    loginMsg.className = "msg err";
+  }else{
+    loginMsg.textContent = "Входим...";
+    loginMsg.className = "msg ok";
+  }
+}
+
+async function signOut(){
+  await sb.auth.signOut();
+  showOnly("login");
+}
+
+loginBtn.addEventListener("click", signIn);
+logoutBtn.addEventListener("click", signOut);
+denyLogoutBtn.addEventListener("click", signOut);
+
+tabs.addEventListener("click", (e) => {
+  const tab = e.target.closest(".tab");
+  if(!tab) return;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  tab.classList.add("active");
+  $("view-" + tab.dataset.tab).classList.add("active");
+});
+
+async function checkAdmin(user){
+  try{
+    const { data, error } = await sb
+      .from("profiles")
+      .select("role,is_admin")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if(error){
+      adminRoleBadge.textContent = "role-check error";
+      adminRoleBadge.className = "badge err";
+      denyMsg.textContent = "Ошибка чтения profiles: " + error.message;
+      return false;
     }
 
-    function showOnly(which) {
-      loginCard.style.display = which === "login" ? "block" : "none";
-      adminShell.style.display = which === "admin" ? "block" : "none";
-      denyCard.style.display = which === "deny" ? "block" : "none";
-    }
+    const role = (data?.role || "").toLowerCase();
+    const isAdmin = data?.is_admin === true || role === "admin";
 
-    async function signOut() {
-      try { await sb.auth.signOut(); } catch {}
-      authPill.textContent = "Не в системе";
-      logoutBtn.style.display = "none";
-      currentPartnerId = null;
-      currentSnapshot = null;
-      showOnly("login");
-      setMsg("");
-    }
+    adminRoleBadge.textContent = isAdmin ? "роль: admin" : "роль: нет";
+    adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
 
-    logoutBtn.addEventListener("click", signOut);
-    denyLogoutBtn.addEventListener("click", signOut);
+    return isAdmin;
+  }catch(e){
+    denyMsg.textContent = "Исключение: " + (e?.message || e);
+    return false;
+  }
+}
 
-    function getActiveTabKey() {
-      return document.querySelector(".tab.active")?.dataset?.tab || "calc";
-    }
+async function loadPartners(){
+  // показываем всех пользователей из profiles (включая админа — не мешает)
+  const { data, error } = await sb
+    .from("profiles")
+    .select("user_id,name,email,is_admin,role")
+    .order("created_at", { ascending: true });
 
-    // Tabs
-    document.getElementById("tabs").addEventListener("click", async (e) => {
-      const tab = e.target.closest(".tab");
-      if (!tab) return;
+  if(error){
+    // не критично, но покажем
+    console.error(error);
+    partnerSelect.innerHTML = `<option value="">Ошибка чтения profiles</option>`;
+    return;
+  }
 
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
+  partnerSelect.innerHTML = (data || []).map(p => {
+    const label = p.name || p.email || p.user_id;
+    return `<option value="${p.user_id}">${label}</option>`;
+  }).join("");
+}
 
-      const key = tab.dataset.tab;
-      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-      document.getElementById("view-" + key).classList.add("active");
+async function loadLatestSnapshot(uid){
+  if(!uid) return null;
+  const { data, error } = await sb
+    .from("deal_stats_snapshot")
+    .select("payload,updated_at,created_at")
+    .eq("user_id", uid)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-      if (currentPartnerId) {
-        if (key === "deals") await loadDealsForPartner(currentPartnerId);
-        if (key === "calc") await loadCalcForPartner(currentPartnerId);
-        if (key === "passive") await loadPassiveForPartner(currentPartnerId);
-      }
-    });
+  if(error){
+    console.error(error);
+    return { __error: error.message };
+  }
+  return data || null;
+}
 
-    function formatMoney(x) {
-      if (x === null || x === undefined || x === "—") return "—";
-      const n = Number(x);
-      if (!Number.isFinite(n)) return String(x);
-      return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
-    }
+function renderDeals(p, snapUpdatedAt){
+  const assets = Array.isArray(p.assets) ? p.assets : [];
+  const pnl = assets.reduce((s,a)=> s + Number(a?.pnl || 0), 0);
 
-    function computeFee(equity, isExitOn) {
-      const threshold = 5000;
-      const rate = 0.10;
-      const n = Number(equity);
-      if (!Number.isFinite(n)) return { fee: 0, eligible:false };
-      const eligible = n >= threshold;
-      const fee = (eligible && isExitOn) ? n * rate : 0;
-      return { fee, eligible };
-    }
+  const rows = assets.map(a => `
+    <tr>
+      <td>${a?.symbol || ""}</td>
+      <td>${a?.side || ""}</td>
+      <td>${fmt(a?.qty)}</td>
+      <td>${fmt(a?.entry)}</td>
+      <td class="right">${fmt(a?.pnl)}</td>
+    </tr>
+  `).join("");
 
-    function renderCalc() {
-      const p = currentSnapshot?.payload || {};
-      const equity = p.equity ?? "—";
-      const available = p.available ?? "—";
+  $("view-deals").innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><div class="label">Equity</div><div class="value">${fmt(p.equity)}</div></div>
+      <div class="kpi"><div class="label">Available</div><div class="value">${fmt(p.available)}</div></div>
+      <div class="kpi"><div class="label">Total PnL (по assets)</div><div class="value">${fmt(pnl)}</div></div>
+    </div>
 
-      calcEquity.textContent = formatMoney(equity);
-      calcAvailable.textContent = formatMoney(available);
+    <table>
+      <thead>
+        <tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Entry</th><th class="right">PnL</th></tr>
+      </thead>
+      <tbody>
+        ${rows || `<tr><td colspan="5" class="muted">Нет активов в payload.assets</td></tr>`}
+      </tbody>
+    </table>
 
-      const { fee, eligible } = computeFee(equity, exitToggle.checked);
-      calcFee.textContent = fee ? formatMoney(fee) : "0";
+    <div class="small" style="margin-top:10px">Updated: ${snapUpdatedAt}</div>
+  `;
 
-      if (!eligible) calcFeeHint.textContent = "Комиссия не активна: equity < 5000.";
-      else if (!exitToggle.checked) calcFeeHint.textContent = "Комиссия готова, но “выходим” выключен.";
-      else calcFeeHint.textContent = "Комиссия начисляется (10% от equity).";
+  return { pnl };
+}
 
-      const upd = currentSnapshot?.updated_at ? new Date(currentSnapshot.updated_at).toLocaleString() : "—";
-      calcStatus.textContent = "snapshot: " + upd;
-    }
+function renderPassive(p, snapUpdatedAt){
+  const goal = Number(p.financial_goal || 0);
+  const objs = Array.isArray(p.passive_objects) ? p.passive_objects : [];
 
-    async function fetchLatestSnapshot(userId) {
-      const { data, error } = await sb
-        .from("deal_stats_snapshot")
-        .select("payload, updated_at")
-        .eq("user_id", userId)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return { data, error };
-    }
+  const rows = objs.map(o => `
+    <tr>
+      <td>${o?.name || ""}</td>
+      <td>${fmt(o?.price)}</td>
+      <td>${o?.status || ""}</td>
+    </tr>
+  `).join("");
 
-    async function loadCalcForPartner(userId) {
-      if (!userId) return;
-      calcResult.textContent = "";
-      calcResult.className = "msg";
+  $("view-passive").innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><div class="label">Финансовая цель (USD)</div><div class="value">${fmt(goal)}</div></div>
+      <div class="kpi"><div class="label">Текущий капитал (Equity)</div><div class="value">${fmt(p.equity)}</div></div>
+      <div class="kpi"><div class="label">Объектов</div><div class="value">${objs.length}</div></div>
+    </div>
 
-      const { data, error } = await fetchLatestSnapshot(userId);
+    <table>
+      <thead>
+        <tr><th>Объект</th><th>Цена (USD)</th><th>Статус</th></tr>
+      </thead>
+      <tbody>
+        ${rows || `<tr><td colspan="3" class="muted">Нет passive_objects в payload</td></tr>`}
+      </tbody>
+    </table>
 
-      if (error) {
-        calcResult.textContent = "Ошибка чтения snapshot: " + error.message;
-        calcResult.className = "msg err";
-        currentSnapshot = null;
-        renderCalc();
-        return;
-      }
-      if (!data) {
-        calcResult.textContent = "Snapshot не найден. Добавь snapshot партнёру в deal_stats_snapshot.";
-        calcResult.className = "msg warn";
-        currentSnapshot = null;
-        renderCalc();
-        return;
-      }
+    <div class="small" style="margin-top:10px">Updated: ${snapUpdatedAt}</div>
+  `;
+}
 
-      currentSnapshot = data;
-      renderCalc();
+function renderCalc(p){
+  const equity = Number(p.equity || 0);
+  const available = Number(p.available || 0);
+  const commission = equity >= 5000 ? equity * 0.10 : 0;
 
-      const lastUpdate = document.getElementById("lastUpdate");
-      if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
-    }
+  calcEquity.textContent = fmt(equity);
+  calcAvail.textContent  = fmt(available);
+  calcComm.textContent   = fmt(commission);
+}
 
-    async function loadDealsForPartner(userId) {
-      const box = document.getElementById("dealsBox");
-      if (!box) return;
+function renderStats(p, pnl){
+  const addedUsd = Number(p.stats?.added_usd || 0);
+  const addedRub = Number(p.stats?.added_rub || 0);
+  const equity   = Number(p.equity || 0);
+  const commission = equity >= 5000 ? equity * 0.10 : 0;
 
-      box.textContent = "Загрузка snapshot…";
+  $("view-stats").innerHTML = `
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Equity</div>
+        <div class="value">${fmt(equity)}</div>
+      </div>
 
-      const { data, error } = await fetchLatestSnapshot(userId);
+      <div class="kpi">
+        <div class="label">Total PnL (по assets)</div>
+        <div class="value">${fmt(pnl)}</div>
+      </div>
 
-      if (error) { box.textContent = "Ошибка чтения: " + error.message; return; }
-      if (!data) {
-        box.textContent = "Snapshot не найден.";
-        const lastUpdate = document.getElementById("lastUpdate");
-        if (lastUpdate) lastUpdate.value = "—";
-        return;
-      }
+      <div class="kpi">
+        <div class="label">Комиссия 10% (если equity ≥ 5000)</div>
+        <div class="value">${fmt(commission)}</div>
+      </div>
+    </div>
 
-      currentSnapshot = data;
-
-      const p = data.payload || {};
-      const equity = p.equity ?? "—";
-      const available = p.available ?? "—";
-      const assets = Array.isArray(p.assets) ? p.assets : [];
-
-      const toNum = (v) => {
-        if (v === null || v === undefined) return 0;
-        const n = Number(String(v).replace(",", "."));
-        return Number.isFinite(n) ? n : 0;
-      };
-      const totalPnl = assets.reduce((sum, a) => sum + toNum(a?.pnl), 0);
-
-      const rows = assets.map((a) => `
-        <tr>
-          <td>${a?.symbol ?? "—"}</td>
-          <td>${a?.side ?? "—"}</td>
-          <td class="num">${a?.qty ?? "—"}</td>
-          <td class="num">${a?.entry ?? "—"}</td>
-          <td class="num">${a?.pnl ?? "—"}</td>
-        </tr>
-      `).join("");
-
-      const table = assets.length
-        ? `
-          <div style="margin-top:10px;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Side</th>
-                  <th class="num">Qty</th>
-                  <th class="num">Entry</th>
-                  <th class="num">PnL</th>
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-        `
-        : `<div class="hint" style="margin-top:10px;">Активов нет.</div>`;
-
-      box.innerHTML = `
-        <div class="kpi" style="margin-top:6px;">
-          <div class="box">
-            <div class="k">Активов</div>
-            <div class="v">${assets.length}</div>
-          </div>
-          <div class="box">
-            <div class="k">Total PnL</div>
-            <div class="v">${formatMoney(totalPnl)}</div>
-          </div>
-          <div class="box">
-            <div class="k">Available</div>
-            <div class="v">${formatMoney(available)}</div>
-          </div>
+    <div class="box">
+      <div class="row spread">
+        <div>
+          <div style="font-weight:900; letter-spacing:.2px">FACT (пополнения)</div>
+          <div class="small">Переключай валюту — показываем сколько партнёр добавил денег</div>
         </div>
 
-        <div style="margin-top:10px;"><b>Equity:</b> ${formatMoney(equity)}</div>
-        ${table}
-        <div style="opacity:.6;font-size:12px;margin-top:10px;">
-          Updated: ${new Date(data.updated_at).toLocaleString()}
+        <div class="row" style="gap:8px">
+          <button id="factUsdBtn" class="tab active" type="button">USD</button>
+          <button id="factRubBtn" class="tab" type="button">RUB</button>
         </div>
-      `;
+      </div>
 
-      const lastUpdate = document.getElementById("lastUpdate");
-      if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
+      <div id="factValue" class="big">${fmt(addedUsd)}</div>
+      <div id="factHint" class="small">added_usd из payload.stats</div>
+    </div>
+  `;
+
+  // toggle
+  const factUsdBtn = document.getElementById("factUsdBtn");
+  const factRubBtn = document.getElementById("factRubBtn");
+  const factValue  = document.getElementById("factValue");
+  const factHint   = document.getElementById("factHint");
+
+  function setFact(mode){
+    if(mode === "USD"){
+      factUsdBtn.classList.add("active");
+      factRubBtn.classList.remove("active");
+      factValue.textContent = fmt(addedUsd);
+      factHint.textContent = "added_usd из payload.stats";
+    }else{
+      factRubBtn.classList.add("active");
+      factUsdBtn.classList.remove("active");
+      factValue.textContent = fmt(addedRub);
+      factHint.textContent = "added_rub из payload.stats";
     }
-
-    function renderPassiveObjects(objs, updatedAt) {
-      if (!Array.isArray(objs) || !objs.length) {
-        passiveObjectsBox.innerHTML = `
-          <div class="empty">
-            Объекты не заданы.<br/><br/>
-            Пример, что добавить в <code>payload</code>:
-            <pre style="margin-top:10px;white-space:pre-wrap;opacity:.9;">{
-  "financial_goal": 250000,
-  "passive_objects": [
-    { "name": "Апартаменты Дубай", "price": 150000, "status": "selected" },
-    { "name": "Студия СПб", "price": 60000, "status": "bought" }
-  ]
-}</pre>
-          </div>
-        `;
-        return;
-      }
-
-      const rows = objs.map((o) => {
-        const name = o?.name ?? "—";
-        const price = o?.price ?? "—";
-        const statusRaw = (o?.status ?? "—").toString().toLowerCase();
-        const statusBadge =
-          statusRaw === "bought" ? `<span class="badge ok">Куплен</span>` :
-          statusRaw === "selected" ? `<span class="badge">Выбран</span>` :
-          `<span class="badge">${o?.status ?? "—"}</span>`;
-        return `
-          <tr>
-            <td>${name}</td>
-            <td class="num">${formatMoney(price)}</td>
-            <td>${statusBadge}</td>
-          </tr>
-        `;
-      }).join("");
-
-      passiveObjectsBox.innerHTML = `
-        <table style="margin-top:10px;">
-          <thead>
-            <tr>
-              <th>Объект</th>
-              <th class="num">Цена</th>
-              <th>Статус</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-        <div style="opacity:.6;font-size:12px;margin-top:10px;">
-          Updated: ${updatedAt ? new Date(updatedAt).toLocaleString() : "—"}
-        </div>
-      `;
-    }
-
-    async function loadPassiveForPartner(userId) {
-      passiveMsg.textContent = "";
-      passiveMsg.className = "msg";
-      passiveObjectsBox.textContent = "Загрузка…";
-
-      const { data, error } = await fetchLatestSnapshot(userId);
-
-      if (error) {
-        passiveObjectsBox.textContent = "Ошибка чтения snapshot: " + error.message;
-        passiveMsg.textContent = "";
-        passiveMsg.className = "msg err";
-        return;
-      }
-      if (!data) {
-        passiveObjectsBox.textContent = "Snapshot не найден.";
-        passiveMsg.textContent = "Добавь snapshot партнёру в deal_stats_snapshot.";
-        passiveMsg.className = "msg warn";
-        financialGoal.textContent = "—";
-        passiveEquity.textContent = "—";
-        passiveCount.textContent = "—";
-        return;
-      }
-
-      currentSnapshot = data;
-
-      const p = data.payload || {};
-      const equity = p.equity ?? "—";
-      const goal = p.financial_goal ?? null;
-      const objs = Array.isArray(p.passive_objects) ? p.passive_objects : [];
-
-      passiveEquity.textContent = formatMoney(equity);
-      passiveCount.textContent = String(objs.length);
-
-      if (goal === null || goal === undefined || goal === "") {
-        financialGoal.textContent = "—";
-        financialGoalHint.textContent = "Нет financial_goal в snapshot. Добавь payload.financial_goal (USD).";
-      } else {
-        financialGoal.textContent = formatMoney(goal);
-        financialGoalHint.textContent = "Поле: payload.financial_goal";
-      }
-
-      renderPassiveObjects(objs, data.updated_at);
-
-      const lastUpdate = document.getElementById("lastUpdate");
-      if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
-    }
-
-    function setPartner(userId) {
-      currentPartnerId = userId || null;
-      currentSnapshot = null;
-
-      calcResult.textContent = "";
-      calcResult.className = "msg";
-
-      if (adminMeta) {
-        adminMeta.textContent = currentPartnerId
-          ? `partner_id: ${currentPartnerId.slice(0,8)}…`
-          : "partner_id: —";
-      }
-
-      const active = getActiveTabKey();
-      if (currentPartnerId) {
-        if (active === "deals") loadDealsForPartner(currentPartnerId);
-        if (active === "calc") loadCalcForPartner(currentPartnerId);
-        if (active === "passive") loadPassiveForPartner(currentPartnerId);
-      }
-    }
-
-    async function loadPartnersList() {
-      if (!partnerSelect) return;
-
-      partnerSelect.innerHTML = `<option value="">Загрузка…</option>`;
-      partnerSelect.disabled = true;
-
-      const { data, error } = await sb
-        .from("profiles")
-        .select("user_id,email,name,created_at")
-        .order("created_at", { ascending: false })
-        .limit(500);
-
-      if (error) {
-        partnerSelect.innerHTML = `<option value="">Нет доступа к profiles</option>`;
-        partnerSelect.disabled = true;
-        setMsg("Ошибка чтения списка партнёров (profiles): " + error.message, "err");
-        return;
-      }
-
-      partnersCache = Array.isArray(data) ? data : [];
-
-      if (!partnersCache.length) {
-        partnerSelect.innerHTML = `<option value="">Партнёров нет</option>`;
-        partnerSelect.disabled = true;
-        return;
-      }
-
-      partnerSelect.innerHTML = partnersCache.map(p => {
-        const label = (p.name || p.email || p.user_id).toString();
-        return `<option value="${p.user_id}">${label}</option>`;
-      }).join("");
-
-      partnerSelect.disabled = false;
-
-      const { data: sess } = await sb.auth.getSession();
-      const me = sess?.session?.user?.id;
-
-      const defaultId = partnersCache.find(p => p.user_id === me)?.user_id || partnersCache[0].user_id;
-      partnerSelect.value = defaultId;
-      setPartner(defaultId);
-    }
-
-    partnerSelect?.addEventListener("change", (e) => setPartner(e.target.value));
-
-    async function checkAdminRole(userId) {
-      try {
-        const { data, error } = await sb
-          .from("profiles")
-          .select("role,is_admin,user_id,email")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (error) {
-          adminRoleBadge.textContent = "role-check error";
-          adminRoleBadge.className = "badge err";
-          setMsg("Ошибка чтения profiles: " + error.message, "err");
-          return false;
-        }
-
-        const role = ((data?.role ?? "") + "").toLowerCase();
-        const isAdmin = data?.is_admin === true || role === "admin";
-
-        adminRoleBadge.textContent = "роль: " + (isAdmin ? "admin" : "нет");
-        adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
-        return isAdmin;
-      } catch (e) {
-        adminRoleBadge.textContent = "role-check exception";
-        adminRoleBadge.className = "badge err";
-        setMsg("Исключение: " + (e?.message || e), "err");
-        return false;
-      }
-    }
-
-    // calc controls
-    exitToggle.addEventListener("change", () => renderCalc());
-
-    closeCycleBtn.addEventListener("click", () => {
-      const p = currentSnapshot?.payload || {};
-      const equity = p.equity ?? null;
-
-      const { fee, eligible } = computeFee(equity, exitToggle.checked);
-      const eqNum = Number(equity);
-
-      if (!Number.isFinite(eqNum)) {
-        calcResult.textContent = "Нет корректного equity в snapshot — нечего закрывать.";
-        calcResult.className = "msg err";
-        return;
-      }
-
-      const net = eqNum - fee;
-
-      const lines = [];
-      lines.push("Закрытие цикла (только расчёт, без записи в БД):");
-      lines.push("Equity: " + formatMoney(eqNum));
-      lines.push("Порог 5000: " + (eligible ? "да" : "нет"));
-      lines.push("Выходим: " + (exitToggle.checked ? "включено" : "выключено"));
-      lines.push("Комиссия: " + formatMoney(fee));
-      lines.push("Итого после комиссии: " + formatMoney(net));
-      lines.push("");
-      lines.push("Дальше: комиссию ты отображаешь и пишешь партнёру вручную — без платежной системы.");
-
-      calcResult.textContent = lines.join("\n");
-      calcResult.className = "msg ok";
-    });
-
-    // Goals stats: load latest snapshot for each partner (client-side)
-    async function loadGoalsStats() {
-      goalsMsg.textContent = "";
-      goalsMsg.className = "msg";
-      goalsBox.textContent = "Загрузка целей…";
-
-      const list = partnersCache || [];
-      if (!list.length) {
-        goalsBox.textContent = "Партнёров нет (profiles пуст).";
-        return;
-      }
-
-      const startedAt = Date.now();
-
-      const results = [];
-      let ok = 0, miss = 0, err = 0;
-
-      // последовательная загрузка = надёжнее (и меньше шанс словить лимиты)
-      for (const p of list) {
-        const label = (p.name || p.email || p.user_id).toString();
-        const { data, error } = await fetchLatestSnapshot(p.user_id);
-
-        if (error) {
-          err++;
-          results.push({
-            label, goal: null, equity: null, objects: null, updated_at: null,
-            error: error.message
-          });
-          continue;
-        }
-        if (!data) {
-          miss++;
-          results.push({
-            label, goal: null, equity: null, objects: 0, updated_at: null,
-            error: "no snapshot"
-          });
-          continue;
-        }
-
-        ok++;
-        const payload = data.payload || {};
-        const goal = payload.financial_goal ?? null;
-        const equity = payload.equity ?? null;
-        const objects = Array.isArray(payload.passive_objects) ? payload.passive_objects.length : 0;
-
-        results.push({
-          label, goal, equity, objects, updated_at: data.updated_at,
-          error: null
-        });
-      }
-
-      // sort: goal desc, then equity desc
-      results.sort((a,b) => (Number(b.goal||0) - Number(a.goal||0)) || (Number(b.equity||0) - Number(a.equity||0)));
-
-      const rows = results.map(r => {
-        const goalText = (r.goal === null || r.goal === undefined) ? "—" : formatMoney(r.goal);
-        const equityText = (r.equity === null || r.equity === undefined) ? "—" : formatMoney(r.equity);
-        const updText = r.updated_at ? new Date(r.updated_at).toLocaleString() : "—";
-        return `
-          <tr>
-            <td>${r.label}</td>
-            <td class="num">${goalText}</td>
-            <td class="num">${equityText}</td>
-            <td class="num">${r.objects ?? "—"}</td>
-            <td>${updText}</td>
-          </tr>
-        `;
-      }).join("");
-
-      goalsBox.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>Партнёр</th>
-              <th class="num">Financial goal ($)</th>
-              <th class="num">Equity ($)</th>
-              <th class="num">Objects</th>
-              <th>Updated</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-
-      const ms = Date.now() - startedAt;
-      goalsMeta.textContent = `ok: ${ok}, no snapshot: ${miss}, errors: ${err}, time: ${ms}ms`;
-
-      if (miss > 0) {
-        goalsMsg.textContent = `У ${miss} партнёров нет snapshot — они не попадут в нормальную статистику, пока не появится запись в deal_stats_snapshot.`;
-        goalsMsg.className = "msg warn";
-      } else {
-        goalsMsg.textContent = "Готово.";
-        goalsMsg.className = "msg ok";
-      }
-    }
-
-    refreshGoalsBtn.addEventListener("click", loadGoalsStats);
-
-    async function boot() {
-      setMsg("");
-
-      const { data } = await sb.auth.getSession();
-      const session = data?.session;
-
-      if (!session?.user) {
-        authPill.textContent = "Не в системе";
-        logoutBtn.style.display = "none";
-        showOnly("login");
-        return;
-      }
-
-      const user = session.user;
-      authPill.textContent = "В системе: " + (user.email || "user");
-      logoutBtn.style.display = "inline-block";
-
-      const isAdmin = await checkAdminRole(user.id);
-      if (!isAdmin) {
-        showOnly("deny");
-        return;
-      }
-
-      showOnly("admin");
-      await loadPartnersList();
-
-      if (currentPartnerId && getActiveTabKey() === "calc") {
-        await loadCalcForPartner(currentPartnerId);
-      }
-    }
-
-    async function loginWithTimeout(email, password) {
-      const timeout = new Promise((_, rej) =>
-        setTimeout(() => rej(new Error("Таймаут. Проверь блокировки/расширения/доступ к supabase.co")), 8000)
-      );
-      const req = sb.auth.signInWithPassword({ email, password });
-      return Promise.race([req, timeout]);
-    }
-
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      try {
-        loginMsg.className = "msg";
-        loginMsg.textContent = "Входим…";
-
-        const email = emailEl.value.trim();
-        const password = passEl.value;
-
-        const { data, error } = await loginWithTimeout(email, password);
-
-        if (error) { loginMsg.textContent = "Ошибка входа: " + error.message; loginMsg.className = "msg err"; return; }
-        if (!data?.session) { loginMsg.textContent = "Сессия не создалась. Проверь ключи SUPABASE_URL/ANON_KEY."; loginMsg.className = "msg err"; return; }
-
-        loginMsg.textContent = "Успешный вход";
-        loginMsg.className = "msg ok";
-        await boot();
-      } catch (e) {
-        loginMsg.textContent = "Ошибка: " + (e?.message || e);
-        loginMsg.className = "msg err";
-      }
-    });
-
-    document.getElementById("signupBtn").addEventListener("click", async () => {
-      try {
-        loginMsg.className = "msg";
-        loginMsg.textContent = "Регистрируем…";
-
-        const email = emailEl.value.trim();
-        const password = passEl.value;
-
-        const { error } = await sb.auth.signUp({ email, password });
-        if (error) { loginMsg.textContent = "Ошибка регистрации: " + error.message; loginMsg.className = "msg err"; return; }
-
-        loginMsg.textContent = "Аккаунт создан. Теперь нажмите “Войти”.";
-        loginMsg.className = "msg ok";
-      } catch (e) {
-        loginMsg.textContent = "Ошибка: " + (e?.message || e);
-        loginMsg.className = "msg err";
-      }
-    });
-
-    sb.auth.onAuthStateChange(() => boot());
-    boot();
-  </script>
+  }
+  factUsdBtn.onclick = () => setFact("USD");
+  factRubBtn.onclick = () => setFact("RUB");
+}
+
+async function refreshPartnerView(){
+  const uid = partnerSelect.value;
+  const snap = await loadLatestSnapshot(uid);
+
+  if(!snap){
+    updatedAt.value = "нет snapshot";
+    renderCalc({ equity:0, available:0 });
+    $("view-deals").innerHTML = `<div class="muted">Нет snapshot для этого партнёра.</div>`;
+    $("view-passive").innerHTML = `<div class="muted">Нет snapshot для этого партнёра.</div>`;
+    $("view-stats").innerHTML = `<div class="muted">Нет snapshot для этого партнёра.</div>`;
+    return;
+  }
+
+  if(snap.__error){
+    updatedAt.value = "ошибка";
+    $("view-deals").innerHTML = `<div class="msg err">Ошибка чтения snapshot: ${snap.__error}</div>`;
+    $("view-passive").innerHTML = `<div class="msg err">Ошибка чтения snapshot: ${snap.__error}</div>`;
+    $("view-stats").innerHTML = `<div class="msg err">Ошибка чтения snapshot: ${snap.__error}</div>`;
+    return;
+  }
+
+  const snapUpdatedAt = snap.updated_at ? new Date(snap.updated_at).toLocaleString() : "—";
+  updatedAt.value = snapUpdatedAt;
+
+  const p = snap.payload || {};
+  renderCalc(p);
+  const { pnl } = renderDeals(p, snapUpdatedAt);
+  renderPassive(p, snapUpdatedAt);
+  renderStats(p, pnl);
+}
+
+partnerSelect.addEventListener("change", refreshPartnerView);
+
+sb.auth.onAuthStateChange(async (_event, session) => {
+  if(!session){
+    showOnly("login");
+    return;
+  }
+
+  authPill.textContent = "В системе: " + session.user.email;
+
+  const ok = await checkAdmin(session.user);
+  if(!ok){
+    showOnly("deny");
+    return;
+  }
+
+  showOnly("admin");
+  await loadPartners();
+  await refreshPartnerView();
+});
+
+// автопроверка при первой загрузке
+(async ()=>{
+  const { data } = await sb.auth.getSession();
+  if(!data?.session) showOnly("login");
+})();
+</script>
 </body>
 </html>
