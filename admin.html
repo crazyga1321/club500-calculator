@@ -132,7 +132,10 @@
     thead tr{background:rgba(255,255,255,.03);}
     th{ text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);}
     td{ padding:10px;border-top:1px solid rgba(255,255,255,.06);}
+    td.num, th.num{text-align:right;}
     code{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .miniTools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    .smallBtn{padding:7px 10px;border-radius:10px;font-size:12px}
   </style>
 </head>
 
@@ -141,7 +144,7 @@
     <div class="topbar">
       <div class="brand">
         <div class="t">CLUB500 — Admin</div>
-        <div class="s">Выбор партнёра + калькулятор + сделки (KPI) + пассивный доход</div>
+        <div class="s">Выбор партнёра + калькулятор + сделки + пассивный доход + статистика целей</div>
       </div>
       <div class="right">
         <span id="authPill" class="pill">Не в системе</span>
@@ -150,7 +153,7 @@
     </div>
 
     <div class="grid">
-      <!-- LOGIN CARD -->
+      <!-- LOGIN -->
       <div id="loginCard" class="card">
         <div class="panelTitle">
           <h2>Вход в админку</h2>
@@ -176,12 +179,10 @@
         </div>
 
         <div id="loginMsg" class="msg"></div>
-        <div class="hint" style="margin-top:10px;">
-          Важно: это отдельная страница, ЛК не ломает.
-        </div>
+        <div class="hint" style="margin-top:10px;">Важно: это отдельная страница, ЛК не ломает.</div>
       </div>
 
-      <!-- ADMIN SHELL -->
+      <!-- ADMIN -->
       <div id="adminShell" class="card" style="display:none;">
         <div class="panelTitle">
           <h2>Карточка партнёра</h2>
@@ -267,29 +268,45 @@
           <div id="view-passive" class="view">
             <div class="empty">
               <b>Пассивный доход</b><br/>
-              MVP: читаем из snapshot: <code>passive_goal</code> и <code>passive_objects</code>.
+              Читаем из snapshot: <code>financial_goal</code> и <code>passive_objects</code>.
+              Ниже — общая статистика целей по всем партнёрам.
             </div>
 
             <div class="kpi">
               <div class="box">
-                <div class="k">Цель</div>
-                <div class="v" id="passiveGoal">—</div>
-                <div class="hint" id="passiveGoalHint" style="margin-top:6px;">Поле: <code>payload.passive_goal</code></div>
+                <div class="k">Financial goal ($)</div>
+                <div class="v" id="financialGoal">—</div>
+                <div class="hint" id="financialGoalHint" style="margin-top:6px;">Поле: <code>payload.financial_goal</code></div>
               </div>
               <div class="box">
-                <div class="k">Текущий капитал</div>
+                <div class="k">Current equity ($)</div>
                 <div class="v" id="passiveEquity">—</div>
                 <div class="hint" style="margin-top:6px;">Берём из <code>payload.equity</code></div>
               </div>
               <div class="box">
-                <div class="k">Объектов</div>
+                <div class="k">Objects</div>
                 <div class="v" id="passiveCount">—</div>
                 <div class="hint" style="margin-top:6px;">Поле: <code>payload.passive_objects</code></div>
               </div>
             </div>
 
-            <div id="passiveBox" class="empty" style="margin-top:10px;">Открой вкладку — данные загрузятся.</div>
+            <div id="passiveObjectsBox" class="empty" style="margin-top:10px;">Открой вкладку — данные загрузятся.</div>
             <div id="passiveMsg" class="msg" style="margin-top:10px;"></div>
+
+            <div class="divider"></div>
+
+            <div class="panelTitle">
+              <h2>Статистика целей партнёров</h2>
+              <span class="meta" id="goalsMeta">—</span>
+            </div>
+
+            <div class="miniTools">
+              <button id="refreshGoalsBtn" class="btn secondary smallBtn">Обновить таблицу целей</button>
+              <span class="hint">Берём последний snapshot каждого партнёра. Для 20–50 людей ок.</span>
+            </div>
+
+            <div id="goalsBox" class="empty" style="margin-top:10px;">Нажми “Обновить таблицу целей”.</div>
+            <div id="goalsMsg" class="msg" style="margin-top:10px;"></div>
           </div>
 
           <!-- STATS -->
@@ -302,7 +319,7 @@
         </div>
       </div>
 
-      <!-- ACCESS DENIED -->
+      <!-- DENY -->
       <div id="denyCard" class="card" style="display:none;">
         <div class="panelTitle">
           <h2>Доступ запрещён</h2>
@@ -342,7 +359,6 @@
 
     const emailEl = document.getElementById("email");
     const passEl = document.getElementById("password");
-
     const loginMsg = document.getElementById("loginMsg");
     const denyMsg  = document.getElementById("denyMsg");
 
@@ -363,15 +379,22 @@
     const calcResult = document.getElementById("calcResult");
 
     // Passive refs
-    const passiveGoal = document.getElementById("passiveGoal");
-    const passiveGoalHint = document.getElementById("passiveGoalHint");
+    const financialGoal = document.getElementById("financialGoal");
+    const financialGoalHint = document.getElementById("financialGoalHint");
     const passiveEquity = document.getElementById("passiveEquity");
     const passiveCount = document.getElementById("passiveCount");
-    const passiveBox = document.getElementById("passiveBox");
+    const passiveObjectsBox = document.getElementById("passiveObjectsBox");
     const passiveMsg = document.getElementById("passiveMsg");
 
-    // State: последний snapshot выбранного партнёра
-    let currentSnapshot = null; // { payload, updated_at }
+    // Goals stats refs
+    const refreshGoalsBtn = document.getElementById("refreshGoalsBtn");
+    const goalsBox = document.getElementById("goalsBox");
+    const goalsMsg = document.getElementById("goalsMsg");
+    const goalsMeta = document.getElementById("goalsMeta");
+
+    // State
+    let currentSnapshot = null; // latest snapshot for selected partner
+    let partnersCache = [];     // profiles list [{user_id,email,name,created_at}]
 
     function setMsg(text, type = "") {
       if (loginMsg) {
@@ -454,13 +477,9 @@
       const { fee, eligible } = computeFee(equity, exitToggle.checked);
       calcFee.textContent = fee ? formatMoney(fee) : "0";
 
-      if (!eligible) {
-        calcFeeHint.textContent = "Комиссия не активна: equity < 5000.";
-      } else if (!exitToggle.checked) {
-        calcFeeHint.textContent = "Комиссия готова, но “выходим” выключен.";
-      } else {
-        calcFeeHint.textContent = "Комиссия начисляется (10% от equity).";
-      }
+      if (!eligible) calcFeeHint.textContent = "Комиссия не активна: equity < 5000.";
+      else if (!exitToggle.checked) calcFeeHint.textContent = "Комиссия готова, но “выходим” выключен.";
+      else calcFeeHint.textContent = "Комиссия начисляется (10% от equity).";
 
       const upd = currentSnapshot?.updated_at ? new Date(currentSnapshot.updated_at).toLocaleString() : "—";
       calcStatus.textContent = "snapshot: " + upd;
@@ -474,7 +493,6 @@
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-
       return { data, error };
     }
 
@@ -515,10 +533,7 @@
 
       const { data, error } = await fetchLatestSnapshot(userId);
 
-      if (error) {
-        box.textContent = "Ошибка чтения: " + error.message;
-        return;
-      }
+      if (error) { box.textContent = "Ошибка чтения: " + error.message; return; }
       if (!data) {
         box.textContent = "Snapshot не найден.";
         const lastUpdate = document.getElementById("lastUpdate");
@@ -533,31 +548,22 @@
       const available = p.available ?? "—";
       const assets = Array.isArray(p.assets) ? p.assets : [];
 
-      // KPI: безопасно приводим pnl к числу (и строки тоже)
       const toNum = (v) => {
         if (v === null || v === undefined) return 0;
         const n = Number(String(v).replace(",", "."));
         return Number.isFinite(n) ? n : 0;
       };
       const totalPnl = assets.reduce((sum, a) => sum + toNum(a?.pnl), 0);
-      const assetsCount = assets.length;
 
-      const rows = assets.map((a) => {
-        const symbol = a?.symbol ?? "—";
-        const side = a?.side ?? "—";
-        const qty = a?.qty ?? "—";
-        const entry = a?.entry ?? "—";
-        const pnl = a?.pnl ?? "—";
-        return `
-          <tr>
-            <td>${symbol}</td>
-            <td>${side}</td>
-            <td style="text-align:right;">${qty}</td>
-            <td style="text-align:right;">${entry}</td>
-            <td style="text-align:right;">${pnl}</td>
-          </tr>
-        `;
-      }).join("");
+      const rows = assets.map((a) => `
+        <tr>
+          <td>${a?.symbol ?? "—"}</td>
+          <td>${a?.side ?? "—"}</td>
+          <td class="num">${a?.qty ?? "—"}</td>
+          <td class="num">${a?.entry ?? "—"}</td>
+          <td class="num">${a?.pnl ?? "—"}</td>
+        </tr>
+      `).join("");
 
       const table = assets.length
         ? `
@@ -567,9 +573,9 @@
                 <tr>
                   <th>Symbol</th>
                   <th>Side</th>
-                  <th style="text-align:right;">Qty</th>
-                  <th style="text-align:right;">Entry</th>
-                  <th style="text-align:right;">PnL</th>
+                  <th class="num">Qty</th>
+                  <th class="num">Entry</th>
+                  <th class="num">PnL</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
@@ -582,7 +588,7 @@
         <div class="kpi" style="margin-top:6px;">
           <div class="box">
             <div class="k">Активов</div>
-            <div class="v">${assetsCount}</div>
+            <div class="v">${assets.length}</div>
           </div>
           <div class="box">
             <div class="k">Total PnL</div>
@@ -605,25 +611,76 @@
       if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
     }
 
+    function renderPassiveObjects(objs, updatedAt) {
+      if (!Array.isArray(objs) || !objs.length) {
+        passiveObjectsBox.innerHTML = `
+          <div class="empty">
+            Объекты не заданы.<br/><br/>
+            Пример, что добавить в <code>payload</code>:
+            <pre style="margin-top:10px;white-space:pre-wrap;opacity:.9;">{
+  "financial_goal": 250000,
+  "passive_objects": [
+    { "name": "Апартаменты Дубай", "price": 150000, "status": "selected" },
+    { "name": "Студия СПб", "price": 60000, "status": "bought" }
+  ]
+}</pre>
+          </div>
+        `;
+        return;
+      }
+
+      const rows = objs.map((o) => {
+        const name = o?.name ?? "—";
+        const price = o?.price ?? "—";
+        const statusRaw = (o?.status ?? "—").toString().toLowerCase();
+        const statusBadge =
+          statusRaw === "bought" ? `<span class="badge ok">Куплен</span>` :
+          statusRaw === "selected" ? `<span class="badge">Выбран</span>` :
+          `<span class="badge">${o?.status ?? "—"}</span>`;
+        return `
+          <tr>
+            <td>${name}</td>
+            <td class="num">${formatMoney(price)}</td>
+            <td>${statusBadge}</td>
+          </tr>
+        `;
+      }).join("");
+
+      passiveObjectsBox.innerHTML = `
+        <table style="margin-top:10px;">
+          <thead>
+            <tr>
+              <th>Объект</th>
+              <th class="num">Цена</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="opacity:.6;font-size:12px;margin-top:10px;">
+          Updated: ${updatedAt ? new Date(updatedAt).toLocaleString() : "—"}
+        </div>
+      `;
+    }
+
     async function loadPassiveForPartner(userId) {
       passiveMsg.textContent = "";
       passiveMsg.className = "msg";
-
-      passiveBox.textContent = "Загрузка…";
+      passiveObjectsBox.textContent = "Загрузка…";
 
       const { data, error } = await fetchLatestSnapshot(userId);
 
       if (error) {
-        passiveBox.textContent = "Ошибка чтения snapshot: " + error.message;
+        passiveObjectsBox.textContent = "Ошибка чтения snapshot: " + error.message;
         passiveMsg.textContent = "";
         passiveMsg.className = "msg err";
         return;
       }
       if (!data) {
-        passiveBox.textContent = "Snapshot не найден.";
+        passiveObjectsBox.textContent = "Snapshot не найден.";
         passiveMsg.textContent = "Добавь snapshot партнёру в deal_stats_snapshot.";
         passiveMsg.className = "msg warn";
-        passiveGoal.textContent = "—";
+        financialGoal.textContent = "—";
         passiveEquity.textContent = "—";
         passiveCount.textContent = "—";
         return;
@@ -633,76 +690,21 @@
 
       const p = data.payload || {};
       const equity = p.equity ?? "—";
-      const goal = p.passive_goal ?? "—";
+      const goal = p.financial_goal ?? null;
       const objs = Array.isArray(p.passive_objects) ? p.passive_objects : [];
 
-      passiveGoal.textContent = (typeof goal === "number") ? formatMoney(goal) : String(goal);
       passiveEquity.textContent = formatMoney(equity);
       passiveCount.textContent = String(objs.length);
 
-      // если цели нет — подсказка как заполнять
-      if (goal === "—") {
-        passiveGoalHint.textContent = "Нет passive_goal в snapshot. Можно добавить в payload.";
+      if (goal === null || goal === undefined || goal === "") {
+        financialGoal.textContent = "—";
+        financialGoalHint.textContent = "Нет financial_goal в snapshot. Добавь payload.financial_goal (USD).";
       } else {
-        passiveGoalHint.textContent = "Поле: payload.passive_goal";
+        financialGoal.textContent = formatMoney(goal);
+        financialGoalHint.textContent = "Поле: payload.financial_goal";
       }
 
-      if (!objs.length) {
-        passiveBox.innerHTML = `
-          <div class="empty">
-            Объекты не заданы.<br/><br/>
-            Пример, что добавить в <code>payload</code>:
-            <pre style="margin-top:10px;white-space:pre-wrap;opacity:.9;">{
-  "passive_goal": "Купить 2 объекта",
-  "passive_objects": [
-    { "name": "Апартаменты Дубай", "price": 150000, "status": "selected" },
-    { "name": "Студия СПб", "price": 60000, "status": "bought" }
-  ]
-}</pre>
-          </div>
-        `;
-      } else {
-        const rows = objs.map((o) => {
-          const name = o?.name ?? "—";
-          const price = o?.price ?? "—";
-          const statusRaw = (o?.status ?? "—").toString().toLowerCase();
-
-          const statusLabel =
-            statusRaw === "bought" ? "Куплен" :
-            statusRaw === "selected" ? "Выбран" :
-            statusRaw === "planned" ? "План" :
-            (o?.status ?? "—");
-
-          const statusBadge =
-            statusRaw === "bought" ? `<span class="badge ok">Куплен</span>` :
-            statusRaw === "selected" ? `<span class="badge">Выбран</span>` :
-            `<span class="badge">${statusLabel}</span>`;
-
-          return `
-            <tr>
-              <td>${name}</td>
-              <td style="text-align:right;">${formatMoney(price)}</td>
-              <td>${statusBadge}</td>
-            </tr>
-          `;
-        }).join("");
-
-        passiveBox.innerHTML = `
-          <table style="margin-top:10px;">
-            <thead>
-              <tr>
-                <th>Объект</th>
-                <th style="text-align:right;">Цена</th>
-                <th>Статус</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-          <div style="opacity:.6;font-size:12px;margin-top:10px;">
-            Updated: ${new Date(data.updated_at).toLocaleString()}
-          </div>
-        `;
-      }
+      renderPassiveObjects(objs, data.updated_at);
 
       const lastUpdate = document.getElementById("lastUpdate");
       if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
@@ -711,6 +713,7 @@
     function setPartner(userId) {
       currentPartnerId = userId || null;
       currentSnapshot = null;
+
       calcResult.textContent = "";
       calcResult.className = "msg";
 
@@ -747,14 +750,15 @@
         return;
       }
 
-      const rows = Array.isArray(data) ? data : [];
-      if (!rows.length) {
+      partnersCache = Array.isArray(data) ? data : [];
+
+      if (!partnersCache.length) {
         partnerSelect.innerHTML = `<option value="">Партнёров нет</option>`;
         partnerSelect.disabled = true;
         return;
       }
 
-      partnerSelect.innerHTML = rows.map(p => {
+      partnerSelect.innerHTML = partnersCache.map(p => {
         const label = (p.name || p.email || p.user_id).toString();
         return `<option value="${p.user_id}">${label}</option>`;
       }).join("");
@@ -764,7 +768,7 @@
       const { data: sess } = await sb.auth.getSession();
       const me = sess?.session?.user?.id;
 
-      const defaultId = rows.find(p => p.user_id === me)?.user_id || rows[0].user_id;
+      const defaultId = partnersCache.find(p => p.user_id === me)?.user_id || partnersCache[0].user_id;
       partnerSelect.value = defaultId;
       setPartner(defaultId);
     }
@@ -832,6 +836,104 @@
       calcResult.className = "msg ok";
     });
 
+    // Goals stats: load latest snapshot for each partner (client-side)
+    async function loadGoalsStats() {
+      goalsMsg.textContent = "";
+      goalsMsg.className = "msg";
+      goalsBox.textContent = "Загрузка целей…";
+
+      const list = partnersCache || [];
+      if (!list.length) {
+        goalsBox.textContent = "Партнёров нет (profiles пуст).";
+        return;
+      }
+
+      const startedAt = Date.now();
+
+      const results = [];
+      let ok = 0, miss = 0, err = 0;
+
+      // последовательная загрузка = надёжнее (и меньше шанс словить лимиты)
+      for (const p of list) {
+        const label = (p.name || p.email || p.user_id).toString();
+        const { data, error } = await fetchLatestSnapshot(p.user_id);
+
+        if (error) {
+          err++;
+          results.push({
+            label, goal: null, equity: null, objects: null, updated_at: null,
+            error: error.message
+          });
+          continue;
+        }
+        if (!data) {
+          miss++;
+          results.push({
+            label, goal: null, equity: null, objects: 0, updated_at: null,
+            error: "no snapshot"
+          });
+          continue;
+        }
+
+        ok++;
+        const payload = data.payload || {};
+        const goal = payload.financial_goal ?? null;
+        const equity = payload.equity ?? null;
+        const objects = Array.isArray(payload.passive_objects) ? payload.passive_objects.length : 0;
+
+        results.push({
+          label, goal, equity, objects, updated_at: data.updated_at,
+          error: null
+        });
+      }
+
+      // sort: goal desc, then equity desc
+      results.sort((a,b) => (Number(b.goal||0) - Number(a.goal||0)) || (Number(b.equity||0) - Number(a.equity||0)));
+
+      const rows = results.map(r => {
+        const goalText = (r.goal === null || r.goal === undefined) ? "—" : formatMoney(r.goal);
+        const equityText = (r.equity === null || r.equity === undefined) ? "—" : formatMoney(r.equity);
+        const updText = r.updated_at ? new Date(r.updated_at).toLocaleString() : "—";
+        return `
+          <tr>
+            <td>${r.label}</td>
+            <td class="num">${goalText}</td>
+            <td class="num">${equityText}</td>
+            <td class="num">${r.objects ?? "—"}</td>
+            <td>${updText}</td>
+          </tr>
+        `;
+      }).join("");
+
+      goalsBox.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Партнёр</th>
+              <th class="num">Financial goal ($)</th>
+              <th class="num">Equity ($)</th>
+              <th class="num">Objects</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+
+      const ms = Date.now() - startedAt;
+      goalsMeta.textContent = `ok: ${ok}, no snapshot: ${miss}, errors: ${err}, time: ${ms}ms`;
+
+      if (miss > 0) {
+        goalsMsg.textContent = `У ${miss} партнёров нет snapshot — они не попадут в нормальную статистику, пока не появится запись в deal_stats_snapshot.`;
+        goalsMsg.className = "msg warn";
+      } else {
+        goalsMsg.textContent = "Готово.";
+        goalsMsg.className = "msg ok";
+      }
+    }
+
+    refreshGoalsBtn.addEventListener("click", loadGoalsStats);
+
     async function boot() {
       setMsg("");
 
@@ -873,45 +975,42 @@
 
     document.getElementById("loginBtn").addEventListener("click", async () => {
       try {
-        setMsg("Входим…");
+        loginMsg.className = "msg";
+        loginMsg.textContent = "Входим…";
 
         const email = emailEl.value.trim();
         const password = passEl.value;
 
         const { data, error } = await loginWithTimeout(email, password);
 
-        if (error) {
-          setMsg("Ошибка входа: " + error.message, "err");
-          return;
-        }
+        if (error) { loginMsg.textContent = "Ошибка входа: " + error.message; loginMsg.className = "msg err"; return; }
+        if (!data?.session) { loginMsg.textContent = "Сессия не создалась. Проверь ключи SUPABASE_URL/ANON_KEY."; loginMsg.className = "msg err"; return; }
 
-        if (!data?.session) {
-          setMsg("Сессия не создалась. Проверь ключи SUPABASE_URL/ANON_KEY.", "err");
-          return;
-        }
-
-        setMsg("Успешный вход", "ok");
+        loginMsg.textContent = "Успешный вход";
+        loginMsg.className = "msg ok";
         await boot();
       } catch (e) {
-        setMsg("Ошибка: " + (e?.message || e), "err");
+        loginMsg.textContent = "Ошибка: " + (e?.message || e);
+        loginMsg.className = "msg err";
       }
     });
 
     document.getElementById("signupBtn").addEventListener("click", async () => {
       try {
-        setMsg("Регистрируем…");
+        loginMsg.className = "msg";
+        loginMsg.textContent = "Регистрируем…";
 
         const email = emailEl.value.trim();
         const password = passEl.value;
 
         const { error } = await sb.auth.signUp({ email, password });
-        if (error) {
-          setMsg("Ошибка регистрации: " + error.message, "err");
-          return;
-        }
-        setMsg("Аккаунт создан. Теперь нажмите “Войти”.", "ok");
+        if (error) { loginMsg.textContent = "Ошибка регистрации: " + error.message; loginMsg.className = "msg err"; return; }
+
+        loginMsg.textContent = "Аккаунт создан. Теперь нажмите “Войти”.";
+        loginMsg.className = "msg ok";
       } catch (e) {
-        setMsg("Ошибка: " + (e?.message || e), "err");
+        loginMsg.textContent = "Ошибка: " + (e?.message || e);
+        loginMsg.className = "msg err";
       }
     });
 
