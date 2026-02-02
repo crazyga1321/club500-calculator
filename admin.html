@@ -132,6 +132,7 @@
     thead tr{background:rgba(255,255,255,.03);}
     th{ text-align:left; padding:10px; font-size:12px; color:rgba(154,167,189,.9);}
     td{ padding:10px;border-top:1px solid rgba(255,255,255,.06);}
+    code{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
   </style>
 </head>
 
@@ -140,7 +141,7 @@
     <div class="topbar">
       <div class="brand">
         <div class="t">CLUB500 — Admin</div>
-        <div class="s">Выбор партнёра + сделки (KPI) + калькулятор</div>
+        <div class="s">Выбор партнёра + калькулятор + сделки (KPI) + пассивный доход</div>
       </div>
       <div class="right">
         <span id="authPill" class="pill">Не в системе</span>
@@ -265,16 +266,37 @@
           <!-- PASSIVE -->
           <div id="view-passive" class="view">
             <div class="empty">
-              <b>Пассивный доход (каркас)</b><br/>
-              Read-only для админа. Редактирует только партнёр.
+              <b>Пассивный доход</b><br/>
+              MVP: читаем из snapshot: <code>passive_goal</code> и <code>passive_objects</code>.
             </div>
+
+            <div class="kpi">
+              <div class="box">
+                <div class="k">Цель</div>
+                <div class="v" id="passiveGoal">—</div>
+                <div class="hint" id="passiveGoalHint" style="margin-top:6px;">Поле: <code>payload.passive_goal</code></div>
+              </div>
+              <div class="box">
+                <div class="k">Текущий капитал</div>
+                <div class="v" id="passiveEquity">—</div>
+                <div class="hint" style="margin-top:6px;">Берём из <code>payload.equity</code></div>
+              </div>
+              <div class="box">
+                <div class="k">Объектов</div>
+                <div class="v" id="passiveCount">—</div>
+                <div class="hint" style="margin-top:6px;">Поле: <code>payload.passive_objects</code></div>
+              </div>
+            </div>
+
+            <div id="passiveBox" class="empty" style="margin-top:10px;">Открой вкладку — данные загрузятся.</div>
+            <div id="passiveMsg" class="msg" style="margin-top:10px;"></div>
           </div>
 
           <!-- STATS -->
           <div id="view-stats" class="view">
             <div class="empty">
               <b>Статистика (каркас)</b><br/>
-              Read-only для админа: годовой доход + FACT USD/RUB.
+              Следующий шаг: годовой доход + FACT USD/RUB.
             </div>
           </div>
         </div>
@@ -340,6 +362,14 @@
     const calcStatus = document.getElementById("calcStatus");
     const calcResult = document.getElementById("calcResult");
 
+    // Passive refs
+    const passiveGoal = document.getElementById("passiveGoal");
+    const passiveGoalHint = document.getElementById("passiveGoalHint");
+    const passiveEquity = document.getElementById("passiveEquity");
+    const passiveCount = document.getElementById("passiveCount");
+    const passiveBox = document.getElementById("passiveBox");
+    const passiveMsg = document.getElementById("passiveMsg");
+
     // State: последний snapshot выбранного партнёра
     let currentSnapshot = null; // { payload, updated_at }
 
@@ -392,6 +422,7 @@
       if (currentPartnerId) {
         if (key === "deals") await loadDealsForPartner(currentPartnerId);
         if (key === "calc") await loadCalcForPartner(currentPartnerId);
+        if (key === "passive") await loadPassiveForPartner(currentPartnerId);
       }
     });
 
@@ -574,6 +605,109 @@
       if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
     }
 
+    async function loadPassiveForPartner(userId) {
+      passiveMsg.textContent = "";
+      passiveMsg.className = "msg";
+
+      passiveBox.textContent = "Загрузка…";
+
+      const { data, error } = await fetchLatestSnapshot(userId);
+
+      if (error) {
+        passiveBox.textContent = "Ошибка чтения snapshot: " + error.message;
+        passiveMsg.textContent = "";
+        passiveMsg.className = "msg err";
+        return;
+      }
+      if (!data) {
+        passiveBox.textContent = "Snapshot не найден.";
+        passiveMsg.textContent = "Добавь snapshot партнёру в deal_stats_snapshot.";
+        passiveMsg.className = "msg warn";
+        passiveGoal.textContent = "—";
+        passiveEquity.textContent = "—";
+        passiveCount.textContent = "—";
+        return;
+      }
+
+      currentSnapshot = data;
+
+      const p = data.payload || {};
+      const equity = p.equity ?? "—";
+      const goal = p.passive_goal ?? "—";
+      const objs = Array.isArray(p.passive_objects) ? p.passive_objects : [];
+
+      passiveGoal.textContent = (typeof goal === "number") ? formatMoney(goal) : String(goal);
+      passiveEquity.textContent = formatMoney(equity);
+      passiveCount.textContent = String(objs.length);
+
+      // если цели нет — подсказка как заполнять
+      if (goal === "—") {
+        passiveGoalHint.textContent = "Нет passive_goal в snapshot. Можно добавить в payload.";
+      } else {
+        passiveGoalHint.textContent = "Поле: payload.passive_goal";
+      }
+
+      if (!objs.length) {
+        passiveBox.innerHTML = `
+          <div class="empty">
+            Объекты не заданы.<br/><br/>
+            Пример, что добавить в <code>payload</code>:
+            <pre style="margin-top:10px;white-space:pre-wrap;opacity:.9;">{
+  "passive_goal": "Купить 2 объекта",
+  "passive_objects": [
+    { "name": "Апартаменты Дубай", "price": 150000, "status": "selected" },
+    { "name": "Студия СПб", "price": 60000, "status": "bought" }
+  ]
+}</pre>
+          </div>
+        `;
+      } else {
+        const rows = objs.map((o) => {
+          const name = o?.name ?? "—";
+          const price = o?.price ?? "—";
+          const statusRaw = (o?.status ?? "—").toString().toLowerCase();
+
+          const statusLabel =
+            statusRaw === "bought" ? "Куплен" :
+            statusRaw === "selected" ? "Выбран" :
+            statusRaw === "planned" ? "План" :
+            (o?.status ?? "—");
+
+          const statusBadge =
+            statusRaw === "bought" ? `<span class="badge ok">Куплен</span>` :
+            statusRaw === "selected" ? `<span class="badge">Выбран</span>` :
+            `<span class="badge">${statusLabel}</span>`;
+
+          return `
+            <tr>
+              <td>${name}</td>
+              <td style="text-align:right;">${formatMoney(price)}</td>
+              <td>${statusBadge}</td>
+            </tr>
+          `;
+        }).join("");
+
+        passiveBox.innerHTML = `
+          <table style="margin-top:10px;">
+            <thead>
+              <tr>
+                <th>Объект</th>
+                <th style="text-align:right;">Цена</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <div style="opacity:.6;font-size:12px;margin-top:10px;">
+            Updated: ${new Date(data.updated_at).toLocaleString()}
+          </div>
+        `;
+      }
+
+      const lastUpdate = document.getElementById("lastUpdate");
+      if (lastUpdate) lastUpdate.value = new Date(data.updated_at).toLocaleString();
+    }
+
     function setPartner(userId) {
       currentPartnerId = userId || null;
       currentSnapshot = null;
@@ -590,6 +724,7 @@
       if (currentPartnerId) {
         if (active === "deals") loadDealsForPartner(currentPartnerId);
         if (active === "calc") loadCalcForPartner(currentPartnerId);
+        if (active === "passive") loadPassiveForPartner(currentPartnerId);
       }
     }
 
