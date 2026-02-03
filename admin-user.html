@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CLUB500 — Admin / User</title>
+  <style>
+    :root{
+      --bg:#020617; --panel:rgba(2,6,23,.72); --border:rgba(148,163,184,.18);
+      --text:rgba(226,232,240,.95); --muted:rgba(148,163,184,.95);
+    }
+    html,body{height:100%;}
+    body{margin:0;background:radial-gradient(1200px 700px at 20% 0%, rgba(56,189,248,.10), transparent 55%),
+                     radial-gradient(1000px 600px at 80% 20%, rgba(167,139,250,.10), transparent 55%),
+                     var(--bg);
+         color:var(--text); font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 14px;}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+    .btn{height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--border);
+         background:rgba(2,6,23,.35);color:var(--text);font-weight:900;cursor:pointer}
+    .btn.primary{border-color:rgba(34,211,238,.28);background:rgba(34,211,238,.10)}
+    .card{border:1px solid var(--border);background:var(--panel);border-radius:18px;padding:14px;box-shadow:0 24px 80px rgba(0,0,0,.45);margin-bottom:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .k{color:var(--muted);font-size:12px;font-weight:800}
+    .v{font-weight:950}
+    table{width:100%;border-collapse:separate;border-spacing:0;border-radius:14px;overflow:hidden}
+    th,td{padding:10px 10px;border-bottom:1px solid rgba(148,163,184,.12);text-align:left;vertical-align:top}
+    th{color:var(--muted);font-size:12px;font-weight:800;background:rgba(2,6,23,.35)}
+    tr:hover td{background:rgba(148,163,184,.04)}
+    .small{font-size:12px;color:var(--muted)}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
+    .pill.ok{border-color:rgba(34,211,238,.28);color:rgba(226,232,240,.95);background:rgba(34,211,238,.08)}
+    .pill.bad{border-color:rgba(248,113,113,.28);color:rgba(226,232,240,.95);background:rgba(248,113,113,.08)}
+    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;
+             background:rgba(2,6,23,.86);backdrop-filter:blur(10px)}
+    .modal{max-width:520px;width:calc(100% - 28px);border-radius:18px;border:1px solid rgba(148,163,184,.22);
+           background:rgba(2,6,23,.72);padding:16px;box-shadow:0 24px 80px rgba(0,0,0,.55)}
+    a{color:rgba(56,189,248,.95);text-decoration:none;font-weight:900}
+  </style>
+</head>
+<body>
+<div class="overlay" id="gate">
+  <div class="modal">
+    <b id="gateTitle">Проверка доступа…</b>
+    <div id="gateMsg" class="small" style="margin-top:8px">Ожидаю авторизацию.</div>
+    <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn" id="btnBack" type="button" style="display:none">Назад</button>
+      <button class="btn primary" id="btnLogin" type="button" style="display:none">Войти</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div style="font-weight:950;font-size:16px">CLUB500 — Admin / User</div>
+      <div class="small" id="userIdLine"></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" id="btnUsers" type="button">Все пользователи</button>
+      <button class="btn" id="btnLogout" type="button">Выйти</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div style="font-weight:950;margin-bottom:10px">Профиль</div>
+      <div class="small" id="profileHint">Загрузка…</div>
+      <div id="profileBox" style="margin-top:10px;display:grid;gap:10px"></div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:950;margin-bottom:10px">Капитал / Цикл</div>
+      <div class="small" id="accountsHint">Загрузка…</div>
+      <div id="accountsBox" style="margin-top:10px;display:grid;gap:10px"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:950;margin-bottom:10px">Статистика (snapshot)</div>
+    <div class="small" id="statsHint">Загрузка…</div>
+    <pre id="statsPre" class="small" style="white-space:pre-wrap;margin:0"></pre>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:950;margin-bottom:10px">Пассивные активы (PRO)</div>
+    <div class="small" id="passiveHint">Загрузка…</div>
+    <pre id="passivePre" class="small" style="white-space:pre-wrap;margin:0"></pre>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div style="font-weight:950">Сделки (trades)</div>
+      <button class="btn primary" id="btnExport" type="button">Экспорт CSV</button>
+    </div>
+    <div class="small" id="tradesHint" style="margin-top:8px">Загрузка…</div>
+
+    <div style="overflow:auto;margin-top:10px">
+      <table>
+        <thead>
+          <tr>
+            <th>Дата</th><th>Asset</th><th>Entry</th><th>Exit</th><th>PNL</th><th>%</th>
+          </tr>
+        </thead>
+        <tbody id="tradesBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const $ = (id)=>document.getElementById(id);
+  const gate = $("gate"), gateTitle = $("gateTitle"), gateMsg = $("gateMsg");
+  const btnLogin = $("btnLogin"), btnBack = $("btnBack");
+  const btnUsers = $("btnUsers"), btnLogout = $("btnLogout"), btnExport = $("btnExport");
+  const userIdLine = $("userIdLine");
+
+  const profileBox = $("profileBox"), profileHint = $("profileHint");
+  const accountsBox = $("accountsBox"), accountsHint = $("accountsHint");
+  const statsPre = $("statsPre"), statsHint = $("statsHint");
+  const passivePre = $("passivePre"), passiveHint = $("passiveHint");
+  const tradesBody = $("tradesBody"), tradesHint = $("tradesHint");
+
+  function showGate(title, msg, mode){
+    gate.style.display = "flex";
+    gateTitle.textContent = title;
+    gateMsg.textContent = msg || "";
+    btnLogin.style.display = mode === "login" ? "inline-flex" : "none";
+    btnBack.style.display = mode === "back" ? "inline-flex" : "none";
+  }
+  function hideGate(){ gate.style.display = "none"; }
+
+  function fmtTs(ts){
+    if(!ts) return "";
+    try{ return new Date(ts).toLocaleString(); }catch(_){ return String(ts); }
+  }
+  function esc(s){
+    return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  }
+  function kv(k,v){
+    return `<div><div class="k">${esc(k)}</div><div class="v">${esc(v ?? "")}</div></div>`;
+  }
+  function num(x){
+    if(x===null || x===undefined || x==="") return "";
+    const n = Number(x);
+    if(Number.isFinite(n)) return n.toLocaleString(undefined,{maximumFractionDigits:2});
+    return String(x);
+  }
+
+  function getParam(name){
+    const u = new URL(window.location.href);
+    return u.searchParams.get(name);
+  }
+  const targetUserId = getParam("id") || "";
+  userIdLine.textContent = targetUserId ? ("user_id: " + targetUserId) : "user_id не указан (?id=...)";
+
+  async function requireAdmin(){
+    showGate("Проверка доступа…", "Ожидаю авторизацию.", null);
+
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session?.user){
+      showGate("Нужен вход", "Ты не авторизован. Войди в ЛК, затем вернись в админку.", "login");
+      return { ok:false };
+    }
+
+    const { data: prof, error } = await sb
+      .from("profiles")
+      .select("is_admin,email")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+
+    if(error){
+      showGate("Ошибка", "Не могу прочитать профиль: " + error.message, "back");
+      return { ok:false };
+    }
+    if(!prof?.is_admin){
+      showGate("Нет доступа", "Этот аккаунт не администратор.", "back");
+      return { ok:false };
+    }
+
+    hideGate();
+    return { ok:true, me: session.user };
+  }
+
+  async function loadAll(){
+    if(!targetUserId){
+      profileHint.textContent = "Нужно открыть страницу с параметром ?id=USER_ID";
+      accountsHint.textContent = "";
+      statsHint.textContent = "";
+      passiveHint.textContent = "";
+      tradesHint.textContent = "";
+      btnExport.disabled = true;
+      return;
+    }
+
+    // NOTE: Because of RLS, direct reads for other users will fail until we add Edge Functions.
+    // We still implement the UI now; once functions are added, we switch calls to /functions.
+    // For now, show friendly messages if blocked.
+
+    // Profile
+    profileHint.textContent = "Загрузка…";
+    const profRes = await sb.from("profiles")
+      .select("user_id,email,name,plan,is_admin,created_at,updated_at")
+      .eq("user_id", targetUserId)
+      .maybeSingle();
+    if(profRes.error){
+      profileHint.textContent = "Недоступно (нужна admin function).";
+      profileBox.innerHTML = `<div class="small">RLS блокирует чтение чужого профиля из браузера. Следующий шаг — Edge Function.</div>`;
+    }else{
+      profileHint.textContent = "";
+      const p = profRes.data || {};
+      profileBox.innerHTML = [
+        kv("Email", p.email||""),
+        kv("Name", p.name||""),
+        kv("Plan", p.plan||""),
+        kv("is_admin", String(!!p.is_admin)),
+        kv("Created", fmtTs(p.created_at)),
+        kv("Updated", fmtTs(p.updated_at)),
+      ].join("");
+    }
+
+    // Accounts
+    accountsHint.textContent = "Загрузка…";
+    const accRes = await sb.from("accounts")
+      .select("start_capital,current_capital,end_capital,cycle_start_ts,cycle_end_ts,updated_at")
+      .eq("user_id", targetUserId)
+      .maybeSingle();
+    if(accRes.error){
+      accountsHint.textContent = "Недоступно или ещё нет данных (нужна синхронизация).";
+      accountsBox.innerHTML = `<div class="small">Если синхронизация из ЛК ещё не подключена, тут будет пусто. Если подключена — но всё равно недоступно: нужен Edge Function.</div>`;
+    }else{
+      accountsHint.textContent = "";
+      const a = accRes.data || {};
+      accountsBox.innerHTML = [
+        kv("Start capital", num(a.start_capital)),
+        kv("Current capital", num(a.current_capital)),
+        kv("End capital", num(a.end_capital)),
+        kv("Cycle start", fmtTs(a.cycle_start_ts)),
+        kv("Cycle end", fmtTs(a.cycle_end_ts)),
+        kv("Updated", fmtTs(a.updated_at)),
+      ].join("");
+    }
+
+    // Stats snapshot
+    statsHint.textContent = "Загрузка…";
+    const stRes = await sb.from("deal_stats_snapshot")
+      .select("payload,updated_at")
+      .eq("user_id", targetUserId)
+      .maybeSingle();
+    if(stRes.error){
+      statsHint.textContent = "Недоступно или ещё нет данных.";
+      statsPre.textContent = "";
+    }else{
+      statsHint.textContent = stRes.data?.updated_at ? ("Updated: " + fmtTs(stRes.data.updated_at)) : "";
+      statsPre.textContent = stRes.data?.payload ? JSON.stringify(stRes.data.payload, null, 2) : "(пусто)";
+    }
+
+    // Passive assets
+    passiveHint.textContent = "Загрузка…";
+    const paRes = await sb.from("passive_assets")
+      .select("payload,updated_at")
+      .eq("user_id", targetUserId)
+      .maybeSingle();
+    if(paRes.error){
+      passiveHint.textContent = "Недоступно или ещё нет данных.";
+      passivePre.textContent = "";
+    }else{
+      passiveHint.textContent = paRes.data?.updated_at ? ("Updated: " + fmtTs(paRes.data.updated_at)) : "";
+      passivePre.textContent = paRes.data?.payload ? JSON.stringify(paRes.data.payload, null, 2) : "[]";
+    }
+
+    // Trades
+    tradesHint.textContent = "Загрузка…";
+    const trRes = await sb.from("trades")
+      .select("ts,asset,entry,exit,pnl,pct")
+      .eq("user_id", targetUserId)
+      .order("ts", { ascending:false })
+      .limit(300);
+    if(trRes.error){
+      tradesHint.textContent = "Недоступно или ещё нет данных.";
+      tradesBody.innerHTML = `<tr><td colspan="6" class="small">RLS/нет данных. Следующий шаг — синхронизация и Edge Function.</td></tr>`;
+      btnExport.disabled = true;
+    }else{
+      const rows = trRes.data || [];
+      tradesHint.textContent = rows.length ? ("Сделок: " + rows.length) : "Пока нет сделок (или не синхронизировано).";
+      tradesBody.innerHTML = rows.length ? rows.map(r=>{
+        return `<tr>
+          <td>${esc(fmtTs(r.ts))}</td>
+          <td>${esc(r.asset||"")}</td>
+          <td>${esc(num(r.entry))}</td>
+          <td>${esc(num(r.exit))}</td>
+          <td>${esc(num(r.pnl))}</td>
+          <td>${esc(num(r.pct))}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="6" class="small">Пусто.</td></tr>`;
+      btnExport.disabled = !rows.length;
+      btnExport._rows = rows;
+    }
+  }
+
+  function exportCSV(){
+    const rows = btnExport._rows || [];
+    if(!rows.length) return;
+
+    const headers = ["ts","asset","entry","exit","pnl","pct"];
+    const lines = [headers.join(",")].concat(rows.map(r=>{
+      return headers.map(h=>{
+        const v = r[h];
+        const s = (v===null||v===undefined) ? "" : String(v);
+        // escape CSV
+        if(/[",\n]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
+        return s;
+      }).join(",");
+    }));
+    const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `trades_${targetUserId.slice(0,8)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
+  }
+
+  btnLogin.addEventListener("click", ()=>{ window.location.href = "index.html"; });
+  btnBack.addEventListener("click", ()=>{ window.location.href = "admin.html"; });
+  btnUsers.addEventListener("click", ()=>{ window.location.href = "admin.html"; });
+  btnLogout.addEventListener("click", async ()=>{
+    await sb.auth.signOut();
+    window.location.href = "index.html";
+  });
+  btnExport.addEventListener("click", exportCSV);
+
+  (async ()=>{
+    const gateRes = await requireAdmin();
+    if(!gateRes.ok) return;
+    await loadAll();
+  })();
+</script>
+</body>
+</html>
