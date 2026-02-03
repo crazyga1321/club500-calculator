@@ -2,199 +2,173 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CLUB500 — Admin</title>
   <style>
     :root{
-      --bg:#0b1220; --card:#0f172a; --muted:#9aa7bd; --text:#e5e7eb;
-      --line:rgba(255,255,255,.10); --ok:#22c55e; --err:#ef4444;
-      --accent:#3b82f6; --accent2:#60a5fa; --shadow:0 16px 40px rgba(0,0,0,.45);
-      --radius:18px;
+      --bg:#0b1220;
+      --card:#0f172a;
+      --muted:#9aa7bd;
+      --line:rgba(255,255,255,.10);
+      --ok:#22c55e;
+      --err:#ef4444;
+      --accent:#3b82f6;
+      --pill:rgba(255,255,255,.07);
     }
-    *{box-sizing:border-box}
+    *{ box-sizing:border-box; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
     body{
-      margin:0; color:var(--text);
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      margin:0;
+      color:#e5e7eb;
       background:
-        radial-gradient(1200px 600px at 20% -10%, rgba(59,130,246,.22) 0%, transparent 60%),
-        radial-gradient(900px 500px at 95% 20%, rgba(96,165,250,.18) 0%, transparent 55%),
-        radial-gradient(800px 500px at 55% 120%, rgba(34,197,94,.10) 0%, transparent 55%),
+        radial-gradient(1200px 600px at 20% -10%, rgba(59,130,246,.25) 0%, transparent 60%),
+        radial-gradient(900px 500px at 95% 20%, rgba(34,197,94,.18) 0%, transparent 55%),
         var(--bg);
       min-height:100vh;
-      padding:32px 18px 60px;
+      padding:32px 16px;
     }
-    .wrap{max-width:1100px;margin:0 auto}
+    .wrap{ max-width:1100px; margin:0 auto; }
     .topbar{
-      display:flex;align-items:center;justify-content:space-between;
-      background:rgba(15,23,42,.70); border:1px solid var(--line);
-      border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow);
-      backdrop-filter:blur(10px);
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:16px 18px; border:1px solid var(--line); border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      box-shadow: 0 12px 50px rgba(0,0,0,.35);
     }
-    .brand{display:flex;flex-direction:column;gap:4px}
-    .brand h1{margin:0;font-size:18px;letter-spacing:.2px}
-    .brand .sub{color:var(--muted);font-size:12px}
-    .right{display:flex;align-items:center;gap:10px}
-    .pill{
-      padding:8px 12px;border-radius:999px;border:1px solid var(--line);
-      color:var(--muted); background:rgba(11,18,32,.45); font-size:12px;
-      max-width:420px; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-    }
-    .badge{
-      padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(34,197,94,.35); background:rgba(34,197,94,.12);
-      color:var(--ok); font-size:12px; font-weight:600; display:none;
-    }
-    .badge.err{
-      border-color:rgba(239,68,68,.35); background:rgba(239,68,68,.10); color:var(--err);
-    }
+    .brand{ font-weight:800; letter-spacing:.2px; }
+    .sub{ color:var(--muted); font-size:13px; margin-top:4px; }
+    .right{ display:flex; align-items:center; gap:10px; }
+    .pill{ font-size:12px; padding:8px 10px; border:1px solid var(--line); border-radius:999px; background:var(--pill); color:var(--muted); }
     .btn{
-      border:1px solid var(--line); background:rgba(11,18,32,.35); color:var(--text);
-      padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:600;
-      transition:.15s ease;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:#e5e7eb;
+      padding:10px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      transition:.15s;
+      font-weight:600;
     }
-    .btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.18)}
-    .btn.primary{
-      background:linear-gradient(135deg, rgba(59,130,246,.95), rgba(96,165,250,.9));
-      border-color:rgba(59,130,246,.55); color:#0b1220;
-    }
-    .btn.secondary{background:rgba(15,23,42,.55)}
-    .btn.small{padding:8px 12px;border-radius:10px;font-size:12px}
-    .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+    .btn:hover{ transform:translateY(-1px); border-color:rgba(255,255,255,.18); }
+    .btn.primary{ background: rgba(59,130,246,.85); border-color: rgba(59,130,246,.35); }
+    .btn.secondary{ background: rgba(255,255,255,.05); }
+    .grid{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top:16px; }
     .card{
-      background:rgba(15,23,42,.70); border:1px solid var(--line);
-      border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(10px);
+      border:1px solid var(--line);
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
       padding:18px;
+      box-shadow: 0 18px 70px rgba(0,0,0,.35);
     }
-    .cardTitle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
-    .cardTitle h2{margin:0;font-size:15px}
-    .meta{color:var(--muted);font-size:12px}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    .field{display:flex;flex-direction:column;gap:6px;min-width:240px;flex:1}
-    label{color:var(--muted);font-size:12px}
-    input,select,textarea{
-      width:100%; padding:12px 12px; border-radius:12px;
-      border:1px solid rgba(255,255,255,.10); background:rgba(11,18,32,.45);
-      color:var(--text); outline:none;
+    .row{ display:grid; grid-template-columns: 1fr 1fr auto auto; gap:12px; align-items:end; }
+    .field label{ display:block; color:var(--muted); font-size:12px; margin-bottom:6px; }
+    .field input, .field select{
+      width:100%;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color:#e5e7eb;
+      padding:12px 12px;
+      border-radius:12px;
+      outline:none;
     }
-    input:focus,select:focus,textarea:focus{border-color:rgba(96,165,250,.55)}
-    .divider{height:1px;background:var(--line);margin:14px 0}
-    .msg{margin-top:10px;font-size:12px;color:var(--muted)}
-    .msg.err{color:var(--err)} .msg.ok{color:var(--ok)}
-    .tabs{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .tab{
-      padding:10px 12px;border-radius:12px;border:1px solid var(--line);
-      color:var(--muted);cursor:pointer;user-select:none;background:rgba(11,18,32,.35);
-      font-weight:600;font-size:13px;transition:.15s ease;
+    .msg{ margin-top:10px; font-size:13px; color:var(--muted); min-height:18px; }
+    .msg.err{ color:var(--err); }
+    .msg.ok{ color:var(--ok); }
+    .tabs{ display:flex; gap:8px; margin-top:14px; }
+    .tab{ padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03); cursor:pointer; color:var(--muted); font-weight:700; font-size:13px; }
+    .tab.active{ color:#fff; border-color: rgba(59,130,246,.45); box-shadow: 0 0 0 4px rgba(59,130,246,.12); }
+    .view{ display:none; margin-top:12px; border-top:1px dashed rgba(255,255,255,.12); padding-top:12px; }
+    .view.active{ display:block; }
+    .kpi{ display:flex; gap:16px; flex-wrap:wrap; color:var(--muted); font-size:13px; }
+    .kpi b{ color:#e5e7eb; }
+    table{ width:100%; border-collapse:collapse; margin-top:10px; overflow:hidden; border-radius:12px; border:1px solid rgba(255,255,255,.10); }
+    th, td{ padding:10px 10px; text-align:left; font-size:13px; border-bottom:1px solid rgba(255,255,255,.06); }
+    th{ color:var(--muted); font-weight:800; background: rgba(255,255,255,.03); }
+    .muted{ color:var(--muted); }
+    .badge{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); font-size:12px; color:var(--muted); }
+    .badge.ok{ color:var(--ok); border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.10); }
+    .badge.err{ color:var(--err); border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.10); }
+    .box{ border:1px dashed rgba(255,255,255,.14); border-radius:12px; padding:12px; background: rgba(0,0,0,.12); }
+    .split{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    @media (max-width: 900px){
+      .row{ grid-template-columns: 1fr; }
+      .split{ grid-template-columns: 1fr; }
+      .right{ flex-wrap:wrap; justify-content:flex-end; }
     }
-    .tab.active{
-      color:var(--text); border-color:rgba(96,165,250,.45);
-      box-shadow:0 0 0 2px rgba(96,165,250,.12) inset;
-    }
-    .view{display:none;margin-top:12px} .view.active{display:block}
-    .kpi{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 12px}
-    .kpi .box{
-      border:1px solid var(--line); border-radius:14px; padding:12px 12px;
-      background:rgba(11,18,32,.35); min-width:220px; flex:1;
-    }
-    .kpi .box .t{color:var(--muted);font-size:12px;margin-bottom:6px}
-    .kpi .box .v{font-size:18px;font-weight:800}
-    table{
-      width:100%; border-collapse:separate; border-spacing:0; overflow:hidden;
-      border:1px solid var(--line); border-radius:14px; background:rgba(11,18,32,.28);
-    }
-    th,td{padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;text-align:left}
-    th{color:var(--muted);font-weight:700;background:rgba(15,23,42,.45)}
-    tr:last-child td{border-bottom:none}
-    .muted{color:var(--muted)}
-    .hint{color:var(--muted);font-size:12px;line-height:1.35}
-    .switch{
-      display:flex;align-items:center;gap:10px;
-      padding:10px 12px;border-radius:14px;border:1px solid var(--line);
-      background:rgba(11,18,32,.35);width:max-content;
-    }
-    .switch input{width:18px;height:18px}
-    .warn{
-      color:#fbbf24;border:1px solid rgba(251,191,36,.25);background:rgba(251,191,36,.08);
-      padding:10px 12px;border-radius:14px;font-size:12px;margin-top:10px;
-    }
-    .footerNote{margin-top:10px;color:var(--muted);font-size:12px}
   </style>
 </head>
 <body>
 <div class="wrap">
   <div class="topbar">
-    <div class="brand">
-      <h1>CLUB500 — Admin</h1>
+    <div>
+      <div class="brand">CLUB500 — Admin</div>
       <div class="sub" id="stepLabel">Шаг C: выбор партнёра + вкладки (snapshot)</div>
     </div>
     <div class="right">
-      <div class="pill" id="authPill">Не в системе</div>
-      <div class="badge" id="adminRoleBadge">роль: admin</div>
-      <button class="btn small secondary" id="logoutBtn" style="display:none;">Выйти</button>
+      <span class="pill" id="authPill">Не в системе</span>
+      <button class="btn secondary" id="logoutBtn" style="display:none" type="button">Выйти</button>
     </div>
   </div>
 
+  <!-- LOGIN CARD -->
   <div class="grid">
     <div class="card" id="loginCard">
-      <div class="cardTitle">
-        <h2>Вход в админку</h2>
-        <span class="meta">Supabase Auth (отдельная сессия админки)</span>
-      </div>
       <div class="row">
         <div class="field">
           <label>Email</label>
-          <input id="email" type="email" placeholder="email" autocomplete="email" />
+          <input id="email" type="email" placeholder="email" autocomplete="username" />
         </div>
         <div class="field">
           <label>Пароль</label>
-          <input id="password" type="password" placeholder="Пароль" autocomplete="current-password" />
+          <input id="password" type="password" placeholder="пароль" autocomplete="current-password" />
         </div>
-        <div style="display:flex;gap:10px;align-items:flex-end;">
-          <button id="loginBtn" class="btn primary" type="button">Войти</button>
-          <button id="signupBtn" class="btn secondary" type="button">Регистрация</button>
-        </div>
+        <button class="btn primary" id="loginBtn" type="button">Войти</button>
+        <button class="btn secondary" id="signupBtn" type="button">Регистрация</button>
       </div>
-      <div id="loginMsg" class="msg"></div>
-      <div class="footerNote">Важно: это отдельная страница — ЛК не ломает.</div>
+      <div class="msg" id="loginMsg"></div>
+      <div class="muted" style="font-size:12px;margin-top:6px;">
+        Supabase Auth (отдельная сессия админки). Важно: это отдельная страница — ЛК не ломает.
+      </div>
     </div>
 
-    <div class="card" id="denyCard" style="display:none;">
-      <div class="cardTitle">
-        <h2>Доступ запрещён</h2>
-        <span class="meta">нужна роль admin</span>
+    <!-- DENY CARD -->
+    <div class="card" id="denyCard" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div>
+          <div style="font-weight:800; font-size:16px;">Доступ запрещён</div>
+          <div class="muted" style="font-size:13px;margin-top:4px;">нужна роль admin</div>
+        </div>
+        <span class="badge err" id="adminRoleBadge">role-check</span>
       </div>
-      <div class="divider"></div>
-      <div class="hint">
-        Вы вошли, но роль <b>admin</b> не подтверждена.<br/>
-        Нужна запись в таблице <b>profiles</b> с <code>role = 'admin'</code> или <code>is_admin = true</code>.
-      </div>
-      <div id="denyMsg" class="msg err" style="margin-top:10px;"></div>
-      <div style="margin-top:12px;">
+      <div class="msg err" id="denyMsg" style="margin-top:10px;"></div>
+      <div style="margin-top:10px;">
         <button class="btn secondary" id="denyLogoutBtn" type="button">Выйти</button>
       </div>
     </div>
 
-    <div class="card" id="adminShell" style="display:none;">
-      <div class="cardTitle">
-        <h2>Карточка партнёра</h2>
-        <span class="meta" id="partnerMeta">partner_id: —</span>
+    <!-- ADMIN SHELL -->
+    <div class="card" id="adminShell" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+        <div style="min-width:280px; flex:1;">
+          <div style="font-weight:800; font-size:16px;">Карточка партнёра</div>
+          <div class="muted" style="font-size:13px;margin-top:4px;">Выбери партнёра — данные подгрузятся во вкладках.</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <span class="muted" style="font-size:12px;">partner_id: <span id="partnerIdText">—</span></span>
+          <span class="badge ok" id="adminBadge">роль: admin</span>
+        </div>
       </div>
 
-      <div class="row">
-        <div class="field" style="min-width:320px;">
+      <div class="row" style="margin-top:12px;">
+        <div class="field" style="grid-column: span 2;">
           <label>Партнёр</label>
           <select id="partnerSelect">
-            <option value="">— выбери партнёра —</option>
+            <option value="">— выбрать —</option>
           </select>
-          <div class="hint">Выбери партнёра — данные подтянутся из <code>deal_stats_snapshot</code>.</div>
         </div>
-        <div class="field" style="min-width:260px;">
+        <div class="field">
           <label>Статус обновления</label>
-          <input id="updateStatus" type="text" readonly value="—" />
+          <input id="updatedAt" type="text" disabled value="—" />
         </div>
-        <div style="display:flex;align-items:flex-end;gap:10px;">
-          <button class="btn secondary" id="refreshBtn" type="button">Обновить</button>
-        </div>
+        <button class="btn secondary" id="refreshBtn" type="button">Обновить</button>
       </div>
 
       <div class="tabs" id="tabs">
@@ -204,80 +178,86 @@
         <div class="tab" data-tab="stats">Статистика</div>
       </div>
 
+      <!-- Views -->
       <div class="view active" id="view-calc">
-        <div class="kpi">
-          <div class="box"><div class="t">Equity</div><div class="v" id="kpiEquity">—</div></div>
-          <div class="box"><div class="t">Available</div><div class="v" id="kpiAvailable">—</div></div>
-          <div class="box"><div class="t">Комиссия (10% при equity ≥ 5000)</div><div class="v" id="kpiFee">—</div></div>
-        </div>
-
-        <div class="row" style="gap:12px;align-items:center;">
-          <div class="switch">
-            <input id="exitToggle" type="checkbox" />
-            <div><div style="font-weight:800;">Выходим</div><div class="hint">Когда включено — показываем комиссию к оплате.</div></div>
+        <div class="split">
+          <div class="box">
+            <div class="kpi">
+              <div>Equity: <b id="kpiEquity">—</b></div>
+              <div>Available: <b id="kpiAvailable">—</b></div>
+              <div>Комиссия: <b id="kpiFee">—</b></div>
+            </div>
+            <div style="margin-top:10px;" class="muted">Комиссия 10% считается, если включено «Выходим» и equity ≥ 5000.</div>
+            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+              <label class="badge" style="cursor:pointer;">
+                <input id="exitToggle" type="checkbox" style="margin-right:6px;"> Выходим
+              </label>
+              <label class="badge" style="cursor:pointer;">
+                <input id="feeToggle" type="checkbox" style="margin-right:6px;" checked> Комиссия включена
+              </label>
+            </div>
           </div>
-
-          <div class="switch">
-            <input id="feeToggle" type="checkbox" checked />
-            <div><div style="font-weight:800;">Комиссия включена</div><div class="hint">Пока локально для админки (позже вынесем в настройки).</div></div>
+          <div class="box">
+            <div style="font-weight:800">Комментарий</div>
+            <div class="muted" style="margin-top:8px;font-size:13px;">
+              Этот экран показывает сводку по партнёру из последнего snapshot (таблица <b>deal_stats_snapshot</b>).
+              Дальше можно добавлять “закрыть цикл” / блокировки — сделаем позже.
+            </div>
           </div>
-
-          <button class="btn secondary" id="closeCycleBtn" type="button" title="Идея на будущее: блокировать изменения после закрытия цикла">
-            Закрыть цикл (пока заглушка)
-          </button>
-        </div>
-
-        <div class="warn" id="cycleWarn" style="display:none;">
-          Цикл закрыт (заглушка). В будущем: блокировка калькулятора + фиксация финальных данных.
-        </div>
-
-        <div class="footerNote">
-          Логика: если <b>Комиссия включена</b> и <b>Equity ≥ 5000</b> и включено <b>Выходим</b> — считаем 10% от equity.
         </div>
       </div>
 
       <div class="view" id="view-deals">
         <div class="kpi">
-          <div class="box"><div class="t">Открытых позиций</div><div class="v" id="kpiAssetsCount">—</div></div>
-          <div class="box"><div class="t">Суммарный PnL</div><div class="v" id="kpiPnlSum">—</div></div>
+          <div>Equity: <b id="dEquity">—</b></div>
+          <div>Available: <b id="dAvailable">—</b></div>
         </div>
         <table>
-          <thead><tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Entry</th><th>PnL</th></tr></thead>
-          <tbody id="assetsTbody"><tr><td colspan="5" class="muted">Выбери партнёра</td></tr></tbody>
+          <thead>
+            <tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Entry</th><th>PnL</th></tr>
+          </thead>
+          <tbody id="dealsTbody">
+            <tr><td class="muted" colspan="5">Нет данных</td></tr>
+          </tbody>
         </table>
-        <div class="footerNote" id="assetsUpdated">Updated: —</div>
       </div>
 
       <div class="view" id="view-passive">
         <div class="kpi">
-          <div class="box"><div class="t">Финансовая цель</div><div class="v" id="kpiGoal">—</div></div>
-          <div class="box"><div class="t">Текущий капитал (equity)</div><div class="v" id="kpiGoalEquity">—</div></div>
-          <div class="box"><div class="t">Объектов (выбрано / куплено)</div><div class="v" id="kpiObjCounts">—</div></div>
+          <div>Текущий капитал: <b id="pEquity">—</b></div>
+          <div>Финансовая цель: <b id="pGoal">—</b></div>
+          <div>Объектов: <b id="pCount">—</b></div>
         </div>
-
         <table>
-          <thead><tr><th>Объект</th><th>Цена</th><th>Статус</th></tr></thead>
-          <tbody id="objTbody"><tr><td colspan="3" class="muted">Выбери партнёра</td></tr></tbody>
+          <thead>
+            <tr><th>Объект</th><th>Цена</th><th>Статус</th></tr>
+          </thead>
+          <tbody id="passiveTbody">
+            <tr><td class="muted" colspan="3">Нет данных</td></tr>
+          </tbody>
         </table>
       </div>
 
       <div class="view" id="view-stats">
-        <div class="kpi">
-          <div class="box"><div class="t">FACT: добавили денег (USD)</div><div class="v" id="kpiAddedUsd">—</div></div>
-          <div class="box"><div class="t">Годовой доход (если задан)</div><div class="v" id="kpiAnnual">—</div></div>
-        </div>
-
-        <div class="hint">
-          В payload ожидаем блок <code>stats</code>:
-          <pre style="margin:8px 0 0; padding:10px; border:1px solid var(--line); border-radius:12px; background:rgba(11,18,32,.35); color:var(--muted); overflow:auto;">
-"stats": {
-  "added_usd": 5000,
-  "annual_income": 12000
-}</pre>
+        <div class="box">
+          <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:800">Статистика</div>
+              <div class="muted" style="font-size:13px;margin-top:6px;">USD only. Добавления берём из payload.stats.added_usd</div>
+            </div>
+            <span class="badge" id="statsBadge">FACT: USD</span>
+          </div>
+          <div class="kpi" style="margin-top:10px;">
+            <div>Added USD: <b id="sAddedUsd">—</b></div>
+            <div>Годовой доход: <b id="sYear">—</b></div>
+          </div>
+          <div class="muted" style="margin-top:8px;font-size:13px;">
+            “Годовой доход” — пока заглушка (позже сделаем формулу/историю). Сейчас важно вытянуть FACT USD.
+          </div>
         </div>
       </div>
 
-      <div id="adminMsg" class="msg"></div>
+      <div class="msg" id="adminMsg"></div>
     </div>
   </div>
 </div>
@@ -285,63 +265,108 @@
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-  // === ВСТАВЬ СЮДА СВОИ ДАННЫЕ (те же, что в ЛК) ===
+  // =======================
+  // 1) ВСТАВЬ СЮДА СВОИ ДАННЫЕ
+  // =======================
   const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
+
+  // Защита от "пустых" ключей — сразу покажем причину в UI
+  const loginMsg = document.getElementById("loginMsg");
+  function setMsg(text, type="") {
+    loginMsg.className = "msg" + (type ? " " + type : "");
+    loginMsg.textContent = text || "";
+  }
+
+  if (!SUPABASE_URL.startsWith("http")) {
+    setMsg("Ошибка: не вставлен SUPABASE_URL в admin.html", "err");
+  }
+  if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("PASTE_")) {
+    setMsg("Ошибка: не вставлен SUPABASE_ANON_KEY в admin.html", "err");
+  }
 
   // Отдельная сессия админки (не конфликтует с сайтом)
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       storageKey: "club500-admin-auth",
       persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
+      autoRefreshToken: true
     }
   });
 
+  // для отладки (чтобы можно было в консоли проверить)
+  window.sb = sb;
+
+  // UI refs
+  const authPill = document.getElementById("authPill");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const denyLogoutBtn = document.getElementById("denyLogoutBtn");
   const loginCard = document.getElementById("loginCard");
   const adminShell = document.getElementById("adminShell");
   const denyCard = document.getElementById("denyCard");
+  const adminRoleBadge = document.getElementById("adminRoleBadge");
+  const denyMsg = document.getElementById("denyMsg");
+  const adminMsg = document.getElementById("adminMsg");
 
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
   const loginBtn = document.getElementById("loginBtn");
   const signupBtn = document.getElementById("signupBtn");
-  const loginMsg = document.getElementById("loginMsg");
-
-  const authPill = document.getElementById("authPill");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const denyLogoutBtn = document.getElementById("denyLogoutBtn");
-  const adminRoleBadge = document.getElementById("adminRoleBadge");
-  const denyMsg = document.getElementById("denyMsg");
-  const adminMsg = document.getElementById("adminMsg");
 
   const partnerSelect = document.getElementById("partnerSelect");
-  const partnerMeta = document.getElementById("partnerMeta");
-  const updateStatus = document.getElementById("updateStatus");
+  const partnerIdText = document.getElementById("partnerIdText");
+  const updatedAt = document.getElementById("updatedAt");
   const refreshBtn = document.getElementById("refreshBtn");
 
+  // calc widgets
   const exitToggle = document.getElementById("exitToggle");
   const feeToggle = document.getElementById("feeToggle");
-  const closeCycleBtn = document.getElementById("closeCycleBtn");
-  const cycleWarn = document.getElementById("cycleWarn");
-
   const kpiEquity = document.getElementById("kpiEquity");
   const kpiAvailable = document.getElementById("kpiAvailable");
   const kpiFee = document.getElementById("kpiFee");
 
-  const kpiAssetsCount = document.getElementById("kpiAssetsCount");
-  const kpiPnlSum = document.getElementById("kpiPnlSum");
-  const assetsTbody = document.getElementById("assetsTbody");
-  const assetsUpdated = document.getElementById("assetsUpdated");
+  // deals widgets
+  const dEquity = document.getElementById("dEquity");
+  const dAvailable = document.getElementById("dAvailable");
+  const dealsTbody = document.getElementById("dealsTbody");
 
-  const kpiGoal = document.getElementById("kpiGoal");
-  const kpiGoalEquity = document.getElementById("kpiGoalEquity");
-  const kpiObjCounts = document.getElementById("kpiObjCounts");
-  const objTbody = document.getElementById("objTbody");
+  // passive widgets
+  const pEquity = document.getElementById("pEquity");
+  const pGoal = document.getElementById("pGoal");
+  const pCount = document.getElementById("pCount");
+  const passiveTbody = document.getElementById("passiveTbody");
 
-  const kpiAddedUsd = document.getElementById("kpiAddedUsd");
-  const kpiAnnual = document.getElementById("kpiAnnual");
+  // stats widgets
+  const sAddedUsd = document.getElementById("sAddedUsd");
+  const sYear = document.getElementById("sYear");
+
+  function showOnly(which){
+    loginCard.style.display = (which === "login") ? "block" : "none";
+    adminShell.style.display = (which === "admin") ? "block" : "none";
+    denyCard.style.display = (which === "deny") ? "block" : "none";
+  }
+  function setAdminMsg(text, type=""){
+    adminMsg.className = "msg" + (type ? " " + type : "");
+    adminMsg.textContent = text || "";
+  }
+
+  function money(x){
+    if (x === null || x === undefined || x === "") return "—";
+    const n = Number(x);
+    if (!Number.isFinite(n)) return String(x);
+    return n.toLocaleString("en-US");
+  }
+
+  async function signOut(){
+    try { await sb.auth.signOut(); } catch {}
+    authPill.textContent = "Не в системе";
+    logoutBtn.style.display = "none";
+    showOnly("login");
+    setMsg("");
+  }
+
+  logoutBtn.addEventListener("click", signOut);
+  denyLogoutBtn.addEventListener("click", signOut);
 
   // Tabs
   document.getElementById("tabs").addEventListener("click", (e) => {
@@ -354,279 +379,264 @@
     document.getElementById("view-" + key).classList.add("active");
   });
 
-  function setMsg(el, text, type="") {
-    el.className = "msg" + (type ? " " + type : "");
-    el.textContent = text || "";
+  // ---------- ROLE CHECK ----------
+  async function checkAdminRole(userId){
+    try{
+      const { data, error } = await sb
+        .from("profiles")
+        .select("role,is_admin,user_id,email")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (error){
+        adminRoleBadge.textContent = "role-check error";
+        adminRoleBadge.className = "badge err";
+        denyMsg.textContent = "Ошибка чтения profiles: " + error.message;
+        return false;
+      }
+      const role = (data?.role || "").toLowerCase();
+      const isAdmin = (data?.is_admin === true) || role === "admin";
+      adminRoleBadge.textContent = "role=" + (data?.role ?? "null") + " / is_admin=" + (data?.is_admin ?? "null");
+      adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
+
+      if (!isAdmin){
+        denyMsg.textContent = "Вы вошли, но роль admin не подтверждена. Нужна запись в profiles: role='admin' или is_admin=true.";
+      }
+      return isAdmin;
+    }catch(e){
+      adminRoleBadge.textContent = "role-check exception";
+      adminRoleBadge.className = "badge err";
+      denyMsg.textContent = "Исключение: " + (e?.message || e);
+      return false;
+    }
   }
 
-  function showOnly(which) {
-    loginCard.style.display = which === "login" ? "block" : "none";
-    adminShell.style.display = which === "admin" ? "block" : "none";
-    denyCard.style.display  = which === "deny"  ? "block" : "none";
+  // ---------- AUTH ----------
+  async function signIn(){
+    // Важно: выводим ЛОГИ, чтобы видно было, где зависает
+    setMsg("Входим…");
+    console.log("signIn() start");
+
+    try{
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password){
+        setMsg("Заполни email и пароль", "err");
+        return;
+      }
+
+      // жёстко чистим старую сессию админки (на всякий)
+      try { await sb.auth.signOut(); } catch {}
+
+      console.log("about to call supabase signInWithPassword", { email });
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+      console.log("supabase response", { data, error });
+
+      if (error){
+        setMsg("Ошибка входа: " + error.message, "err");
+        return;
+      }
+      if (!data?.session){
+        setMsg("Сессия не создана. Проверь email/пароль.", "err");
+        return;
+      }
+
+      setMsg("Успешный вход", "ok");
+      await boot();
+    }catch(e){
+      console.error("signIn() crash:", e);
+      setMsg("Ошибка JS: " + (e?.message || e), "err");
+    }
   }
 
-  function fmtMoney(n) {
-    const num = Number(n);
-    if (!isFinite(num)) return "—";
-    return "$" + num.toLocaleString("en-US", { maximumFractionDigits: 2 });
-  }
-
-  function fmtNumber(n) {
-    const num = Number(n);
-    if (!isFinite(num)) return "—";
-    return num.toLocaleString("en-US", { maximumFractionDigits: 6 });
-  }
-
-  function fmtDate(dt) {
-    if (!dt) return "—";
-    try { return new Date(dt).toLocaleString("ru-RU"); } catch { return String(dt); }
-  }
-
-  async function signOut() {
-    try { await sb.auth.signOut(); } catch {}
-    authPill.textContent = "Не в системе";
-    logoutBtn.style.display = "none";
-    adminRoleBadge.style.display = "none";
-    partnerSelect.innerHTML = '<option value="">— выбери партнёра —</option>';
-    partnerMeta.textContent = "partner_id: —";
-    updateStatus.value = "—";
-    setMsg(adminMsg, "");
-    showOnly("login");
-  }
-
-  logoutBtn.addEventListener("click", signOut);
-  denyLogoutBtn.addEventListener("click", signOut);
-
-  async function signIn() {
-    setMsg(loginMsg, "Входим…");
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-
-    // Жёстко очищаем возможную старую/битую сессию
-    try { await sb.auth.signOut(); } catch {}
-
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-
-    if (error) { setMsg(loginMsg, "Ошибка входа: " + error.message, "err"); return; }
-    if (!data?.session) { setMsg(loginMsg, "Сессия не создана. Проверь email/пароль.", "err"); return; }
-
-    setMsg(loginMsg, "Успешный вход", "ok");
-    await boot();
-  }
-
-  async function signUp() {
-    setMsg(loginMsg, "Регистрируем…");
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-
-    const { error } = await sb.auth.signUp({ email, password });
-    if (error) { setMsg(loginMsg, "Ошибка регистрации: " + error.message, "err"); return; }
-    setMsg(loginMsg, "ОК. Проверь почту (если включено подтверждение). Затем войди.", "ok");
+  async function signUp(){
+    setMsg("Регистрируем…");
+    try{
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if (error){
+        setMsg("Ошибка регистрации: " + error.message, "err");
+        return;
+      }
+      setMsg("Регистрация ок. Проверь почту (если включено подтверждение) или попробуй войти.", "ok");
+      console.log("signUp response", data);
+    }catch(e){
+      console.error("signUp crash:", e);
+      setMsg("Ошибка JS: " + (e?.message || e), "err");
+    }
   }
 
   loginBtn.addEventListener("click", signIn);
   signupBtn.addEventListener("click", signUp);
 
-  async function checkAdminRole(userId) {
-    try {
-      const { data, error } = await sb
-        .from("profiles")
-        .select("role,is_admin,user_id,email,name")
-        .eq("user_id", userId)
-        .maybeSingle();
+  // ---------- DATA ----------
+  let currentPartnerId = "";
 
-      if (error) {
-        adminRoleBadge.textContent = "role-check error";
-        adminRoleBadge.className = "badge err";
-        adminRoleBadge.style.display = "inline-flex";
-        setMsg(denyMsg, "Ошибка чтения profiles: " + error.message, "err");
-        return false;
-      }
-
-      const role = String(data?.role || "").toLowerCase();
-      const isAdmin = data?.is_admin === true || role === "admin";
-
-      adminRoleBadge.textContent = isAdmin ? "роль: admin" : "не admin";
-      adminRoleBadge.className = "badge " + (isAdmin ? "" : "err");
-      adminRoleBadge.style.display = "inline-flex";
-
-      return isAdmin;
-    } catch (e) {
-      setMsg(denyMsg, "Исключение: " + (e?.message || e), "err");
-      return false;
-    }
-  }
-
-  async function loadPartners() {
+  async function loadPartners(){
+    // показываем всех non-admin из profiles
     const { data, error } = await sb
       .from("profiles")
-      .select("user_id,email,name,plan,is_admin,role,created_at")
+      .select("user_id,name,email,is_admin,role")
       .order("created_at", { ascending: true });
 
-    if (error) { setMsg(adminMsg, "Ошибка чтения profiles: " + error.message, "err"); return; }
-
-    const partners = (data || []).filter(p => {
-      const role = String(p.role || "").toLowerCase();
-      return !(p.is_admin === true || role === "admin");
-    });
-
-    partnerSelect.innerHTML = '<option value="">— выбери партнёра —</option>';
-    for (const p of partners) {
-      const opt = document.createElement("option");
-      opt.value = p.user_id;
-      opt.textContent = p.name || (p.email ? p.email.split("@")[0] : p.user_id);
-      partnerSelect.appendChild(opt);
-    }
-  }
-
-  async function readSnapshot(userId) {
-    const { data, error } = await sb
-      .from("deal_stats_snapshot")
-      .select("user_id,payload,created_at,updated_at")
-      .eq("user_id", userId)
-      .order("updated_at", { ascending: false })
-      .limit(1);
-
-    if (error) throw new Error(error.message);
-    return (data || [])[0] || null;
-  }
-
-  function normalizePayload(payload) {
-    let p = payload;
-    if (typeof p === "string") { try { p = JSON.parse(p); } catch { p = {}; } }
-    if (!p || typeof p !== "object") p = {};
-    const assets = Array.isArray(p.assets) ? p.assets : Array.isArray(p.positions) ? p.positions : [];
-    const equity = p.equity ?? p.total ?? null;
-    const available = p.available ?? p.free ?? null;
-    const financialGoal = p.financial_goal ?? p.goal ?? null;
-    const passiveObjects = Array.isArray(p.passive_objects) ? p.passive_objects :
-                           Array.isArray(p.passiveAssets) ? p.passiveAssets : [];
-    const stats = (p.stats && typeof p.stats === "object") ? p.stats : {};
-    return { assets, equity, available, financialGoal, passiveObjects, stats };
-  }
-
-  function renderAll(model, updatedAt) {
-    const { assets, equity, available, financialGoal, passiveObjects, stats } = model;
-
-    kpiEquity.textContent = fmtMoney(equity);
-    kpiAvailable.textContent = fmtMoney(available);
-
-    const feeEnabled = feeToggle.checked;
-    const exiting = exitToggle.checked;
-    const eqNum = Number(equity);
-    if (feeEnabled && exiting && isFinite(eqNum) && eqNum >= 5000) {
-      kpiFee.textContent = fmtMoney(eqNum * 0.10);
-    } else {
-      kpiFee.textContent = "—";
-    }
-
-    const list = assets || [];
-    kpiAssetsCount.textContent = String(list.length || 0);
-    const pnlSum = list.reduce((s, a) => s + (Number(a.pnl) || 0), 0);
-    kpiPnlSum.textContent = fmtMoney(pnlSum);
-
-    assetsTbody.innerHTML = "";
-    if (!list.length) {
-      assetsTbody.innerHTML = '<tr><td colspan="5" class="muted">Нет активов / пусто</td></tr>';
-    } else {
-      for (const a of list) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${a.symbol ?? "—"}</td>
-          <td>${a.side ?? "—"}</td>
-          <td>${fmtNumber(a.qty)}</td>
-          <td>${fmtNumber(a.entry)}</td>
-          <td>${fmtNumber(a.pnl)}</td>
-        `;
-        assetsTbody.appendChild(tr);
-      }
-    }
-    assetsUpdated.textContent = "Updated: " + fmtDate(updatedAt);
-
-    kpiGoal.textContent = fmtMoney(financialGoal);
-    kpiGoalEquity.textContent = fmtMoney(equity);
-
-    const objs = passiveObjects || [];
-    const selected = objs.filter(o => String(o.status || "").toLowerCase() === "selected").length;
-    const bought = objs.filter(o => String(o.status || "").toLowerCase() === "bought").length;
-    kpiObjCounts.textContent = `${selected} / ${bought}`;
-
-    objTbody.innerHTML = "";
-    if (!objs.length) {
-      objTbody.innerHTML = '<tr><td colspan="3" class="muted">Нет объектов / пусто</td></tr>';
-    } else {
-      for (const o of objs) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${o.name ?? "—"}</td><td>${fmtMoney(o.price)}</td><td>${o.status ?? "—"}</td>`;
-        objTbody.appendChild(tr);
-      }
-    }
-
-    kpiAddedUsd.textContent = fmtMoney(stats.added_usd);
-    kpiAnnual.textContent = fmtMoney(stats.annual_income);
-  }
-
-  async function loadPartnerCard(userId) {
-    if (!userId) {
-      partnerMeta.textContent = "partner_id: —";
-      updateStatus.value = "—";
-      assetsTbody.innerHTML = '<tr><td colspan="5" class="muted">Выбери партнёра</td></tr>';
-      objTbody.innerHTML = '<tr><td colspan="3" class="muted">Выбери партнёра</td></tr>';
-      kpiEquity.textContent = "—"; kpiAvailable.textContent = "—"; kpiFee.textContent = "—";
-      kpiAssetsCount.textContent = "—"; kpiPnlSum.textContent = "—";
-      kpiGoal.textContent = "—"; kpiGoalEquity.textContent = "—"; kpiObjCounts.textContent = "—";
-      kpiAddedUsd.textContent = "—"; kpiAnnual.textContent = "—";
+    if (error){
+      setAdminMsg("Ошибка загрузки партнёров: " + error.message, "err");
       return;
     }
 
-    partnerMeta.textContent = "partner_id: " + userId;
+    const partners = (data || []).filter(p => !((p.is_admin === true) || ((p.role || "").toLowerCase() === "admin")));
+    partnerSelect.innerHTML = '<option value="">— выбрать —</option>' + partners.map(p => {
+      const label = p.name || p.email || p.user_id;
+      return `<option value="${p.user_id}">${escapeHtml(label)}</option>`;
+    }).join("");
+  }
 
-    try {
-      setMsg(adminMsg, "Загружаю snapshot…");
-      const snap = await readSnapshot(userId);
-      if (!snap) {
-        updateStatus.value = "snapshot не найден";
-        setMsg(adminMsg, "В deal_stats_snapshot нет записи по user_id", "err");
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  async function fetchLatestSnapshot(userId){
+    const { data, error } = await sb
+      .from("deal_stats_snapshot")
+      .select("payload,created_at,updated_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending:false })
+      .limit(1);
+
+    if (error) throw error;
+    return data?.[0] || null;
+  }
+
+  function renderFromPayload(payload){
+    const equity = payload?.equity ?? null;
+    const available = payload?.available ?? null;
+
+    // calc
+    kpiEquity.textContent = money(equity);
+    kpiAvailable.textContent = money(available);
+
+    // fee
+    const exiting = exitToggle.checked;
+    const feeOn = feeToggle.checked;
+    const fee = (feeOn && exiting && Number(equity) >= 5000) ? (Number(equity) * 0.10) : 0;
+    kpiFee.textContent = fee ? money(fee) : "0";
+
+    // deals
+    dEquity.textContent = money(equity);
+    dAvailable.textContent = money(available);
+    const assets = Array.isArray(payload?.assets) ? payload.assets : [];
+    dealsTbody.innerHTML = assets.length ? assets.map(a => `
+      <tr>
+        <td>${escapeHtml(a.symbol ?? "—")}</td>
+        <td>${escapeHtml(a.side ?? "—")}</td>
+        <td>${escapeHtml(a.qty ?? "—")}</td>
+        <td>${escapeHtml(a.entry ?? "—")}</td>
+        <td>${escapeHtml(a.pnl ?? "—")}</td>
+      </tr>
+    `).join("") : '<tr><td class="muted" colspan="5">Нет данных</td></tr>';
+
+    // passive
+    pEquity.textContent = money(equity);
+    pGoal.textContent = money(payload?.financial_goal ?? null);
+    const objs = Array.isArray(payload?.passive_objects) ? payload.passive_objects : [];
+    pCount.textContent = String(objs.length);
+    passiveTbody.innerHTML = objs.length ? objs.map(o => `
+      <tr>
+        <td>${escapeHtml(o.name ?? "—")}</td>
+        <td>${escapeHtml(o.price ?? "—")}</td>
+        <td>${escapeHtml(o.status ?? "—")}</td>
+      </tr>
+    `).join("") : '<tr><td class="muted" colspan="3">Нет данных</td></tr>';
+
+    // stats (USD only)
+    const addedUsd = payload?.stats?.added_usd ?? null;
+    sAddedUsd.textContent = money(addedUsd);
+    sYear.textContent = "—";
+  }
+
+  async function refreshSnapshot(){
+    if (!currentPartnerId){
+      setAdminMsg("Выбери партнёра.", "err");
+      return;
+    }
+    setAdminMsg("Читаю snapshot…");
+    try{
+      const row = await fetchLatestSnapshot(currentPartnerId);
+      if (!row){
+        updatedAt.value = "—";
+        setAdminMsg("Snapshot не найден для партнёра.", "err");
+        renderFromPayload({});
         return;
       }
-      updateStatus.value = fmtDate(snap.updated_at || snap.created_at);
-      const model = normalizePayload(snap.payload);
-      renderAll(model, snap.updated_at || snap.created_at);
-      setMsg(adminMsg, "ОК", "ok");
-    } catch (e) {
-      setMsg(adminMsg, "Ошибка чтения snapshot: " + (e?.message || e), "err");
+      const payload = row.payload || {};
+      const ts = row.updated_at || row.created_at;
+      updatedAt.value = ts ? new Date(ts).toLocaleString("ru-RU") : "—";
+      setAdminMsg("Готово", "ok");
+      renderFromPayload(payload);
+    }catch(e){
+      setAdminMsg("Ошибка чтения snapshot: " + (e?.message || e), "err");
+      console.error(e);
     }
   }
 
-  partnerSelect.addEventListener("change", () => loadPartnerCard(partnerSelect.value));
-  refreshBtn.addEventListener("click", () => loadPartnerCard(partnerSelect.value));
-  exitToggle.addEventListener("change", () => loadPartnerCard(partnerSelect.value));
-  feeToggle.addEventListener("change", () => loadPartnerCard(partnerSelect.value));
-
-  let cycleClosed = false;
-  closeCycleBtn.addEventListener("click", () => {
-    cycleClosed = !cycleClosed;
-    cycleWarn.style.display = cycleClosed ? "block" : "none";
-    closeCycleBtn.textContent = cycleClosed ? "Цикл закрыт (снять)" : "Закрыть цикл (пока заглушка)";
+  partnerSelect.addEventListener("change", async () => {
+    currentPartnerId = partnerSelect.value || "";
+    partnerIdText.textContent = currentPartnerId ? (currentPartnerId.slice(0,8) + "…") : "—";
+    await refreshSnapshot();
   });
 
-  async function boot() {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session?.user) { showOnly("login"); return; }
+  refreshBtn.addEventListener("click", refreshSnapshot);
+  exitToggle.addEventListener("change", () => {
+    // пересчитать комиссию
+    renderFromPayload(lastPayload || {});
+  });
+  feeToggle.addEventListener("change", () => {
+    renderFromPayload(lastPayload || {});
+  });
 
-    const user = session.user;
+  let lastPayload = {};
+
+  // Переопределим render, чтобы помнить lastPayload
+  const _renderFromPayload = renderFromPayload;
+  renderFromPayload = (payload) => {
+    lastPayload = payload || {};
+    _renderFromPayload(lastPayload);
+  };
+
+  async function boot(){
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user){
+      showOnly("login");
+      authPill.textContent = "Не в системе";
+      logoutBtn.style.display = "none";
+      return;
+    }
+
     authPill.textContent = "В системе: " + (user.email || user.id);
-    logoutBtn.style.display = "inline-block";
+    logoutBtn.style.display = "inline-flex";
 
-    const ok = await checkAdminRole(user.id);
-    if (!ok) { showOnly("deny"); return; }
+    const isAdmin = await checkAdminRole(user.id);
+    if (!isAdmin){
+      showOnly("deny");
+      return;
+    }
 
     showOnly("admin");
     await loadPartners();
+    setAdminMsg("Выбери партнёра.", "");
   }
 
+  // initial boot + auth changes
+  sb.auth.onAuthStateChange((_event, _session) => {
+    boot();
+  });
+
+  // старт
   boot();
-  sb.auth.onAuthStateChange(() => boot());
 </script>
 </body>
 </html>
