@@ -45,11 +45,11 @@
       border-radius:12px;
       cursor:pointer;
       transition:.15s;
-      font-weight:600;
+      font-weight:700;
     }
     .btn:hover{ transform:translateY(-1px); border-color:rgba(255,255,255,.18); }
     .btn.primary{ background: rgba(59,130,246,.85); border-color: rgba(59,130,246,.35); }
-    .btn.secondary{ background: rgba(255,255,255,.05); }
+    .btn.danger{ background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.35); }
     .grid{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top:16px; }
     .card{
       border:1px solid var(--line);
@@ -72,8 +72,8 @@
     .msg{ margin-top:10px; font-size:13px; color:var(--muted); min-height:18px; }
     .msg.err{ color:var(--err); }
     .msg.ok{ color:var(--ok); }
-    .tabs{ display:flex; gap:8px; margin-top:14px; }
-    .tab{ padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03); cursor:pointer; color:var(--muted); font-weight:700; font-size:13px; }
+    .tabs{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+    .tab{ padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03); cursor:pointer; color:var(--muted); font-weight:800; font-size:13px; }
     .tab.active{ color:#fff; border-color: rgba(59,130,246,.45); box-shadow: 0 0 0 4px rgba(59,130,246,.12); }
     .view{ display:none; margin-top:12px; border-top:1px dashed rgba(255,255,255,.12); padding-top:12px; }
     .view.active{ display:block; }
@@ -81,13 +81,15 @@
     .kpi b{ color:#e5e7eb; }
     table{ width:100%; border-collapse:collapse; margin-top:10px; overflow:hidden; border-radius:12px; border:1px solid rgba(255,255,255,.10); }
     th, td{ padding:10px 10px; text-align:left; font-size:13px; border-bottom:1px solid rgba(255,255,255,.06); }
-    th{ color:var(--muted); font-weight:800; background: rgba(255,255,255,.03); }
+    th{ color:var(--muted); font-weight:900; background: rgba(255,255,255,.03); }
     .muted{ color:var(--muted); }
     .badge{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); font-size:12px; color:var(--muted); }
     .badge.ok{ color:var(--ok); border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.10); }
     .badge.err{ color:var(--err); border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.10); }
     .box{ border:1px dashed rgba(255,255,255,.14); border-radius:12px; padding:12px; background: rgba(0,0,0,.12); }
     .split{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .hint{ font-size:12px; color:var(--muted); margin-top:6px; }
+    .switchline{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
     @media (max-width: 900px){
       .row{ grid-template-columns: 1fr; }
       .split{ grid-template-columns: 1fr; }
@@ -104,11 +106,10 @@
     </div>
     <div class="right">
       <span class="pill" id="authPill">Не в системе</span>
-      <button class="btn secondary" id="logoutBtn" style="display:none" type="button">Выйти</button>
+      <button class="btn" id="logoutBtn" style="display:none" type="button">Выйти</button>
     </div>
   </div>
 
-  <!-- LOGIN CARD -->
   <div class="grid">
     <div class="card" id="loginCard">
       <div class="row">
@@ -121,34 +122,30 @@
           <input id="password" type="password" placeholder="пароль" autocomplete="current-password" />
         </div>
         <button class="btn primary" id="loginBtn" type="button">Войти</button>
-        <button class="btn secondary" id="signupBtn" type="button">Регистрация</button>
+        <button class="btn" id="signupBtn" type="button">Регистрация</button>
       </div>
       <div class="msg" id="loginMsg"></div>
-      <div class="muted" style="font-size:12px;margin-top:6px;">
-        Supabase Auth (отдельная сессия админки). Важно: это отдельная страница — ЛК не ломает.
-      </div>
+      <div class="hint">Supabase Auth (отдельная сессия админки). Важно: это отдельная страница — ЛК не ломает.</div>
     </div>
 
-    <!-- DENY CARD -->
     <div class="card" id="denyCard" style="display:none">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
         <div>
-          <div style="font-weight:800; font-size:16px;">Доступ запрещён</div>
+          <div style="font-weight:900; font-size:16px;">Доступ запрещён</div>
           <div class="muted" style="font-size:13px;margin-top:4px;">нужна роль admin</div>
         </div>
         <span class="badge err" id="adminRoleBadge">role-check</span>
       </div>
       <div class="msg err" id="denyMsg" style="margin-top:10px;"></div>
       <div style="margin-top:10px;">
-        <button class="btn secondary" id="denyLogoutBtn" type="button">Выйти</button>
+        <button class="btn" id="denyLogoutBtn" type="button">Выйти</button>
       </div>
     </div>
 
-    <!-- ADMIN SHELL -->
     <div class="card" id="adminShell" style="display:none">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
         <div style="min-width:280px; flex:1;">
-          <div style="font-weight:800; font-size:16px;">Карточка партнёра</div>
+          <div style="font-weight:900; font-size:16px;">Карточка партнёра</div>
           <div class="muted" style="font-size:13px;margin-top:4px;">Выбери партнёра — данные подгрузятся во вкладках.</div>
         </div>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -163,12 +160,14 @@
           <select id="partnerSelect">
             <option value="">— выбрать —</option>
           </select>
+          <div class="hint">Список берём из таблицы <b>profiles</b> (кроме admin).</div>
         </div>
         <div class="field">
           <label>Статус обновления</label>
           <input id="updatedAt" type="text" disabled value="—" />
+          <div class="hint">Последний snapshot из <b>deal_stats_snapshot</b>.</div>
         </div>
-        <button class="btn secondary" id="refreshBtn" type="button">Обновить</button>
+        <button class="btn" id="refreshBtn" type="button">Обновить</button>
       </div>
 
       <div class="tabs" id="tabs">
@@ -178,7 +177,6 @@
         <div class="tab" data-tab="stats">Статистика</div>
       </div>
 
-      <!-- Views -->
       <div class="view active" id="view-calc">
         <div class="split">
           <div class="box">
@@ -187,8 +185,8 @@
               <div>Available: <b id="kpiAvailable">—</b></div>
               <div>Комиссия: <b id="kpiFee">—</b></div>
             </div>
-            <div style="margin-top:10px;" class="muted">Комиссия 10% считается, если включено «Выходим» и equity ≥ 5000.</div>
-            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+
+            <div class="switchline">
               <label class="badge" style="cursor:pointer;">
                 <input id="exitToggle" type="checkbox" style="margin-right:6px;"> Выходим
               </label>
@@ -196,13 +194,22 @@
                 <input id="feeToggle" type="checkbox" style="margin-right:6px;" checked> Комиссия включена
               </label>
             </div>
-          </div>
-          <div class="box">
-            <div style="font-weight:800">Комментарий</div>
-            <div class="muted" style="margin-top:8px;font-size:13px;">
-              Этот экран показывает сводку по партнёру из последнего snapshot (таблица <b>deal_stats_snapshot</b>).
-              Дальше можно добавлять “закрыть цикл” / блокировки — сделаем позже.
+
+            <div class="hint">Правило: при equity ≥ 5000 и включённом «Выходим» считается 10% от equity.</div>
+
+            <div class="switchline">
+              <button class="btn danger" id="closeCycleBtn" type="button">Закрыть цикл</button>
+              <span class="muted" style="font-size:12px;" id="closeCycleHint">Пока как идея: позже сделаем блокировку/финализацию.</span>
             </div>
+          </div>
+
+          <div class="box">
+            <div style="font-weight:900">Сводка цикла</div>
+            <div class="muted" style="margin-top:8px;font-size:13px;">
+              Тут в конце цикла видишь итог и размер комиссии.<br>
+              Пример: старт 5000 → стало 10000 → комиссия 1000 (10% от капитала при выходе).
+            </div>
+            <div class="hint">Дальше можно добавить запись “закрытия” в БД — сделаем позже.</div>
           </div>
         </div>
       </div>
@@ -211,6 +218,7 @@
         <div class="kpi">
           <div>Equity: <b id="dEquity">—</b></div>
           <div>Available: <b id="dAvailable">—</b></div>
+          <div>Активов: <b id="dCount">—</b></div>
         </div>
         <table>
           <thead>
@@ -220,6 +228,7 @@
             <tr><td class="muted" colspan="5">Нет данных</td></tr>
           </tbody>
         </table>
+        <div class="hint">Данные берём из payload.assets (snapshot).</div>
       </div>
 
       <div class="view" id="view-passive">
@@ -227,6 +236,8 @@
           <div>Текущий капитал: <b id="pEquity">—</b></div>
           <div>Финансовая цель: <b id="pGoal">—</b></div>
           <div>Объектов: <b id="pCount">—</b></div>
+          <div>Выбрано: <b id="pSelected">—</b></div>
+          <div>Куплено: <b id="pBought">—</b></div>
         </div>
         <table>
           <thead>
@@ -236,23 +247,27 @@
             <tr><td class="muted" colspan="3">Нет данных</td></tr>
           </tbody>
         </table>
+        <div class="hint">Данные берём из payload.financial_goal и payload.passive_objects.</div>
       </div>
 
       <div class="view" id="view-stats">
         <div class="box">
           <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
             <div>
-              <div style="font-weight:800">Статистика</div>
-              <div class="muted" style="font-size:13px;margin-top:6px;">USD only. Добавления берём из payload.stats.added_usd</div>
+              <div style="font-weight:900">Статистика (FACT)</div>
+              <div class="muted" style="font-size:13px;margin-top:6px;">Пока USD only.</div>
             </div>
             <span class="badge" id="statsBadge">FACT: USD</span>
           </div>
+
           <div class="kpi" style="margin-top:10px;">
             <div>Added USD: <b id="sAddedUsd">—</b></div>
-            <div>Годовой доход: <b id="sYear">—</b></div>
+            <div>Годовой доход: <b id="sYearIncome">—</b></div>
           </div>
-          <div class="muted" style="margin-top:8px;font-size:13px;">
-            “Годовой доход” — пока заглушка (позже сделаем формулу/историю). Сейчас важно вытянуть FACT USD.
+
+          <div class="hint">
+            Added USD берём из payload.stats.added_usd.<br>
+            Годовой доход — пока упрощённо: (equity - added_usd). Позже сделаем нормальную формулу/историю.
           </div>
         </div>
       </div>
@@ -266,38 +281,29 @@
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
   // =======================
-  // 1) ВСТАВЬ СЮДА СВОИ ДАННЫЕ
+  // ВСТАВЬ СЮДА СВОИ ДАННЫЕ
   // =======================
   const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
 
-  // Защита от "пустых" ключей — сразу покажем причину в UI
   const loginMsg = document.getElementById("loginMsg");
   function setMsg(text, type="") {
     loginMsg.className = "msg" + (type ? " " + type : "");
     loginMsg.textContent = text || "";
   }
 
-  if (!SUPABASE_URL.startsWith("http")) {
-    setMsg("Ошибка: не вставлен SUPABASE_URL в admin.html", "err");
-  }
-  if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("PASTE_")) {
-    setMsg("Ошибка: не вставлен SUPABASE_ANON_KEY в admin.html", "err");
-  }
+  if (!SUPABASE_URL.startsWith("http")) setMsg("Ошибка: не вставлен SUPABASE_URL в admin.html", "err");
+  if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("PASTE_")) setMsg("Ошибка: не вставлен SUPABASE_ANON_KEY в admin.html", "err");
 
-  // Отдельная сессия админки (не конфликтует с сайтом)
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       storageKey: "club500-admin-auth",
       persistSession: true,
-      autoRefreshToken: true
+      autoRefreshToken: true,
     }
   });
-
-  // для отладки (чтобы можно было в консоли проверить)
   window.sb = sb;
 
-  // UI refs
   const authPill = document.getElementById("authPill");
   const logoutBtn = document.getElementById("logoutBtn");
   const denyLogoutBtn = document.getElementById("denyLogoutBtn");
@@ -318,27 +324,27 @@
   const updatedAt = document.getElementById("updatedAt");
   const refreshBtn = document.getElementById("refreshBtn");
 
-  // calc widgets
   const exitToggle = document.getElementById("exitToggle");
   const feeToggle = document.getElementById("feeToggle");
   const kpiEquity = document.getElementById("kpiEquity");
   const kpiAvailable = document.getElementById("kpiAvailable");
   const kpiFee = document.getElementById("kpiFee");
+  const closeCycleBtn = document.getElementById("closeCycleBtn");
 
-  // deals widgets
   const dEquity = document.getElementById("dEquity");
   const dAvailable = document.getElementById("dAvailable");
+  const dCount = document.getElementById("dCount");
   const dealsTbody = document.getElementById("dealsTbody");
 
-  // passive widgets
   const pEquity = document.getElementById("pEquity");
   const pGoal = document.getElementById("pGoal");
   const pCount = document.getElementById("pCount");
+  const pSelected = document.getElementById("pSelected");
+  const pBought = document.getElementById("pBought");
   const passiveTbody = document.getElementById("passiveTbody");
 
-  // stats widgets
   const sAddedUsd = document.getElementById("sAddedUsd");
-  const sYear = document.getElementById("sYear");
+  const sYearIncome = document.getElementById("sYearIncome");
 
   function showOnly(which){
     loginCard.style.display = (which === "login") ? "block" : "none";
@@ -349,12 +355,14 @@
     adminMsg.className = "msg" + (type ? " " + type : "");
     adminMsg.textContent = text || "";
   }
-
   function money(x){
     if (x === null || x === undefined || x === "") return "—";
     const n = Number(x);
     if (!Number.isFinite(n)) return String(x);
     return n.toLocaleString("en-US");
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
   async function signOut(){
@@ -364,11 +372,9 @@
     showOnly("login");
     setMsg("");
   }
-
   logoutBtn.addEventListener("click", signOut);
   denyLogoutBtn.addEventListener("click", signOut);
 
-  // Tabs
   document.getElementById("tabs").addEventListener("click", (e) => {
     const tab = e.target.closest(".tab");
     if (!tab) return;
@@ -379,7 +385,6 @@
     document.getElementById("view-" + key).classList.add("active");
   });
 
-  // ---------- ROLE CHECK ----------
   async function checkAdminRole(userId){
     try{
       const { data, error } = await sb
@@ -411,28 +416,19 @@
     }
   }
 
-  // ---------- AUTH ----------
   async function signIn(){
-    // Важно: выводим ЛОГИ, чтобы видно было, где зависает
     setMsg("Входим…");
     console.log("signIn() start");
-
     try{
       const email = emailInput.value.trim();
       const password = passwordInput.value;
-
       if (!email || !password){
         setMsg("Заполни email и пароль", "err");
         return;
       }
-
-      // жёстко чистим старую сессию админки (на всякий)
       try { await sb.auth.signOut(); } catch {}
-
       console.log("about to call supabase signInWithPassword", { email });
-
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
-
       console.log("supabase response", { data, error });
 
       if (error){
@@ -443,7 +439,6 @@
         setMsg("Сессия не создана. Проверь email/пароль.", "err");
         return;
       }
-
       setMsg("Успешный вход", "ok");
       await boot();
     }catch(e){
@@ -473,30 +468,24 @@
   loginBtn.addEventListener("click", signIn);
   signupBtn.addEventListener("click", signUp);
 
-  // ---------- DATA ----------
   let currentPartnerId = "";
+  let lastPayload = {};
 
   async function loadPartners(){
-    // показываем всех non-admin из profiles
     const { data, error } = await sb
       .from("profiles")
-      .select("user_id,name,email,is_admin,role")
+      .select("user_id,name,email,is_admin,role,created_at")
       .order("created_at", { ascending: true });
 
     if (error){
       setAdminMsg("Ошибка загрузки партнёров: " + error.message, "err");
       return;
     }
-
     const partners = (data || []).filter(p => !((p.is_admin === true) || ((p.role || "").toLowerCase() === "admin")));
     partnerSelect.innerHTML = '<option value="">— выбрать —</option>' + partners.map(p => {
       const label = p.name || p.email || p.user_id;
       return `<option value="${p.user_id}">${escapeHtml(label)}</option>`;
     }).join("");
-  }
-
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
   async function fetchLatestSnapshot(userId){
@@ -511,24 +500,28 @@
     return data?.[0] || null;
   }
 
-  function renderFromPayload(payload){
-    const equity = payload?.equity ?? null;
-    const available = payload?.available ?? null;
-
-    // calc
-    kpiEquity.textContent = money(equity);
-    kpiAvailable.textContent = money(available);
-
-    // fee
+  function recomputeFee(equity){
     const exiting = exitToggle.checked;
     const feeOn = feeToggle.checked;
-    const fee = (feeOn && exiting && Number(equity) >= 5000) ? (Number(equity) * 0.10) : 0;
+    const eq = Number(equity);
+    if (!feeOn || !exiting || !Number.isFinite(eq) || eq < 5000) return 0;
+    return eq * 0.10;
+  }
+
+  function renderFromPayload(payload){
+    lastPayload = payload || {};
+    const equity = lastPayload?.equity ?? null;
+    const available = lastPayload?.available ?? null;
+
+    kpiEquity.textContent = money(equity);
+    kpiAvailable.textContent = money(available);
+    const fee = recomputeFee(equity);
     kpiFee.textContent = fee ? money(fee) : "0";
 
-    // deals
     dEquity.textContent = money(equity);
     dAvailable.textContent = money(available);
-    const assets = Array.isArray(payload?.assets) ? payload.assets : [];
+    const assets = Array.isArray(lastPayload?.assets) ? lastPayload.assets : [];
+    dCount.textContent = String(assets.length);
     dealsTbody.innerHTML = assets.length ? assets.map(a => `
       <tr>
         <td>${escapeHtml(a.symbol ?? "—")}</td>
@@ -539,11 +532,14 @@
       </tr>
     `).join("") : '<tr><td class="muted" colspan="5">Нет данных</td></tr>';
 
-    // passive
     pEquity.textContent = money(equity);
-    pGoal.textContent = money(payload?.financial_goal ?? null);
-    const objs = Array.isArray(payload?.passive_objects) ? payload.passive_objects : [];
+    pGoal.textContent = money(lastPayload?.financial_goal ?? null);
+    const objs = Array.isArray(lastPayload?.passive_objects) ? lastPayload.passive_objects : [];
     pCount.textContent = String(objs.length);
+    const selectedCount = objs.filter(o => String(o.status || "").toLowerCase() === "selected").length;
+    const boughtCount = objs.filter(o => String(o.status || "").toLowerCase() === "bought").length;
+    pSelected.textContent = String(selectedCount);
+    pBought.textContent = String(boughtCount);
     passiveTbody.innerHTML = objs.length ? objs.map(o => `
       <tr>
         <td>${escapeHtml(o.name ?? "—")}</td>
@@ -552,10 +548,12 @@
       </tr>
     `).join("") : '<tr><td class="muted" colspan="3">Нет данных</td></tr>';
 
-    // stats (USD only)
-    const addedUsd = payload?.stats?.added_usd ?? null;
+    const addedUsd = lastPayload?.stats?.added_usd ?? null;
     sAddedUsd.textContent = money(addedUsd);
-    sYear.textContent = "—";
+    const eq = Number(equity);
+    const add = Number(addedUsd);
+    const yearIncome = (Number.isFinite(eq) && Number.isFinite(add)) ? (eq - add) : null;
+    sYearIncome.textContent = (yearIncome === null) ? "—" : money(yearIncome);
   }
 
   async function refreshSnapshot(){
@@ -590,22 +588,13 @@
   });
 
   refreshBtn.addEventListener("click", refreshSnapshot);
-  exitToggle.addEventListener("change", () => {
-    // пересчитать комиссию
-    renderFromPayload(lastPayload || {});
-  });
-  feeToggle.addEventListener("change", () => {
-    renderFromPayload(lastPayload || {});
-  });
 
-  let lastPayload = {};
+  exitToggle.addEventListener("change", () => renderFromPayload(lastPayload));
+  feeToggle.addEventListener("change", () => renderFromPayload(lastPayload));
 
-  // Переопределим render, чтобы помнить lastPayload
-  const _renderFromPayload = renderFromPayload;
-  renderFromPayload = (payload) => {
-    lastPayload = payload || {};
-    _renderFromPayload(lastPayload);
-  };
+  closeCycleBtn.addEventListener("click", () => {
+    alert("Закрыть цикл — идея на будущее. Позже сделаем: блокировку + финализацию в БД.");
+  });
 
   async function boot(){
     const { data: { user } } = await sb.auth.getUser();
@@ -630,12 +619,7 @@
     setAdminMsg("Выбери партнёра.", "");
   }
 
-  // initial boot + auth changes
-  sb.auth.onAuthStateChange((_event, _session) => {
-    boot();
-  });
-
-  // старт
+  sb.auth.onAuthStateChange(() => boot());
   boot();
 </script>
 </body>
