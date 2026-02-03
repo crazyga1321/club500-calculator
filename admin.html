@@ -7,12 +7,10 @@
   <style>
     :root{
       --bg:#0b1220;
-      --card:#0f172a;
       --muted:#9aa7bd;
       --line:rgba(255,255,255,.10);
       --ok:#22c55e;
       --err:#ef4444;
-      --accent:#3b82f6;
       --pill:rgba(255,255,255,.07);
     }
     *{ box-sizing:border-box; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
@@ -33,9 +31,9 @@
       background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
       box-shadow: 0 12px 50px rgba(0,0,0,.35);
     }
-    .brand{ font-weight:800; letter-spacing:.2px; }
+    .brand{ font-weight:900; letter-spacing:.2px; }
     .sub{ color:var(--muted); font-size:13px; margin-top:4px; }
-    .right{ display:flex; align-items:center; gap:10px; }
+    .right{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;}
     .pill{ font-size:12px; padding:8px 10px; border:1px solid var(--line); border-radius:999px; background:var(--pill); color:var(--muted); }
     .btn{
       border:1px solid var(--line);
@@ -45,7 +43,7 @@
       border-radius:12px;
       cursor:pointer;
       transition:.15s;
-      font-weight:700;
+      font-weight:800;
     }
     .btn:hover{ transform:translateY(-1px); border-color:rgba(255,255,255,.18); }
     .btn.primary{ background: rgba(59,130,246,.85); border-color: rgba(59,130,246,.35); }
@@ -69,11 +67,11 @@
       border-radius:12px;
       outline:none;
     }
-    .msg{ margin-top:10px; font-size:13px; color:var(--muted); min-height:18px; }
+    .msg{ margin-top:10px; font-size:13px; color:var(--muted); min-height:18px; white-space:pre-wrap; }
     .msg.err{ color:var(--err); }
     .msg.ok{ color:var(--ok); }
     .tabs{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
-    .tab{ padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03); cursor:pointer; color:var(--muted); font-weight:800; font-size:13px; }
+    .tab{ padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03); cursor:pointer; color:var(--muted); font-weight:900; font-size:13px; }
     .tab.active{ color:#fff; border-color: rgba(59,130,246,.45); box-shadow: 0 0 0 4px rgba(59,130,246,.12); }
     .view{ display:none; margin-top:12px; border-top:1px dashed rgba(255,255,255,.12); padding-top:12px; }
     .view.active{ display:block; }
@@ -82,7 +80,6 @@
     table{ width:100%; border-collapse:collapse; margin-top:10px; overflow:hidden; border-radius:12px; border:1px solid rgba(255,255,255,.10); }
     th, td{ padding:10px 10px; text-align:left; font-size:13px; border-bottom:1px solid rgba(255,255,255,.06); }
     th{ color:var(--muted); font-weight:900; background: rgba(255,255,255,.03); }
-    .muted{ color:var(--muted); }
     .badge{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); font-size:12px; color:var(--muted); }
     .badge.ok{ color:var(--ok); border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.10); }
     .badge.err{ color:var(--err); border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.10); }
@@ -93,7 +90,6 @@
     @media (max-width: 900px){
       .row{ grid-template-columns: 1fr; }
       .split{ grid-template-columns: 1fr; }
-      .right{ flex-wrap:wrap; justify-content:flex-end; }
     }
   </style>
 </head>
@@ -102,7 +98,7 @@
   <div class="topbar">
     <div>
       <div class="brand">CLUB500 — Admin</div>
-      <div class="sub" id="stepLabel">Шаг C: выбор партнёра + вкладки (snapshot)</div>
+      <div class="sub">Вчерашние вкладки + сегодняшняя изоляция админки (sessionStorage)</div>
     </div>
     <div class="right">
       <span class="pill" id="authPill">Не в системе</span>
@@ -125,18 +121,18 @@
         <button class="btn" id="signupBtn" type="button">Регистрация</button>
       </div>
       <div class="msg" id="loginMsg"></div>
-      <div class="hint">Supabase Auth (отдельная сессия админки). Важно: это отдельная страница — ЛК не ломает.</div>
+      <div class="hint"><b>Изоляция:</b> админка хранит сессию в <b>sessionStorage</b>, поэтому не конфликтует с сайтом.</div>
     </div>
 
     <div class="card" id="denyCard" style="display:none">
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
         <div>
           <div style="font-weight:900; font-size:16px;">Доступ запрещён</div>
-          <div class="muted" style="font-size:13px;margin-top:4px;">нужна роль admin</div>
+          <div class="sub">нужна роль admin</div>
         </div>
         <span class="badge err" id="adminRoleBadge">role-check</span>
       </div>
-      <div class="msg err" id="denyMsg" style="margin-top:10px;"></div>
+      <div class="msg err" id="denyMsg"></div>
       <div style="margin-top:10px;">
         <button class="btn" id="denyLogoutBtn" type="button">Выйти</button>
       </div>
@@ -146,10 +142,10 @@
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
         <div style="min-width:280px; flex:1;">
           <div style="font-weight:900; font-size:16px;">Карточка партнёра</div>
-          <div class="muted" style="font-size:13px;margin-top:4px;">Выбери партнёра — данные подгрузятся во вкладках.</div>
+          <div class="sub">Выбери партнёра — данные подгрузятся во вкладках.</div>
         </div>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <span class="muted" style="font-size:12px;">partner_id: <span id="partnerIdText">—</span></span>
+          <span class="sub">partner_id: <span id="partnerIdText">—</span></span>
           <span class="badge ok" id="adminBadge">роль: admin</span>
         </div>
       </div>
@@ -160,7 +156,7 @@
           <select id="partnerSelect">
             <option value="">— выбрать —</option>
           </select>
-          <div class="hint">Список берём из таблицы <b>profiles</b> (кроме admin).</div>
+          <div class="hint">Список берём из <b>profiles</b> (кроме admin).</div>
         </div>
         <div class="field">
           <label>Статус обновления</label>
@@ -172,7 +168,7 @@
 
       <div class="tabs" id="tabs">
         <div class="tab active" data-tab="calc">Калькулятор</div>
-        <div class="tab" data-tab="deals">Сделки</div>
+        <div class="tab" data-tab="deals">Сводка сделок</div>
         <div class="tab" data-tab="passive">Пассивный доход</div>
         <div class="tab" data-tab="stats">Статистика</div>
       </div>
@@ -193,48 +189,48 @@
               <label class="badge" style="cursor:pointer;">
                 <input id="feeToggle" type="checkbox" style="margin-right:6px;" checked> Комиссия включена
               </label>
+              <span class="badge" id="feeRuleBadge">порог: 5000 → 10%</span>
             </div>
 
-            <div class="hint">Правило: при equity ≥ 5000 и включённом «Выходим» считается 10% от equity.</div>
+            <div class="hint">Комиссия считается только при выходе: <b>Выходим</b> + equity ≥ 5000.</div>
 
             <div class="switchline">
-              <button class="btn danger" id="closeCycleBtn" type="button">Закрыть цикл</button>
-              <span class="muted" style="font-size:12px;" id="closeCycleHint">Пока как идея: позже сделаем блокировку/финализацию.</span>
+              <button class="btn danger" id="closeCycleBtn" type="button">Завершить цикл</button>
+              <span class="sub" id="closeCycleHint">Пока кнопка-идея (без записи в БД).</span>
             </div>
           </div>
 
           <div class="box">
-            <div style="font-weight:900">Сводка цикла</div>
-            <div class="muted" style="margin-top:8px;font-size:13px;">
-              Тут в конце цикла видишь итог и размер комиссии.<br>
-              Пример: старт 5000 → стало 10000 → комиссия 1000 (10% от капитала при выходе).
+            <div style="font-weight:900">Краткая сводка</div>
+            <div class="sub" style="margin-top:8px;">
+              В конце цикла видишь итог и размер комиссии автоматически.<br>
+              Пример: 5000 → 10000 → комиссия 1000.
             </div>
-            <div class="hint">Дальше можно добавить запись “закрытия” в БД — сделаем позже.</div>
           </div>
         </div>
       </div>
 
       <div class="view" id="view-deals">
         <div class="kpi">
-          <div>Equity: <b id="dEquity">—</b></div>
-          <div>Available: <b id="dAvailable">—</b></div>
-          <div>Активов: <b id="dCount">—</b></div>
+          <div>Какие активы: <b id="dCount">—</b></div>
+          <div>Доступный капитал: <b id="dAvailable">—</b></div>
+          <div>Рост капитала: <b id="dGrowth">—</b></div>
         </div>
         <table>
           <thead>
             <tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Entry</th><th>PnL</th></tr>
           </thead>
           <tbody id="dealsTbody">
-            <tr><td class="muted" colspan="5">Нет данных</td></tr>
+            <tr><td class="sub" colspan="5">Нет данных</td></tr>
           </tbody>
         </table>
-        <div class="hint">Данные берём из payload.assets (snapshot).</div>
+        <div class="hint">Данные: payload.assets + payload.available.</div>
       </div>
 
       <div class="view" id="view-passive">
         <div class="kpi">
-          <div>Текущий капитал: <b id="pEquity">—</b></div>
           <div>Финансовая цель: <b id="pGoal">—</b></div>
+          <div>Текущий капитал: <b id="pEquity">—</b></div>
           <div>Объектов: <b id="pCount">—</b></div>
           <div>Выбрано: <b id="pSelected">—</b></div>
           <div>Куплено: <b id="pBought">—</b></div>
@@ -244,18 +240,18 @@
             <tr><th>Объект</th><th>Цена</th><th>Статус</th></tr>
           </thead>
           <tbody id="passiveTbody">
-            <tr><td class="muted" colspan="3">Нет данных</td></tr>
+            <tr><td class="sub" colspan="3">Нет данных</td></tr>
           </tbody>
         </table>
-        <div class="hint">Данные берём из payload.financial_goal и payload.passive_objects.</div>
+        <div class="hint">Данные: payload.financial_goal + payload.passive_objects.</div>
       </div>
 
       <div class="view" id="view-stats">
         <div class="box">
           <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
             <div>
-              <div style="font-weight:900">Статистика (FACT)</div>
-              <div class="muted" style="font-size:13px;margin-top:6px;">Пока USD only.</div>
+              <div style="font-weight:900">Статистика</div>
+              <div class="sub">FACT: USD only</div>
             </div>
             <span class="badge" id="statsBadge">FACT: USD</span>
           </div>
@@ -265,10 +261,7 @@
             <div>Годовой доход: <b id="sYearIncome">—</b></div>
           </div>
 
-          <div class="hint">
-            Added USD берём из payload.stats.added_usd.<br>
-            Годовой доход — пока упрощённо: (equity - added_usd). Позже сделаем нормальную формулу/историю.
-          </div>
+          <div class="hint">Added USD: payload.stats.added_usd. Доход: временно (equity - added_usd).</div>
         </div>
       </div>
 
@@ -280,11 +273,15 @@
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-  // =======================
-  // ВСТАВЬ СЮДА СВОИ ДАННЫЕ
-  // =======================
   const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
+
+  const ADMIN_STORAGE_KEY = "club500-admin-auth";
+  const adminStorage = {
+    getItem: (key) => window.sessionStorage.getItem(key),
+    setItem: (key, value) => window.sessionStorage.setItem(key, value),
+    removeItem: (key) => window.sessionStorage.removeItem(key),
+  };
 
   const loginMsg = document.getElementById("loginMsg");
   function setMsg(text, type="") {
@@ -292,14 +289,16 @@
     loginMsg.textContent = text || "";
   }
 
-  if (!SUPABASE_URL.startsWith("http")) setMsg("Ошибка: не вставлен SUPABASE_URL в admin.html", "err");
-  if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("PASTE_")) setMsg("Ошибка: не вставлен SUPABASE_ANON_KEY в admin.html", "err");
+  if (!SUPABASE_URL.startsWith("http")) setMsg("Ошибка: не вставлен SUPABASE_URL", "err");
+  if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("PASTE_")) setMsg("Ошибка: не вставлен SUPABASE_ANON_KEY", "err");
 
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
-      storageKey: "club500-admin-auth",
+      storageKey: ADMIN_STORAGE_KEY,
+      storage: adminStorage,
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: true
     }
   });
   window.sb = sb;
@@ -331,13 +330,13 @@
   const kpiFee = document.getElementById("kpiFee");
   const closeCycleBtn = document.getElementById("closeCycleBtn");
 
-  const dEquity = document.getElementById("dEquity");
-  const dAvailable = document.getElementById("dAvailable");
   const dCount = document.getElementById("dCount");
+  const dAvailable = document.getElementById("dAvailable");
+  const dGrowth = document.getElementById("dGrowth");
   const dealsTbody = document.getElementById("dealsTbody");
 
-  const pEquity = document.getElementById("pEquity");
   const pGoal = document.getElementById("pGoal");
+  const pEquity = document.getElementById("pEquity");
   const pCount = document.getElementById("pCount");
   const pSelected = document.getElementById("pSelected");
   const pBought = document.getElementById("pBought");
@@ -367,6 +366,7 @@
 
   async function signOut(){
     try { await sb.auth.signOut(); } catch {}
+    try { adminStorage.removeItem(ADMIN_STORAGE_KEY); } catch {}
     authPill.textContent = "Не в системе";
     logoutBtn.style.display = "none";
     showOnly("login");
@@ -386,83 +386,63 @@
   });
 
   async function checkAdminRole(userId){
-    try{
-      const { data, error } = await sb
-        .from("profiles")
-        .select("role,is_admin,user_id,email")
-        .eq("user_id", userId)
-        .maybeSingle();
+    const { data, error } = await sb
+      .from("profiles")
+      .select("role,is_admin,user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
 
-      if (error){
-        adminRoleBadge.textContent = "role-check error";
-        adminRoleBadge.className = "badge err";
-        denyMsg.textContent = "Ошибка чтения profiles: " + error.message;
-        return false;
-      }
-      const role = (data?.role || "").toLowerCase();
-      const isAdmin = (data?.is_admin === true) || role === "admin";
-      adminRoleBadge.textContent = "role=" + (data?.role ?? "null") + " / is_admin=" + (data?.is_admin ?? "null");
-      adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
-
-      if (!isAdmin){
-        denyMsg.textContent = "Вы вошли, но роль admin не подтверждена. Нужна запись в profiles: role='admin' или is_admin=true.";
-      }
-      return isAdmin;
-    }catch(e){
-      adminRoleBadge.textContent = "role-check exception";
+    if (error){
+      adminRoleBadge.textContent = "role-check error";
       adminRoleBadge.className = "badge err";
-      denyMsg.textContent = "Исключение: " + (e?.message || e);
+      denyMsg.textContent = "Ошибка чтения profiles: " + error.message;
       return false;
     }
+    const role = (data?.role || "").toLowerCase();
+    const isAdmin = (data?.is_admin === true) || role === "admin";
+    adminRoleBadge.textContent = "role=" + (data?.role ?? "null") + " / is_admin=" + (data?.is_admin ?? "null");
+    adminRoleBadge.className = "badge " + (isAdmin ? "ok" : "err");
+    if (!isAdmin){
+      denyMsg.textContent = "Нужна роль admin (profiles.role='admin' или profiles.is_admin=true).";
+    }
+    return isAdmin;
   }
 
   async function signIn(){
     setMsg("Входим…");
-    console.log("signIn() start");
-    try{
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-      if (!email || !password){
-        setMsg("Заполни email и пароль", "err");
-        return;
-      }
-      try { await sb.auth.signOut(); } catch {}
-      console.log("about to call supabase signInWithPassword", { email });
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      console.log("supabase response", { data, error });
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
 
-      if (error){
-        setMsg("Ошибка входа: " + error.message, "err");
-        return;
-      }
-      if (!data?.session){
-        setMsg("Сессия не создана. Проверь email/пароль.", "err");
-        return;
-      }
-      setMsg("Успешный вход", "ok");
-      await boot();
-    }catch(e){
-      console.error("signIn() crash:", e);
-      setMsg("Ошибка JS: " + (e?.message || e), "err");
+    if (!email || !password){
+      setMsg("Заполни email и пароль", "err");
+      return;
     }
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+    if (error){
+      setMsg("Ошибка входа: " + error.message, "err");
+      return;
+    }
+    if (!data?.session){
+      setMsg("Сессия не создана. Проверь email/пароль.", "err");
+      return;
+    }
+    setMsg("Успешный вход", "ok");
+    await boot();
   }
 
   async function signUp(){
     setMsg("Регистрируем…");
-    try{
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-      const { data, error } = await sb.auth.signUp({ email, password });
-      if (error){
-        setMsg("Ошибка регистрации: " + error.message, "err");
-        return;
-      }
-      setMsg("Регистрация ок. Проверь почту (если включено подтверждение) или попробуй войти.", "ok");
-      console.log("signUp response", data);
-    }catch(e){
-      console.error("signUp crash:", e);
-      setMsg("Ошибка JS: " + (e?.message || e), "err");
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    const { error } = await sb.auth.signUp({ email, password });
+    if (error){
+      setMsg("Ошибка регистрации: " + error.message, "err");
+      return;
     }
+    setMsg("Регистрация ок. Проверь почту (если включено подтверждение) или попробуй войти.", "ok");
   }
 
   loginBtn.addEventListener("click", signIn);
@@ -518,10 +498,15 @@
     const fee = recomputeFee(equity);
     kpiFee.textContent = fee ? money(fee) : "0";
 
-    dEquity.textContent = money(equity);
-    dAvailable.textContent = money(available);
     const assets = Array.isArray(lastPayload?.assets) ? lastPayload.assets : [];
     dCount.textContent = String(assets.length);
+    dAvailable.textContent = money(available);
+
+    const addedUsd = Number(lastPayload?.stats?.added_usd);
+    const eq = Number(equity);
+    const growth = (Number.isFinite(eq) && Number.isFinite(addedUsd)) ? (eq - addedUsd) : null;
+    dGrowth.textContent = (growth === null) ? "—" : money(growth);
+
     dealsTbody.innerHTML = assets.length ? assets.map(a => `
       <tr>
         <td>${escapeHtml(a.symbol ?? "—")}</td>
@@ -530,28 +515,26 @@
         <td>${escapeHtml(a.entry ?? "—")}</td>
         <td>${escapeHtml(a.pnl ?? "—")}</td>
       </tr>
-    `).join("") : '<tr><td class="muted" colspan="5">Нет данных</td></tr>';
+    `).join("") : '<tr><td class="sub" colspan="5">Нет данных</td></tr>';
 
-    pEquity.textContent = money(equity);
     pGoal.textContent = money(lastPayload?.financial_goal ?? null);
+    pEquity.textContent = money(equity);
     const objs = Array.isArray(lastPayload?.passive_objects) ? lastPayload.passive_objects : [];
     pCount.textContent = String(objs.length);
-    const selectedCount = objs.filter(o => String(o.status || "").toLowerCase() === "selected").length;
-    const boughtCount = objs.filter(o => String(o.status || "").toLowerCase() === "bought").length;
-    pSelected.textContent = String(selectedCount);
-    pBought.textContent = String(boughtCount);
+    pSelected.textContent = String(objs.filter(o => String(o.status||"").toLowerCase()==="selected").length);
+    pBought.textContent = String(objs.filter(o => String(o.status||"").toLowerCase()==="bought").length);
+
     passiveTbody.innerHTML = objs.length ? objs.map(o => `
       <tr>
         <td>${escapeHtml(o.name ?? "—")}</td>
         <td>${escapeHtml(o.price ?? "—")}</td>
         <td>${escapeHtml(o.status ?? "—")}</td>
       </tr>
-    `).join("") : '<tr><td class="muted" colspan="3">Нет данных</td></tr>';
+    `).join("") : '<tr><td class="sub" colspan="3">Нет данных</td></tr>';
 
-    const addedUsd = lastPayload?.stats?.added_usd ?? null;
-    sAddedUsd.textContent = money(addedUsd);
-    const eq = Number(equity);
-    const add = Number(addedUsd);
+    const added = lastPayload?.stats?.added_usd ?? null;
+    sAddedUsd.textContent = money(added);
+    const add = Number(added);
     const yearIncome = (Number.isFinite(eq) && Number.isFinite(add)) ? (eq - add) : null;
     sYearIncome.textContent = (yearIncome === null) ? "—" : money(yearIncome);
   }
@@ -577,7 +560,6 @@
       renderFromPayload(payload);
     }catch(e){
       setAdminMsg("Ошибка чтения snapshot: " + (e?.message || e), "err");
-      console.error(e);
     }
   }
 
@@ -588,12 +570,11 @@
   });
 
   refreshBtn.addEventListener("click", refreshSnapshot);
-
   exitToggle.addEventListener("change", () => renderFromPayload(lastPayload));
   feeToggle.addEventListener("change", () => renderFromPayload(lastPayload));
 
   closeCycleBtn.addEventListener("click", () => {
-    alert("Закрыть цикл — идея на будущее. Позже сделаем: блокировку + финализацию в БД.");
+    alert("Завершить цикл — идея. Позже: блокировка калькулятора + финализация.");
   });
 
   async function boot(){
