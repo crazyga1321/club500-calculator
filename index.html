@@ -4355,9 +4355,6 @@ $('sendResultToDeals')?.addEventListener('click', ()=>{
   recalcAvailableCapital();
   updatePassiveTab();
 
-  // Автоснапшот после RESULT (критично для админки)
-  await saveDealSnapshot();
-
   // переключиться на вкладку «Сводка сделок»
   document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
   document.querySelector('[data-tab="dealsTab"]').classList.add('active');
@@ -6616,63 +6613,142 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 
 
-<!-- ===== CLUB500 SNAPSHOT SAVE (AUTO) ===== -->
+<!-- ===== CLUB500 SNAPSHOT STABLE SAVE (writes after RESULT/Finish) ===== -->
 <script>
-// !!! INSERT YOUR SUPABASE CREDS BELOW !!!
-const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
+(function(){
+  if(!window.supabase) {
+    console.error("supabase-js not loaded (snapshot)");
+    return;
+  }
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: true }
-});
+  const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
+  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
+  const sbSnap = window.supabase.createClient(SB_URL, SB_ANON, {
+    auth: { persistSession: true }
+  });
 
-async function saveDealSnapshot(){
-  // Serialize snapshot writes to avoid race/double-click issues
-  window.__snapshotWrite = (window.__snapshotWrite || Promise.resolve()).then(async () => {
+  // Serialize saves to avoid race conditions
+  let saveChain = Promise.resolve();
+  function enqueueSave(fn){
+    saveChain = saveChain.then(fn, fn);
+    return saveChain;
+  }
 
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if(!user){
-        console.warn("No auth user, snapshot skipped");
-        return;
-      }
+  function parseMoney(text){
+    if(!text) return 0;
+    // remove currency signs/spaces, keep digits dot comma
+    const t = String(text).replace(/\s/g,'').replace(/[^0-9.,-]/g,'').replace(/,/g,'.');
+    const n = parseFloat(t);
+    return Number.isFinite(n) ? n : 0;
+  }
 
-      const payload = {
-        equity: Number((document.getElementById('cycleCurrentCap')?.textContent || '').replace(/[^0-9.]/g,'')) || 0,
-        available: Number((document.getElementById('availableCapital')?.textContent || '').replace(/[^0-9.]/g,'')) || 0,
-        financial_goal: Number(localStorage.getItem('club500_pd_goal') || 0),
-        stats: {
-          added_usd: Number(localStorage.getItem('club500_added_usd') || 0),
-          added_rub: Number(localStorage.getItem('club500_added_rub') || 0),
-        },
-        assets: (function(){
-          try{
-            return JSON.parse(localStorage.getItem('club500_deals_history') || '[]');
-          }catch(e){ return []; }
-        })()
-      };
+  function safeJSON(key, fallback){
+    try {
+      const raw = localStorage.getItem(key);
+      if(!raw) return fallback;
+      return JSON.parse(raw);
+    } catch(e) { return fallback; }
+  }
 
-      const { error } = await supabaseClient
-        .from('deal_stats_snapshot')
-        .upsert({
+  function buildSnapshotPayload(){
+    // available capital from Deals tab
+    const available = parseMoney(document.getElementById('availableCapital')?.textContent);
+    // equity/current capital for cycle card (display only)
+    const equity = parseMoney(document.getElementById('cycleCurrentCap')?.textContent) || available;
+
+    const financial_goal = Number(localStorage.getItem('club500_pd_goal') || 0) || 0;
+
+    const statsScope = localStorage.getItem('club500_stats_scope') || 'fact';
+    const statsFilter = localStorage.getItem('club500_stats_filter') || 'usd';
+
+    const payload = {
+      equity,
+      available,
+      financial_goal,
+      stats: {
+        scope: statsScope,
+        filter: statsFilter
+      },
+      // what partner actually has on Deals table
+      deals_state: safeJSON('club500_deals', null),
+      // your completed deals / frequent stats history (if used by admin UI)
+      assets: safeJSON('club500_deals_history', []),
+      passive_objects: safeJSON('club500_pd_assets', []),
+      pd_current_capital: Number(localStorage.getItem('club500_pd_current_capital') || 0) || 0,
+      last_result_capital: Number(localStorage.getItem('club500_last_result_capital') || 0) || 0,
+      __snapshot_ts: Date.now()
+    };
+
+    return payload;
+  }
+
+  async function writeSnapshot(){
+    const { data: { user } } = await sbSnap.auth.getUser();
+    if(!user) {
+      console.warn("Snapshot skipped: no auth user");
+      return false;
+    }
+    const payload = buildSnapshotPayload();
+
+    // Upsert and force server-side updated_at using explicit field too
+    const { error } = await sbSnap
+      .from('deal_stats_snapshot')
+      .upsert(
+        {
           user_id: user.id,
           payload: payload,
           updated_at: new Date().toISOString()
-        });
+        },
+        { onConflict: 'user_id' }
+      );
 
-      if(error){
-        console.error("Snapshot save error:", error);
-      }else{
-        console.log("Snapshot saved");
+    if(error) {
+      console.error("Snapshot write error:", error);
+      return false;
+    }
+    return true;
+  }
+
+  async function saveSnapshotWithUI(){
+    // Optional tiny UX: pulse the RESULT badge while saving
+    const badge = document.getElementById('sendResultToDeals');
+    if(badge) badge.disabled = true;
+
+    try {
+      const ok = await writeSnapshot();
+      if(!ok) {
+        // Do not silently fail: show toast if available
+        if(typeof window.showToast === 'function') window.showToast('Не удалось сохранить snapshot. Повтори ещё раз.');
+      } else {
+        if(typeof window.showToast === 'function') window.showToast('Snapshot сохранён');
       }
-  });
-  return window.__snapshotWrite;
-}
+    } finally {
+      if(badge) badge.disabled = false;
+    }
+  }
 
-document.getElementById('cycleSetEndBtn')?.addEventListener('click', ()=>{
-  saveDealSnapshot();
-});
+  function hook(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('click', ()=> {
+      // Let existing handler run first and update localStorage/DOM, then save
+      enqueueSave(()=> new Promise((resolve)=> {
+        setTimeout(async ()=> {
+          await saveSnapshotWithUI();
+          resolve();
+        }, 0);
+      }));
+    });
+  }
+
+  // RESULT badge in Calculator tab (primary)
+  hook('sendResultToDeals');
+  // Finish-year button (secondary)
+  hook('cycleSetEndBtn');
+
+})();
 </script>
-<!-- ===== END SNAPSHOT SAVE ===== -->
+<!-- ===== END CLUB500 SNAPSHOT STABLE SAVE ===== -->
 
 </body>
 </html>
