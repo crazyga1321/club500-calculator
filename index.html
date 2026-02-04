@@ -3925,8 +3925,8 @@ input, select, textarea, button{
 <script>
 /* ===== Helpers ===== */
 const $ = (id)=>document.getElementById(id);
-const parseSafe = (v)=>{ const n=parseFloat(v); return Number.isFinite(n)?n:0; };
-const money = (n)=>'$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const parseSafe = (v)=>{ const n=safeNumber(v); return Number.isFinite(n)?n:0; };
+const money = (n)=>'$' + safeNumber(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
 function showToast(txt, ms=2200){
   const t = $('toast');
@@ -4008,7 +4008,7 @@ function setTimelineFill(startM, endM){
 }
 
 function pctClass(p){
-  const v = Number(p);
+  const v = safeNumber(p);
   if(!Number.isFinite(v)) return 'neu';
   if(v < 0) return 'neg';
   if(v >= 200) return 'green';
@@ -4017,7 +4017,7 @@ function pctClass(p){
 }
 function applyPct(el, p, suffix='%'){
   if(!el) return;
-  const v = Number(p);
+  const v = safeNumber(p);
   el.classList.remove('pct','neg','neu','cyan','green');
   el.classList.add('pct', pctClass(v));
   if(Number.isFinite(v)){
@@ -4296,7 +4296,7 @@ function drawChart(rows){
 
   let dots='';
   pts.forEach((p,i)=>{
-    const hasFee = Number(rows[i].fee) > 0;
+    const hasFee = safeNumber(rows[i].fee) > 0;
     dots += `<circle cx="${p[0]}" cy="${p[1]}" r="${hasFee?6:3}" fill="${hasFee?'#a78bfa':'#ffffff'}" opacity="${hasFee?1:0.85}" ${hasFee?'filter="url(#glow)"':''}></circle>`;
   });
 
@@ -4338,7 +4338,7 @@ $('calcBtn')?.addEventListener('click', ()=>{
 // RESULT -> передать итоговый капитал в «Сводка сделок» (стартовый капитал)
 $('sendResultToDeals')?.addEventListener('click', ()=>{
   const finalText = ($('final')?.innerText || '$0').replace('$','').replace(/,/g,'');
-  const finalSum = parseFloat(finalText);
+  const finalSum = safeNumber(finalText);
   if(!Number.isFinite(finalSum) || finalSum <= 0){
     showToast('Сначала посчитай итог в калькуляторе');
     return;
@@ -4654,8 +4654,8 @@ function saveRowSigMap(map){
 }
 function dealSig(d){
   const a = (d.asset || '').toUpperCase();
-  const e = Number(d.entry || 0).toFixed(4);
-  const x = Number(d.exit || 0).toFixed(4);
+  const e = safeNumber(d.entry || 0).toFixed(4);
+  const x = safeNumber(d.exit || 0).toFixed(4);
   return `${a}|${e}|${x}`;
 }
 
@@ -4731,9 +4731,9 @@ function computeCompletedDealsStats(){
   const byAsset = {};
   arr.forEach(d=>{
     const asset = (d.asset || '').toUpperCase().trim();
-    const entry = Number(d.entry)||0;
-    const pnl = Number(d.pnl)||0;
-    const pct = Number(d.pct)||0;
+    const entry = safeNumber(d.entry)||0;
+    const pnl = safeNumber(d.pnl)||0;
+    const pct = safeNumber(d.pct)||0;
 
     sumPct += pct;
     sumPnl += pnl;
@@ -4813,13 +4813,13 @@ function readMoneyText(s){
   if(!str) return 0;
   // if both comma and dot exist, assume comma is thousands separator
   if(str.includes('.') && str.includes(',')){
-    return parseFloat(str.replace(/,/g,'')) || 0;
+    return safeNumber(str.replace(/,/g,'')) || 0;
   }
   // if only comma, treat comma as decimal
   if(str.includes(',') && !str.includes('.')){
-    return parseFloat(str.replace(/,/g,'.')) || 0;
+    return safeNumber(str.replace(/,/g,'.')) || 0;
   }
-  return parseFloat(str) || 0;
+  return safeNumber(str) || 0;
 }
 
 function getCycleMeta(){
@@ -4988,7 +4988,7 @@ function renderCompletedDealsStats(){
   }
 
   totalEl.textContent = String(data.count ?? 0);
-  avgEl.textContent = (Number(data.avgPct ?? 0)).toFixed(2) + '%';
+  avgEl.textContent = (safeNumber(data.avgPct ?? 0)).toFixed(2) + '%';
 
   const freq = Array.isArray(data.frequent) ? data.frequent : [];
   if(freq.length === 0){
@@ -4999,7 +4999,7 @@ function renderCompletedDealsStats(){
   listEl.innerHTML = '';
   freq.forEach(item=>{
     const li = document.createElement('li');
-    li.innerHTML = `<strong>${item.name}</strong> — ${Number(item.count).toFixed(0)} сделк., средняя: ${Number(item.avgPct).toFixed(2)}%`;
+    li.innerHTML = `<strong>${item.name}</strong> — ${safeNumber(item.count).toFixed(0)} сделк., средняя: ${safeNumber(item.avgPct).toFixed(2)}%`;
     listEl.appendChild(li);
   });
 }
@@ -5147,8 +5147,8 @@ $('useInCalcBtn')?.addEventListener('click', ()=>{
 let pd_assets = [];
 let pd_prevTotalIncome = 0;
 
-function pd_formatNumber(num){
-  const n = Number(num);
+function pd_formatsafeNumber(num){
+  const n = safeNumber(num);
   return Number.isFinite(n) ? n.toLocaleString('ru-RU',{maximumFractionDigits:2}) : '0';
 }
 
@@ -5231,7 +5231,7 @@ function pd_renderAssets(){
   list.querySelectorAll('.pdDelBtn').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       e.preventDefault();
-      const i = Number(btn.getAttribute('data-idx'));
+      const i = safeNumber(btn.getAttribute('data-idx'));
       if(!Number.isFinite(i)) return;
       pd_assets.splice(i, 1);
       pd_save();
@@ -5322,7 +5322,7 @@ function flashYearRow(index){
     const tbody = document.querySelector('#statsTable tbody');
     if(!tbody) return;
     const rows = tbody.querySelectorAll('tr');
-    const i = Number(index);
+    const i = safeNumber(index);
     if(!Number.isFinite(i) || i < 0 || i >= rows.length) return;
     const tr = rows[i];
     tr.classList.remove('yearRowFlash');
@@ -5349,7 +5349,7 @@ function renderStats(){
     tr.innerHTML = `
       <td>${i+1}</td>
       <td>${money(r.sum)}</td>
-      <td><span class=\"yearPct\" data-pct=\"${Number(r.pct||0)}\">—</span></td>
+      <td><span class=\"yearPct\" data-pct=\"${safeNumber(r.pct||0)}\">—</span></td>
       <td>${period}</td>
       <td style="text-align:center">${days}</td>
       <td style="text-align:center">
@@ -5363,7 +5363,7 @@ function renderStats(){
 // applyPctToYearRows
 try{
   document.querySelectorAll('#statsTable tbody .yearPct').forEach(sp=>{
-    const v = parseFloat(sp.getAttribute('data-pct'));
+    const v = safeNumber(sp.getAttribute('data-pct'));
     applyPct(sp, v, '%');
   });
 }catch(_){}
@@ -5486,7 +5486,7 @@ function updateYearAverages(){
     return;
   }
 
-  const pcts = stats.map(r=>Number(r.pct||0)).filter(x=>Number.isFinite(x));
+  const pcts = stats.map(r=>safeNumber(r.pct||0)).filter(x=>Number.isFinite(x));
   const sum = pcts.reduce((a,b)=>a+b,0);
   const avg = sum / pcts.length;
 
@@ -5538,8 +5538,8 @@ function saveCashInEntries(arr){
 function sumCashIn(arr){
   let usd=0, rub=0;
   (arr||[]).forEach(x=>{
-    usd += Number(x.usd||0) || 0;
-    rub += Number(x.rub||0) || 0;
+    usd += safeNumber(x.usd||0) || 0;
+    rub += safeNumber(x.rub||0) || 0;
   });
   return {usd, rub};
 }
@@ -5553,8 +5553,8 @@ function renderCashIn(){
     .sort((a,b)=> String(b.date||'').localeCompare(String(a.date||'')))
     .forEach((x)=>{
       const tr = document.createElement('tr');
-      const usd = Number(x.usd||0)||0;
-      const rub = Number(x.rub||0)||0;
+      const usd = safeNumber(x.usd||0)||0;
+      const rub = safeNumber(x.rub||0)||0;
       tr.innerHTML = `
         <td>${x.date || '—'}</td>
         <td style="text-align:right">${usd ? usd.toFixed(2) : '—'}</td>
@@ -5725,13 +5725,13 @@ function updateCashInStrip(){
   try{
     const fill = document.getElementById('cashInStripFill');
     if(!fill) return;
-    const cashIn = Number(window.cashInTotal || 0);
+    const cashIn = safeNumber(window.cashInTotal || 0);
     // Try to infer current capital displayed in stats tab
     const capEl = document.getElementById('cycleCurrentCapital');
     let cur = 0;
     if(capEl){
       const t = capEl.textContent || '';
-      cur = parseFloat(String(t).replace(/[^0-9.]/g,'')) || 0;
+      cur = safeNumber(String(t).replace(/[^0-9.]/g,'')) || 0;
     }
     const denom = Math.max(cur, cashIn, 1);
     const pct = Math.max(10, Math.min(100, (cashIn/denom)*100));
@@ -5788,7 +5788,7 @@ function updateAvailableCapitalAlert(){
   if(!box) return;
 
   const startRaw = startEl ? String(startEl.value || '').replace(',', '.').replace(/[^0-9.-]/g,'') : '';
-  const startNum = Number(startRaw);
+  const startNum = safeNumber(startRaw);
 
   const needsInput = !(Number.isFinite(startNum) && startNum > 0);
 
@@ -5820,7 +5820,7 @@ function pd_updateTotals(){
   let planM = 0, boughtM = 0;
 
   (pd_assets || []).forEach(a=>{
-    const inc = Number(a.income || 0);
+    const inc = safeNumber(a.income || 0);
     if(!Number.isFinite(inc)) return;
     if(a.status === 'bought') boughtM += inc;
     else planM += inc;
@@ -5848,7 +5848,7 @@ function pdRubFormat(n){
 function pdRubParse(v){
   if(v == null) return 0;
   const raw = String(v).replace(/\s+/g,'').replace(',', '.').replace(/[^0-9.-]/g,'');
-  const num = Number(raw);
+  const num = safeNumber(raw);
   return Number.isFinite(num) ? num : 0;
 }
 function pdBindRubInput(id){
@@ -6638,7 +6638,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(!text) return 0;
     // remove currency signs/spaces, keep digits dot comma
     const t = String(text).replace(/\s/g,'').replace(/[^0-9.,-]/g,'').replace(/,/g,'.');
-    const n = parseFloat(t);
+    const n = safeNumber(t);
     return Number.isFinite(n) ? n : 0;
   }
 
@@ -6656,7 +6656,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     // equity/current capital for cycle card (display only)
     const equity = parseMoney(document.getElementById('cycleCurrentCap')?.textContent) || available;
 
-    const financial_goal = Number(localStorage.getItem('club500_pd_goal') || 0) || 0;
+    const financial_goal = safeNumber(localStorage.getItem('club500_pd_goal') || 0) || 0;
 
     const statsScope = localStorage.getItem('club500_stats_scope') || 'fact';
     const statsFilter = localStorage.getItem('club500_stats_filter') || 'usd';
@@ -6674,8 +6674,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
       // your completed deals / frequent stats history (if used by admin UI)
       assets: safeJSON('club500_deals_history', []),
       passive_objects: safeJSON('club500_pd_assets', []),
-      pd_current_capital: Number(localStorage.getItem('club500_pd_current_capital') || 0) || 0,
-      last_result_capital: Number(localStorage.getItem('club500_last_result_capital') || 0) || 0,
+      pd_current_capital: safeNumber(localStorage.getItem('club500_pd_current_capital') || 0) || 0,
+      last_result_capital: safeNumber(localStorage.getItem('club500_last_result_capital') || 0) || 0,
       __snapshot_ts: Date.now()
     };
 
@@ -6749,6 +6749,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
 })();
 </script>
 <!-- ===== END CLUB500 SNAPSHOT STABLE SAVE ===== -->
+
+
+<!-- ===== NUMERIC + COMMISSION FIX ===== -->
+<script>
+function safesafeNumber(val){
+  if(val === null || val === undefined) return 0;
+  return safeNumber(val.toString().replace(/,/g,'').trim()) || 0;
+}
+
+const COMMISSION_RATE = 0.10;
+const COMMISSION_CAP = 5000;
+
+function calculateCommission(totalEquity){
+  const raw = safesafeNumber(totalEquity) * COMMISSION_RATE;
+  return Math.min(raw, COMMISSION_CAP);
+}
+</script>
+<!-- ===== END FIX ===== -->
 
 </body>
 </html>
