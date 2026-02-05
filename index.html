@@ -6613,136 +6613,114 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 
 
-<!-- ===== CLUB500 SNAPSHOT (draft/final) ===== -->
+<!-- ===== CLUB500 SNAPSHOT (DRAFT/FINAL) ===== -->
 <script>
 (function(){
-  // Uses existing 'sb' supabase client from this page (DO NOT create a second client)
+  // uses existing client: const sb = window.supabase.createClient(...)
+  if (typeof sb === 'undefined') {
+    console.error('[SNAPSHOT] Supabase client "sb" not found');
+    return;
+  }
 
-  function parseMoney(val){
+  let saving = false;
+  let queued = false;
+
+  function parseMoneySafe(val){
     if(val === null || val === undefined) return 0;
-    const t = String(val).replace(/\s/g,'').replace(/[^0-9.,-]/g,'');
-    // handle thousands separators: "12,000.00" -> "12000.00"; "12 000,00" -> "12000.00"
-    // If both comma and dot exist, assume comma is thousands.
-    let s = t;
-    const hasComma = s.includes(',');
-    const hasDot = s.includes('.');
-    if(hasComma && hasDot){
-      s = s.replace(/,/g,''); // remove thousands
-    } else if(hasComma && !hasDot){
-      // treat comma as decimal separator
-      s = s.replace(/,/g,'.');
-    }
-    const n = parseFloat(s);
-    return Number.isFinite(n) ? n : 0;
-  }
-
-  function getText(id){
-    const el = document.getElementById(id);
-    return el ? (el.textContent || el.value || '') : '';
-  }
-
-  function getLSJson(key, fallback){
-    try{
-      const v = localStorage.getItem(key);
-      if(!v) return fallback;
-      return JSON.parse(v);
-    }catch(e){ return fallback; }
+    // Supports: "12,000.00" and "12 000,00"
+    const s = String(val).trim()
+      .replace(/\s/g,'')
+      .replace(/[^0-9.,-]/g,'');
+    // If contains both comma and dot, assume comma is thousand separator
+    if (s.includes(',') && s.includes('.')) return Number(s.replace(/,/g,'')) || 0;
+    // If only comma, assume decimal comma
+    if (s.includes(',') && !s.includes('.')) return Number(s.replace(/,/g,'.')) || 0;
+    return Number(s) || 0;
   }
 
   function buildPayload(){
-    // Prefer UI values if present; otherwise fallback to localStorage
-    const equity = parseMoney(getText('cycleCurrentCap')) || parseMoney(localStorage.getItem('club500_last_result_capital')) || parseMoney(localStorage.getItem('club500_pd_current_capital')) || 0;
-    const available = parseMoney(getText('availableCapital')) || parseMoney(getLSJson('club500_stats', {}).available) || 0;
+    const equity = parseMoneySafe(document.getElementById('cycleCurrentCap')?.textContent || 0);
+    const available = parseMoneySafe(document.getElementById('availableCapital')?.textContent || 0);
 
-    const financial_goal = parseMoney(localStorage.getItem('club500_pd_goal')) || 0;
-
-    const stats = getLSJson('club500_stats', {});
-    const assets = getLSJson('club500_deals_history', getLSJson('club500_deals', []));
-    const passive_objects = getLSJson('club500_pd_assets', []);
-
-    // commission cap (if you want it inside snapshot)
     const COMMISSION_RATE = 0.10;
     const COMMISSION_CAP = 5000;
     const rawCommission = equity * COMMISSION_RATE;
     const commission = Math.min(rawCommission, COMMISSION_CAP);
 
-    return {
+    let assets = [];
+    try { assets = JSON.parse(localStorage.getItem('club500_deals_history') || '[]'); } catch(e){}
+    const financial_goal = parseMoneySafe(localStorage.getItem('club500_pd_goal') || 0);
+
+    const payload = {
       equity,
       available,
       financial_goal,
-      stats,
-      assets,
-      passive_objects,
       commission,
       commission_rate: COMMISSION_RATE,
       commission_cap: COMMISSION_CAP,
+      assets,
       __snapshot_ts: Date.now()
     };
+    return payload;
   }
 
-  let saving = false;
-  let queuedKind = null;
-
-  async function saveSnapshot(kind){
-    // queue to avoid overlapping writes
-    if(saving){
-      queuedKind = kind;
-      return;
+  function setSnapStatus(msg, ok){
+    let el = document.getElementById('snapshotStatus');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'snapshotStatus';
+      el.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:99999;padding:10px 12px;border-radius:10px;font:12px/1.3 system-ui;background:#111;color:#fff;opacity:.95;max-width:320px;';
+      document.body.appendChild(el);
     }
+    el.textContent = msg;
+    el.style.border = ok ? '1px solid rgba(0,255,150,.6)' : '1px solid rgba(255,80,80,.7)';
+  }
+
+  async function save(kind){
+    if (saving) { queued = true; return; }
     saving = true;
     try{
-      const { data: { user }, error: userErr } = await sb.auth.getUser();
-      if(userErr || !user){
-        console.warn('Snapshot skipped: not authenticated', userErr);
+      setSnapStatus('Сохраняю snapshot…', true);
+
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session?.user?.id){
+        setSnapStatus('Snapshot не сохранён: нет сессии (перелогиньтесь)', false);
         return;
       }
 
-      const payload = buildPayload();
+      const user_id = session.user.id;
       const row = {
-        user_id: user.id,
-        kind: kind,
-        payload: payload,
+        user_id,
+        kind,
+        payload: buildPayload(),
         updated_at: new Date().toISOString(),
-        finalized_at: (kind === 'final') ? new Date().toISOString() : null
       };
+      if (kind === 'final') row.finalized_at = new Date().toISOString();
 
       const { error } = await sb
         .from('deal_stats_snapshot')
         .upsert(row, { onConflict: 'user_id,kind' });
 
-      if(error){
-        console.error('Snapshot save error:', error);
+      if (error){
+        console.error('[SNAPSHOT] upsert error:', error);
+        setSnapStatus('Snapshot не сохранён: ' + (error.message || error), false);
       } else {
-        console.log('Snapshot saved:', kind);
+        setSnapStatus('Snapshot сохранён (' + kind + ') ✅', true);
       }
     } catch(e){
-      console.error('Snapshot exception:', e);
+      console.error('[SNAPSHOT] exception:', e);
+      setSnapStatus('Snapshot не сохранён: ' + (e?.message || e), false);
     } finally {
       saving = false;
-      if(queuedKind){
-        const k = queuedKind;
-        queuedKind = null;
-        // fire queued save
-        saveSnapshot(k);
-      }
+      if (queued){ queued = false; save(kind); }
     }
   }
 
-  function hookButton(btnId, kind){
-    const btn = document.getElementById(btnId);
-    if(!btn) return false;
-    btn.addEventListener('click', function(){
-      saveSnapshot(kind);
-    }, { capture: true });
-    return true;
-  }
+  // bind buttons (works even if handlers already exist)
+  document.getElementById('sendResultToDeals')?.addEventListener('click', ()=>save('draft'));
+  document.getElementById('cycleSetEndBtn')?.addEventListener('click', ()=>save('final'));
 
-  document.addEventListener('DOMContentLoaded', function(){
-    // RESULT button (draft)
-    hookButton('sendResultToDeals', 'draft');
-    // Finish cycle button (final)
-    hookButton('cycleSetEndBtn', 'final');
-  });
+  console.log('[SNAPSHOT] bindings active');
 })();
 </script>
 <!-- ===== END SNAPSHOT ===== -->
