@@ -3544,8 +3544,10 @@ input, select, textarea, button{
 <div class="card final-capital neon-card">
   <div class="summary-header">
     <div class="summary-title">Краткая сводка</div>
-    <button class="summary-badge" id="sendResultToDeals" type="button" title="Передать итоговый капитал в «Сводка сделок»">RESULT</button>
+    <button class="summary-badge" id="sendResultToDeals" type="button" title="Сохранить черновик snapshot">RESULT</button>
+    <button id="finalizeSnapshot" type="button" class="btnSecondary" title="Зафиксировать итог (final snapshot)" style="margin-left:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color:#e5e7eb; padding:12px 16px; border-radius:14px; font-weight:700;">Зафиксировать итог</button>
   </div>
+  <div id="snapshotStatus" style="margin-top:10px; color:rgba(226,232,240,.85); font-size:13px;">—</div>
 
   <div class="capital-main">
     <div class="capital-label">Итоговый капитал</div>
@@ -3925,7 +3927,20 @@ input, select, textarea, button{
 <script>
 /* ===== Helpers ===== */
 const $ = (id)=>document.getElementById(id);
-const parseSafe = (v)=>{ const n=parseFloat(v); return Number.isFinite(n)?n:0; };
+const parseSafe = (v)=> {
+  if (v===null || v===undefined) return 0;
+  let s = String(v).trim();
+  if (!s) return 0;
+  s = s.replace(/\s+/g,'');
+  if (s.includes(',') && s.includes('.')) {
+    s = s.replace(/,/g,'');
+  } else if (s.includes(',') && !s.includes('.')) {
+    s = s.replace(/,/g,'.');
+  }
+  s = s.replace(/[^0-9.\-]/g,'');
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+};
 const money = (n)=>'$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
 function showToast(txt, ms=2200){
@@ -6506,7 +6521,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   
-  window.__club500_sb = sb;
+// Expose client for snapshot helpers (avoid second client)
+window.sb = sb;
 const overlay = document.getElementById('authOverlay');
   const emailEl = document.getElementById('authEmail');
   const passEl  = document.getElementById('authPass');
@@ -6625,11 +6641,9 @@ const overlay = document.getElementById('authOverlay');
 
   const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
   const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
-  const sbSnap = window.supabase.createClient(SB_URL, SB_ANON, {
-    auth: { persistSession: true }
-  });
-
-  // Serialize saves to avoid race conditions
+  const sbSnap = window.sb;
+if(!sbSnap){ console.error('[SNAPSHOT] Supabase client not ready'); }
+// Serialize saves to avoid race conditions
   let saveChain = Promise.resolve();
   function enqueueSave(fn){
     saveChain = saveChain.then(fn, fn);
@@ -6639,10 +6653,7 @@ const overlay = document.getElementById('authOverlay');
   function parseMoney(text){
     if(!text) return 0;
     // remove currency signs/spaces, keep digits dot comma
-    const t = String(text)
-      .replace(/\s/g,'')
-      .replace(/[^0-9.,-]/g,'')
-      .replace(/,/g,''); // remove thousand separators
+    const t = String(text).replace(/\s/g,'').replace(/[^0-9.,-]/g,'').replace(/,/g,'.');
     const n = parseFloat(t);
     return Number.isFinite(n) ? n : 0;
   }
@@ -6667,17 +6678,8 @@ const overlay = document.getElementById('authOverlay');
     const statsFilter = localStorage.getItem('club500_stats_filter') || 'usd';
 
     const payload = {
-      // commission calculation with cap
-      const COMMISSION_RATE = 0.10;
-      const COMMISSION_CAP = 5000;
-      const rawCommission = equity * COMMISSION_RATE;
-      const commission = Math.min(rawCommission, COMMISSION_CAP);
-
       equity,
       available,
-      commission,
-      commission_rate: COMMISSION_RATE,
-      commission_cap: COMMISSION_CAP,
       financial_goal,
       stats: {
         scope: statsScope,
@@ -6696,50 +6698,52 @@ const overlay = document.getElementById('authOverlay');
     return payload;
   }
 
-  async function writeSnapshot(){
+  async function writeSnapshot(payload, kind='draft'){
+    if(!sbSnap){ throw new Error('Supabase client not ready'); }
     const { data: { user } } = await sbSnap.auth.getUser();
-    if(!user) {
-      console.warn("Snapshot skipped: no auth user");
-      return false;
-    }
-    const payload = buildSnapshotPayload();
+    if(!user){ throw new Error('Not authenticated'); }
 
-    // Upsert and force server-side updated_at using explicit field too
+    const nowIso = new Date().toISOString();
+    const row = {
+      user_id: user.id,
+      payload,
+      kind,
+      updated_at: nowIso,
+    };
+    if(kind === 'final'){
+      row.finalized_at = nowIso;
+    }
+
     const { error } = await sbSnap
       .from('deal_stats_snapshot')
-      .upsert(
-        {
-          user_id: user.id,
-          payload: payload,
-          updated_at: new Date().toISOString()
-        },
-        { onConflict: 'user_id' }
-      );
+      .upsert(row, { onConflict: 'user_id' });
 
-    if(error) {
-      console.error("Snapshot write error:", error);
-      return false;
-    }
-    return true;
+    if(error) throw error;
   }
 
-  async function saveSnapshotWithUI(){
-    // Optional tiny UX: pulse the RESULT badge while saving
-    const badge = document.getElementById('sendResultToDeals');
-    if(badge) badge.disabled = true;
 
-    try {
-      const ok = await writeSnapshot();
-      if(!ok) {
-        // Do not silently fail: show toast if available
-        if(typeof window.showToast === 'function') window.showToast('Не удалось сохранить snapshot. Повтори ещё раз.');
-      } else {
-        if(typeof window.showToast === 'function') window.showToast('Snapshot сохранён');
-      }
-    } finally {
-      if(badge) badge.disabled = false;
+  async function saveSnapshotWithUI(kind='draft'){
+    const statusEl = document.getElementById('snapshotStatus');
+    const btn = (kind==='final') ? document.getElementById('finalizeSnapshot') : document.getElementById('sendResultToDeals');
+    const btn2 = document.getElementById('cycleSetEndBtn');
+
+    const disable = (b, v)=>{ if(b){ b.disabled=v; b.style.opacity = v ? .6 : 1; } };
+    try{
+      if(statusEl) statusEl.textContent = 'Сохраняю snapshot...';
+      disable(btn,true); disable(btn2,true);
+
+      const payload = buildSnapshotPayload();
+      await writeSnapshot(payload, kind);
+
+      if(statusEl) statusEl.textContent = (kind==='final') ? 'Итог зафиксирован ✅' : 'Черновик сохранён ✅';
+    }catch(err){
+      console.error('[SNAPSHOT]', err);
+      if(statusEl) statusEl.textContent = 'Ошибка snapshot: ' + (err?.message || err);
+    }finally{
+      disable(btn,false); disable(btn2,false);
     }
   }
+
 
   function hook(id){
     const el = document.getElementById(id);
