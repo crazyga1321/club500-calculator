@@ -6627,6 +6627,43 @@ document.addEventListener('DOMContentLoaded', ()=>{
     auth: { persistSession: true }
   });
 
+
+  // --- Keep Supabase session alive when tab becomes active ---
+  async function ensureSnapSession(){
+    try{
+      const { data: { session } } = await sbSnap.auth.getSession();
+
+      // If no session -> user not logged in (or storage cleared)
+      if(!session) return false;
+
+      // Refresh if expiring soon (<= 60 sec)
+      const now = Math.floor(Date.now()/1000);
+      const exp = session.expires_at || 0;
+      if(exp && (exp - now) <= 60){
+        const { data, error } = await sbSnap.auth.refreshSession();
+        if(error) return false;
+        if(!data?.session) return false;
+      }
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  // When user returns to tab
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden){
+      ensureSnapSession();
+    }
+  });
+
+  // When page is restored from BFCache
+  window.addEventListener('pageshow', (e)=>{
+    if(e.persisted){
+      ensureSnapSession();
+    }
+  });
+
   // Serialize saves to avoid race conditions
   let saveChain = Promise.resolve();
   function enqueueSave(fn){
@@ -6715,6 +6752,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 
   async function writeSnapshot(){
+    const okSession = await ensureSnapSession();
+    if(!okSession){
+      console.warn("Snapshot skipped: session not ready");
+      return false;
+    }
     const { data: { user } } = await sbSnap.auth.getUser();
     if(!user) {
       console.warn("Snapshot skipped: no auth user");
