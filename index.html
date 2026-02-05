@@ -6627,44 +6627,38 @@ document.addEventListener('DOMContentLoaded', ()=>{
     auth: { persistSession: true }
   });
 
-
+  
   // --- Keep Supabase session alive when tab becomes active ---
   async function ensureSnapSession(){
     try{
       const { data: { session } } = await sbSnap.auth.getSession();
+      if(!session) return { ok:false, user:null };
 
-      // If no session -> user not logged in (or storage cleared)
-      if(!session) return false;
-
-      // Refresh if expiring soon (<= 60 sec)
+      // refresh if expiring soon (<= 90 sec)
       const now = Math.floor(Date.now()/1000);
       const exp = session.expires_at || 0;
-      if(exp && (exp - now) <= 60){
+      if(exp && (exp - now) <= 90){
         const { data, error } = await sbSnap.auth.refreshSession();
-        if(error) return false;
-        if(!data?.session) return false;
+        if(error || !data?.session) return { ok:false, user:null };
+        return { ok:true, user:data.session.user };
       }
-      return true;
+      return { ok:true, user:session.user };
     }catch(e){
-      return false;
+      return { ok:false, user:null };
     }
   }
 
-  // When user returns to tab
+  // On return to tab (timers are throttled in background tabs)
   document.addEventListener('visibilitychange', ()=>{
-    if(!document.hidden){
-      ensureSnapSession();
-    }
+    if(!document.hidden) ensureSnapSession();
   });
 
-  // When page is restored from BFCache
+  // If page restored from BFCache
   window.addEventListener('pageshow', (e)=>{
-    if(e.persisted){
-      ensureSnapSession();
-    }
+    if(e.persisted) ensureSnapSession();
   });
 
-  // Serialize saves to avoid race conditions
+// Serialize saves to avoid race conditions
   let saveChain = Promise.resolve();
   function enqueueSave(fn){
     saveChain = saveChain.then(fn, fn);
@@ -6752,19 +6746,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 
   async function writeSnapshot(){
-    const okSession = await ensureSnapSession();
-    if(!okSession){
-      console.warn("Snapshot skipped: session not ready");
+    // Ensure session is alive (tab switches can throttle refresh)
+    const s = await ensureSnapSession();
+    const user = s.user;
+
+    if(!user){
+      console.warn("Snapshot skipped: no auth user/session");
       return false;
     }
-    const { data: { user } } = await sbSnap.auth.getUser();
-    if(!user) {
-      console.warn("Snapshot skipped: no auth user");
-      return false;
-    }
+
     const payload = buildSnapshotPayload();
 
-    // Upsert and force server-side updated_at using explicit field too
     const { error } = await sbSnap
       .from('deal_stats_snapshot')
       .upsert(
