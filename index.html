@@ -6505,6 +6505,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  window.__club500Sb = sb; // expose for snapshot + other modules
+
   const overlay = document.getElementById('authOverlay');
   const emailEl = document.getElementById('authEmail');
   const passEl  = document.getElementById('authPass');
@@ -6623,42 +6625,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
   const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
-  const sbSnap = window.supabase.createClient(SB_URL, SB_ANON, {
-    auth: { persistSession: true }
-  });
+  // Reuse the SAME Supabase client/session as Auth overlay (prevents tab-switch session desync)
+  const sbSnap = window.__club500Sb || window.supabase.createClient(SB_URL, SB_ANON, { auth: { persistSession: true } });
 
-  
-  // --- Keep Supabase session alive when tab becomes active ---
-  async function ensureSnapSession(){
-    try{
-      const { data: { session } } = await sbSnap.auth.getSession();
-      if(!session) return { ok:false, user:null };
-
-      // refresh if expiring soon (<= 90 sec)
-      const now = Math.floor(Date.now()/1000);
-      const exp = session.expires_at || 0;
-      if(exp && (exp - now) <= 90){
-        const { data, error } = await sbSnap.auth.refreshSession();
-        if(error || !data?.session) return { ok:false, user:null };
-        return { ok:true, user:data.session.user };
-      }
-      return { ok:true, user:session.user };
-    }catch(e){
-      return { ok:false, user:null };
-    }
+  async function getSnapUser(){
+    // Prefer session user (more reliable after tab switch)
+    const { data: { session } } = await sbSnap.auth.getSession();
+    return session?.user || null;
   }
 
-  // On return to tab (timers are throttled in background tabs)
-  document.addEventListener('visibilitychange', ()=>{
-    if(!document.hidden) ensureSnapSession();
-  });
 
-  // If page restored from BFCache
-  window.addEventListener('pageshow', (e)=>{
-    if(e.persisted) ensureSnapSession();
-  });
-
-// Serialize saves to avoid race conditions
+  // Serialize saves to avoid race conditions
   let saveChain = Promise.resolve();
   function enqueueSave(fn){
     saveChain = saveChain.then(fn, fn);
@@ -6746,17 +6723,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 
   async function writeSnapshot(){
-    // Ensure session is alive (tab switches can throttle refresh)
-    const s = await ensureSnapSession();
-    const user = s.user;
-
-    if(!user){
-      console.warn("Snapshot skipped: no auth user/session");
+    const user = await getSnapUser();
+    if(!user) {
+      console.warn("Snapshot skipped: no auth user (session missing)");
       return false;
     }
-
     const payload = buildSnapshotPayload();
 
+    // Upsert and force server-side updated_at using explicit field too
     const { error } = await sbSnap
       .from('deal_stats_snapshot')
       .upsert(
