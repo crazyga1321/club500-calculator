@@ -6505,7 +6505,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const overlay = document.getElementById('authOverlay');
+  
+  window.__club500_sb = sb;
+const overlay = document.getElementById('authOverlay');
   const emailEl = document.getElementById('authEmail');
   const passEl  = document.getElementById('authPass');
   const hintEl  = document.getElementById('authHint');
@@ -6613,117 +6615,154 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 
 
-<!-- ===== CLUB500 SNAPSHOT (DRAFT/FINAL) ===== -->
+<!-- ===== CLUB500 SNAPSHOT STABLE SAVE (writes after RESULT/Finish) ===== -->
 <script>
 (function(){
-  // uses existing client: const sb = window.supabase.createClient(...)
-  if (typeof sb === 'undefined') {
-    console.error('[SNAPSHOT] Supabase client "sb" not found');
+  if(!window.supabase) {
+    console.error("supabase-js not loaded (snapshot)");
     return;
   }
 
-  let saving = false;
-  let queued = false;
+  const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
+  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
+  const sbSnap = window.supabase.createClient(SB_URL, SB_ANON, {
+    auth: { persistSession: true }
+  });
 
-  function parseMoneySafe(val){
-    if(val === null || val === undefined) return 0;
-    // Supports: "12,000.00" and "12 000,00"
-    const s = String(val).trim()
-      .replace(/\s/g,'')
-      .replace(/[^0-9.,-]/g,'');
-    // If contains both comma and dot, assume comma is thousand separator
-    if (s.includes(',') && s.includes('.')) return Number(s.replace(/,/g,'')) || 0;
-    // If only comma, assume decimal comma
-    if (s.includes(',') && !s.includes('.')) return Number(s.replace(/,/g,'.')) || 0;
-    return Number(s) || 0;
+  // Serialize saves to avoid race conditions
+  let saveChain = Promise.resolve();
+  function enqueueSave(fn){
+    saveChain = saveChain.then(fn, fn);
+    return saveChain;
   }
 
-  function buildPayload(){
-    const equity = parseMoneySafe(document.getElementById('cycleCurrentCap')?.textContent || 0);
-    const available = parseMoneySafe(document.getElementById('availableCapital')?.textContent || 0);
+  function parseMoney(text){
+    if(!text) return 0;
+    // remove currency signs/spaces, keep digits dot comma
+    const t = String(text)
+      .replace(/\s/g,'')
+      .replace(/[^0-9.,-]/g,'')
+      .replace(/,/g,''); // remove thousand separators
+    const n = parseFloat(t);
+    return Number.isFinite(n) ? n : 0;
+  }
 
-    const COMMISSION_RATE = 0.10;
-    const COMMISSION_CAP = 5000;
-    const rawCommission = equity * COMMISSION_RATE;
-    const commission = Math.min(rawCommission, COMMISSION_CAP);
+  function safeJSON(key, fallback){
+    try {
+      const raw = localStorage.getItem(key);
+      if(!raw) return fallback;
+      return JSON.parse(raw);
+    } catch(e) { return fallback; }
+  }
 
-    let assets = [];
-    try { assets = JSON.parse(localStorage.getItem('club500_deals_history') || '[]'); } catch(e){}
-    const financial_goal = parseMoneySafe(localStorage.getItem('club500_pd_goal') || 0);
+  function buildSnapshotPayload(){
+    // available capital from Deals tab
+    const available = parseMoney(document.getElementById('availableCapital')?.textContent);
+    // equity/current capital for cycle card (display only)
+    const equity = parseMoney(document.getElementById('cycleCurrentCap')?.textContent) || available;
+
+    const financial_goal = Number(localStorage.getItem('club500_pd_goal') || 0) || 0;
+
+    const statsScope = localStorage.getItem('club500_stats_scope') || 'fact';
+    const statsFilter = localStorage.getItem('club500_stats_filter') || 'usd';
 
     const payload = {
+      // commission calculation with cap
+      const COMMISSION_RATE = 0.10;
+      const COMMISSION_CAP = 5000;
+      const rawCommission = equity * COMMISSION_RATE;
+      const commission = Math.min(rawCommission, COMMISSION_CAP);
+
       equity,
       available,
-      financial_goal,
       commission,
       commission_rate: COMMISSION_RATE,
       commission_cap: COMMISSION_CAP,
-      assets,
+      financial_goal,
+      stats: {
+        scope: statsScope,
+        filter: statsFilter
+      },
+      // what partner actually has on Deals table
+      deals_state: safeJSON('club500_deals', null),
+      // your completed deals / frequent stats history (if used by admin UI)
+      assets: safeJSON('club500_deals_history', []),
+      passive_objects: safeJSON('club500_pd_assets', []),
+      pd_current_capital: Number(localStorage.getItem('club500_pd_current_capital') || 0) || 0,
+      last_result_capital: Number(localStorage.getItem('club500_last_result_capital') || 0) || 0,
       __snapshot_ts: Date.now()
     };
+
     return payload;
   }
 
-  function setSnapStatus(msg, ok){
-    let el = document.getElementById('snapshotStatus');
-    if(!el){
-      el = document.createElement('div');
-      el.id = 'snapshotStatus';
-      el.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:99999;padding:10px 12px;border-radius:10px;font:12px/1.3 system-ui;background:#111;color:#fff;opacity:.95;max-width:320px;';
-      document.body.appendChild(el);
+  async function writeSnapshot(){
+    const { data: { user } } = await sbSnap.auth.getUser();
+    if(!user) {
+      console.warn("Snapshot skipped: no auth user");
+      return false;
     }
-    el.textContent = msg;
-    el.style.border = ok ? '1px solid rgba(0,255,150,.6)' : '1px solid rgba(255,80,80,.7)';
+    const payload = buildSnapshotPayload();
+
+    // Upsert and force server-side updated_at using explicit field too
+    const { error } = await sbSnap
+      .from('deal_stats_snapshot')
+      .upsert(
+        {
+          user_id: user.id,
+          payload: payload,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: 'user_id' }
+      );
+
+    if(error) {
+      console.error("Snapshot write error:", error);
+      return false;
+    }
+    return true;
   }
 
-  async function save(kind){
-    if (saving) { queued = true; return; }
-    saving = true;
-    try{
-      setSnapStatus('Сохраняю snapshot…', true);
+  async function saveSnapshotWithUI(){
+    // Optional tiny UX: pulse the RESULT badge while saving
+    const badge = document.getElementById('sendResultToDeals');
+    if(badge) badge.disabled = true;
 
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session?.user?.id){
-        setSnapStatus('Snapshot не сохранён: нет сессии (перелогиньтесь)', false);
-        return;
-      }
-
-      const user_id = session.user.id;
-      const row = {
-        user_id,
-        kind,
-        payload: buildPayload(),
-        updated_at: new Date().toISOString(),
-      };
-      if (kind === 'final') row.finalized_at = new Date().toISOString();
-
-      const { error } = await sb
-        .from('deal_stats_snapshot')
-        .upsert(row, { onConflict: 'user_id,kind' });
-
-      if (error){
-        console.error('[SNAPSHOT] upsert error:', error);
-        setSnapStatus('Snapshot не сохранён: ' + (error.message || error), false);
+    try {
+      const ok = await writeSnapshot();
+      if(!ok) {
+        // Do not silently fail: show toast if available
+        if(typeof window.showToast === 'function') window.showToast('Не удалось сохранить snapshot. Повтори ещё раз.');
       } else {
-        setSnapStatus('Snapshot сохранён (' + kind + ') ✅', true);
+        if(typeof window.showToast === 'function') window.showToast('Snapshot сохранён');
       }
-    } catch(e){
-      console.error('[SNAPSHOT] exception:', e);
-      setSnapStatus('Snapshot не сохранён: ' + (e?.message || e), false);
     } finally {
-      saving = false;
-      if (queued){ queued = false; save(kind); }
+      if(badge) badge.disabled = false;
     }
   }
 
-  // bind buttons (works even if handlers already exist)
-  document.getElementById('sendResultToDeals')?.addEventListener('click', ()=>save('draft'));
-  document.getElementById('cycleSetEndBtn')?.addEventListener('click', ()=>save('final'));
+  function hook(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('click', ()=> {
+      // Let existing handler run first and update localStorage/DOM, then save
+      enqueueSave(()=> new Promise((resolve)=> {
+        setTimeout(async ()=> {
+          await saveSnapshotWithUI();
+          resolve();
+        }, 0);
+      }));
+    });
+  }
 
-  console.log('[SNAPSHOT] bindings active');
+  // RESULT badge in Calculator tab (primary)
+  hook('sendResultToDeals');
+  // Finish-year button (secondary)
+  hook('cycleSetEndBtn');
+
 })();
 </script>
-<!-- ===== END SNAPSHOT ===== -->
+<!-- ===== END CLUB500 SNAPSHOT STABLE SAVE ===== -->
 
 </body>
 </html>
