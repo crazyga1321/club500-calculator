@@ -6505,9 +6505,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  window.__club500Sb = sb; // expose for snapshot + other modules
-
-  const overlay = document.getElementById('authOverlay');
+  
+  // Expose shared Supabase client for other modules (snapshot, admin)
+  window.sb = sb;
+  window.__club500Sb = sb;
+const overlay = document.getElementById('authOverlay');
   const emailEl = document.getElementById('authEmail');
   const passEl  = document.getElementById('authPass');
   const hintEl  = document.getElementById('authHint');
@@ -6623,15 +6625,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return;
   }
 
-  const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
-  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
-  // Reuse the SAME Supabase client/session as Auth overlay (prevents tab-switch session desync)
-  const sbSnap = window.__club500Sb || window.supabase.createClient(SB_URL, SB_ANON, { auth: { persistSession: true } });
-
-  async function getSnapUser(){
-    // Prefer session user (more reliable after tab switch)
-    const { data: { session } } = await sbSnap.auth.getSession();
-    return session?.user || null;
+  const sbSnap = window.sb || window.__club500Sb;
+  // Snapshot must use the SAME Supabase client as Auth to keep session after tab switch
+  if(!sbSnap || !sbSnap.auth){
+    console.error("Snapshot: shared Supabase client not found. Auth must set window.sb");
+    return;
   }
 
 
@@ -6723,9 +6721,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 
   async function writeSnapshot(){
-    const user = await getSnapUser();
+    const { data: { user } } = await sbSnap.auth.getUser();
     if(!user) {
-      console.warn("Snapshot skipped: no auth user (session missing)");
+      console.warn("Snapshot skipped: no auth user");
       return false;
     }
     const payload = buildSnapshotPayload();
