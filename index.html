@@ -6504,12 +6504,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  
-  // Expose shared Supabase client for other modules (snapshot, admin)
+  // expose the active auth client for snapshot/other modules
   window.sb = sb;
   window.__club500Sb = sb;
-const overlay = document.getElementById('authOverlay');
+
+  const overlay = document.getElementById('authOverlay');
   const emailEl = document.getElementById('authEmail');
   const passEl  = document.getElementById('authPass');
   const hintEl  = document.getElementById('authHint');
@@ -6625,13 +6624,11 @@ const overlay = document.getElementById('authOverlay');
     return;
   }
 
-  const sbSnap = window.sb || window.__club500Sb;
-  // Snapshot must use the SAME Supabase client as Auth to keep session after tab switch
-  if(!sbSnap || !sbSnap.auth){
-    console.error("Snapshot: shared Supabase client not found. Auth must set window.sb");
-    return;
-  }
-
+  const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
+  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
+  const sbSnap = (window.sb || window.__club500Sb) || window.supabase.createClient(SB_URL, SB_ANON, {
+    auth: { persistSession: true }
+  });
 
   // Serialize saves to avoid race conditions
   let saveChain = Promise.resolve();
@@ -6681,6 +6678,10 @@ const overlay = document.getElementById('authOverlay');
     // equity/current capital for cycle card (display only)
     const equity = parseMoney(document.getElementById('cycleCurrentCap')?.textContent) || available;
 
+    const ui_final_capital = parseMoney(document.getElementById('final')?.textContent);
+    const ui_total_fees = parseMoney(document.getElementById('totalFees')?.textContent);
+    const ui_available_capital = available;
+
     const financial_goal = Number(localStorage.getItem('club500_pd_goal') || 0) || 0;
 
     const statsScope = localStorage.getItem('club500_stats_scope') || 'fact';
@@ -6695,6 +6696,9 @@ const overlay = document.getElementById('authOverlay');
     const payload = {
       equity,
       available,
+      ui_final_capital,
+      ui_total_fees,
+      ui_available_capital,
       commission,
       commission_rate: COMMISSION_RATE,
       commission_cap: COMMISSION_CAP,
@@ -6713,6 +6717,11 @@ const overlay = document.getElementById('authOverlay');
 
       pd_current_capital: Number(localStorage.getItem('club500_pd_current_capital') || 0) || 0,
       last_result_capital: Number(localStorage.getItem('club500_last_result_capital') || 0) || 0,
+
+      // meta
+      page_visibility: document.hidden ? 'hidden' : 'visible',
+      user_agent: navigator.userAgent,
+      __snapshot_iso: new Date().toISOString(),
       __snapshot_ts: Date.now()
     };
 
@@ -6721,14 +6730,17 @@ const overlay = document.getElementById('authOverlay');
 
 
   async function writeSnapshot(){
-    const { data: { user } } = await sbSnap.auth.getUser();
+    const { data: { session } } = await sbSnap.auth.getSession();
+    const user = session?.user;
     if(!user) {
       console.warn("Snapshot skipped: no auth user");
       return false;
     }
     const payload = buildSnapshotPayload();
+    // Debug: inspect what we send
+    console.log("SNAPSHOT PAYLOAD:", payload);
 
-    // Upsert and force server-side updated_at using explicit field too
+// Upsert and force server-side updated_at using explicit field too
     const { error } = await sbSnap
       .from('deal_stats_snapshot')
       .upsert(
