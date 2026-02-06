@@ -6612,6 +6612,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAuth);
   else initAuth();
+  // Keep auth session in sync after tab-switch / long idle
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden) return;
+    // try to refresh and re-render auth UI
+    sb.auth.refreshSession().finally(()=>initAuth());
+  });
+  window.addEventListener('pageshow', ()=> { sb.auth.refreshSession().finally(()=>initAuth()); });
+
 })();
 
 </script>
@@ -6641,7 +6649,82 @@ const sbSnap = window.sb || window.__club500Sb || window.supabase.createClient(S
     return saveChain;
   }
 
-  function parseMoney(text){
+  
+  // --- Session hardening (tab switch / long idle) ---
+  async function requireLiveSession(sb){
+    try{
+      let { data: { session } } = await sb.auth.getSession();
+      if(!session){
+        const { data, error } = await sb.auth.refreshSession();
+        if(error) return null;
+        session = data?.session || null;
+      }
+      if(session?.expires_at){
+        const now = Math.floor(Date.now()/1000);
+        if((session.expires_at - now) < 90){
+          const { data, error } = await sb.auth.refreshSession();
+          if(!error && data?.session) session = data.session;
+        }
+      }
+      return session || null;
+    }catch(e){
+      return null;
+    }
+  }
+
+  function getResultButton(){
+    // RESULT button id varies in different versions; try common ids
+    return document.getElementById('sendResultToDeals') ||
+           document.getElementById('resultBtn') ||
+           document.querySelector('[data-action="result"]') ||
+           document.querySelector('button#sendResultToDeals');
+  }
+
+  function unlockResultButton(){
+    const btn = getResultButton();
+    if(!btn) return;
+    btn.disabled = false;
+    btn.style.pointerEvents = '';
+    btn.dataset.busy = '';
+  }
+
+  function lockResultButtonSoft(){
+    const btn = getResultButton();
+    if(!btn) return;
+    // soft lock with watchdog, never deadlock
+    btn.dataset.busy = '1';
+    btn.disabled = true;
+    btn.style.pointerEvents = 'none';
+    window.clearTimeout(lockResultButtonSoft._t);
+    lockResultButtonSoft._t = window.setTimeout(()=>unlockResultButton(), 2500);
+  }
+
+  async function onReturnToTab(){
+    try{
+      const sb = window.sb || window.__club500Sb || sbSnap;
+      const session = await requireLiveSession(sb);
+      if(!session){
+        // session is реально мертва — покажем пользователю и не оставим UI заблокированным
+        unlockResultButton();
+        if(typeof window.showToast === 'function'){
+          window.showToast('Сессия истекла. Обнови страницу (Ctrl+F5) или войди заново.');
+        }
+        const overlay = document.getElementById('authOverlay');
+        if(overlay) overlay.style.display = 'block';
+      }else{
+        unlockResultButton();
+      }
+    }catch(e){
+      unlockResultButton();
+    }
+  }
+
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden) onReturnToTab();
+  });
+  window.addEventListener('pageshow', ()=> onReturnToTab());
+  window.addEventListener('online', ()=> onReturnToTab());
+function parseMoney(text){
     if(text == null) return 0;
     let t = String(text).trim();
     if(!t) return 0;
@@ -6722,21 +6805,8 @@ const sbSnap = window.sb || window.__club500Sb || window.supabase.createClient(S
 
 
   async function getLiveSession(){
-  try{
-    // Prefer session (works better than getUser() after tab-switch)
-    let { data: { session } } = await sbSnap.auth.getSession();
-    if(session?.user) return session;
-
-    // Try refresh once
-    const r = await sbSnap.auth.refreshSession();
-    if(r?.data?.session?.user) return r.data.session;
-
-    // Re-check
-    ({ data: { session } } = await sbSnap.auth.getSession());
-    return session?.user ? session : null;
-  }catch(e){
-    return null;
-  }
+  const sb = window.sb || window.__club500Sb || sbSnap;
+  return await requireLiveSession(sb);
 }
 
 async function writeSnapshot(){
@@ -6769,20 +6839,31 @@ async function writeSnapshot(){
 }
 
 async function saveSnapshotWithUI(){
-    // Optional tiny UX: pulse the RESULT badge while saving
-    const badge = document.getElementById('sendResultToDeals');
-    if(badge) badge.disabled = true;
+    // Soft-lock RESULT button with watchdog (never deadlock after tab-switch)
+    lockResultButtonSoft();
 
-    try {
+    try{
+      // Ensure session is alive (tab switch / long idle)
+      const sb = window.sb || window.__club500Sb || sbSnap;
+      const session = await requireLiveSession(sb);
+      if(!session?.user){
+        if(typeof window.showToast === 'function'){
+          window.showToast('Сессия истекла. Обнови страницу (Ctrl+F5) или войди заново.');
+        }
+        const overlay = document.getElementById('authOverlay');
+        if(overlay) overlay.style.display = 'block';
+        return false;
+      }
+
       const ok = await writeSnapshot();
-      if(!ok) {
-        // Do not silently fail: show toast if available
+      if(!ok){
         if(typeof window.showToast === 'function') window.showToast('Не удалось сохранить snapshot. Повтори ещё раз.');
-      } else {
+      }else{
         if(typeof window.showToast === 'function') window.showToast('Snapshot сохранён');
       }
-    } finally {
-      if(badge) badge.disabled = false;
+      return ok;
+    }finally{
+      unlockResultButton();
     }
   }
 
