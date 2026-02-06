@@ -484,8 +484,12 @@
     const exiting = exitToggle.checked;
     const feeOn = feeToggle.checked;
     const eq = Number(equity);
-    if (!feeOn || !exiting || !Number.isFinite(eq) || eq < 5000) return 0;
-    return eq * 0.10;
+    const THRESHOLD = 5000;
+    const RATE = 0.10;
+    const CAP = 5000;
+
+    if (!feeOn || !exiting || !Number.isFinite(eq) || eq < THRESHOLD) return 0;
+    return Math.min(eq * RATE, CAP);
   }
 
   function renderFromPayload(payload){
