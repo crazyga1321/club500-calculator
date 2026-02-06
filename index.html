@@ -6504,11 +6504,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  // expose the active auth client for snapshot/other modules
+
+  
+  // Expose shared Supabase client for other modules (snapshot, etc.)
   window.sb = sb;
   window.__club500Sb = sb;
-
-  const overlay = document.getElementById('authOverlay');
+const overlay = document.getElementById('authOverlay');
   const emailEl = document.getElementById('authEmail');
   const passEl  = document.getElementById('authPass');
   const hintEl  = document.getElementById('authHint');
@@ -6624,10 +6625,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return;
   }
 
+  // Prefer the shared auth client (same session/tokens). Fallback to a local client if needed.
   const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
   const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
-  const sbSnap = (window.sb || window.__club500Sb) || window.supabase.createClient(SB_URL, SB_ANON, {
-    auth: { persistSession: true }
+
+  const sbSnap = window.sb || window.__club500Sb || window.supabase.createClient(SB_URL, SB_ANON, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
 
   // Serialize saves to avoid race conditions
@@ -6637,6 +6640,45 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return saveChain;
   }
 
+  // --------- Local snapshot + queue (tab-switch proof) ---------
+  const LAST_KEY  = 'club500_last_snapshot';
+  const QUEUE_KEY = 'club500_snapshot_queue';
+
+  function safeParseJSON(raw, fallback){
+    try{ return raw ? JSON.parse(raw) : fallback; }catch(_){ return fallback; }
+  }
+
+  function saveLocalSnapshot(payload){
+    try{
+      localStorage.setItem(LAST_KEY, JSON.stringify(payload));
+      return true;
+    }catch(e){
+      console.warn('local snapshot failed', e);
+      return false;
+    }
+  }
+
+  function enqueueSnapshot(payload){
+    try{
+      const q = safeParseJSON(localStorage.getItem(QUEUE_KEY), []);
+      q.push(payload);
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+    }catch(e){
+      console.warn('enqueue snapshot failed', e);
+    }
+  }
+
+  function dequeueAll(){
+    try{
+      const q = safeParseJSON(localStorage.getItem(QUEUE_KEY), []);
+      localStorage.setItem(QUEUE_KEY, JSON.stringify([]));
+      return Array.isArray(q) ? q : [];
+    }catch(e){
+      return [];
+    }
+  }
+
+  // --------- Helpers to build payload ---------
   function parseMoney(text){
     if(text == null) return 0;
     let t = String(text).trim();
@@ -6663,7 +6705,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return Number.isFinite(n) ? n : 0;
   }
 
-
   function safeJSON(key, fallback){
     try {
       const raw = localStorage.getItem(key);
@@ -6675,12 +6716,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   function buildSnapshotPayload(){
     // available capital from Deals tab
     const available = parseMoney(document.getElementById('availableCapital')?.textContent);
+
     // equity/current capital for cycle card (display only)
     const equity = parseMoney(document.getElementById('cycleCurrentCap')?.textContent) || available;
-
-    const ui_final_capital = parseMoney(document.getElementById('final')?.textContent);
-    const ui_total_fees = parseMoney(document.getElementById('totalFees')?.textContent);
-    const ui_available_capital = available;
 
     const financial_goal = Number(localStorage.getItem('club500_pd_goal') || 0) || 0;
 
@@ -6693,22 +6731,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const commission_raw = (Number.isFinite(equity) ? equity : 0) * COMMISSION_RATE;
     const commission = Math.min(commission_raw, COMMISSION_CAP);
 
-    const payload = {
+    return {
       equity,
       available,
-      ui_final_capital,
-      ui_total_fees,
-      ui_available_capital,
       commission,
       commission_rate: COMMISSION_RATE,
       commission_cap: COMMISSION_CAP,
-
       financial_goal,
 
-      stats: {
-        scope: statsScope,
-        filter: statsFilter
-      },
+      stats: { scope: statsScope, filter: statsFilter },
 
       // Partner local states (for admin)
       deals_state: safeJSON('club500_deals', null),
@@ -6718,60 +6749,84 @@ document.addEventListener('DOMContentLoaded', ()=>{
       pd_current_capital: Number(localStorage.getItem('club500_pd_current_capital') || 0) || 0,
       last_result_capital: Number(localStorage.getItem('club500_last_result_capital') || 0) || 0,
 
-      // meta
+      // Meta
       page_visibility: document.hidden ? 'hidden' : 'visible',
-      user_agent: navigator.userAgent,
-      __snapshot_iso: new Date().toISOString(),
+      user_agent: navigator.userAgent || '',
       __snapshot_ts: Date.now()
     };
-
-    return payload;
   }
 
+  async function getLiveSession(){
+    try{
+      let { data: { session } } = await sbSnap.auth.getSession();
+      if(session?.user) return session;
 
-  async function writeSnapshot(){
-    const { data: { session } } = await sbSnap.auth.getSession();
-    const user = session?.user;
-    if(!user) {
-      console.warn("Snapshot skipped: no auth user");
-      return false;
+      // Attempt refresh (helps after browser throttling/tab sleep)
+      const { data, error } = await sbSnap.auth.refreshSession();
+      if(!error && data?.session?.user) return data.session;
+
+      return null;
+    }catch(e){
+      return null;
     }
-    const payload = buildSnapshotPayload();
-    // Debug: inspect what we send
-    console.log("SNAPSHOT PAYLOAD:", payload);
+  }
 
-// Upsert and force server-side updated_at using explicit field too
+  async function pushSnapshotToSupabase(payload){
+    const session = await getLiveSession();
+    if(!session?.user?.id) return { ok:false, reason:'no_session' };
+
+    const row = {
+      user_id: session.user.id,
+      payload: payload,
+      updated_at: new Date().toISOString()
+    };
+
     const { error } = await sbSnap
       .from('deal_stats_snapshot')
-      .upsert(
-        {
-          user_id: user.id,
-          payload: payload,
-          updated_at: new Date().toISOString()
-        },
-        { onConflict: 'user_id' }
-      );
+      .upsert(row, { onConflict: 'user_id' });
 
-    if(error) {
-      console.error("Snapshot write error:", error);
-      return false;
+    if(error) return { ok:false, reason: error.message || 'db_error' };
+    return { ok:true };
+  }
+
+  async function flushSnapshotQueue(){
+    // If no network, don't waste time
+    if(typeof navigator !== 'undefined' && navigator.onLine === false) return;
+
+    const q = dequeueAll();
+    if(!q.length) return;
+
+    for(const payload of q){
+      const r = await pushSnapshotToSupabase(payload);
+      if(!r.ok){
+        // Put back and stop; we'll retry later
+        enqueueSnapshot(payload);
+        break;
+      }
     }
-    return true;
   }
 
   async function saveSnapshotWithUI(){
-    // Optional tiny UX: pulse the RESULT badge while saving
     const badge = document.getElementById('sendResultToDeals');
     if(badge) badge.disabled = true;
 
     try {
-      const ok = await writeSnapshot();
-      if(!ok) {
-        // Do not silently fail: show toast if available
-        if(typeof window.showToast === 'function') window.showToast('Не удалось сохранить snapshot. Повтори ещё раз.');
+      const payload = buildSnapshotPayload();
+
+      // 1) Always save locally immediately (instant snapshot)
+      saveLocalSnapshot(payload);
+
+      // 2) Try to push to Supabase; if can't — queue for later
+      const r = await pushSnapshotToSupabase(payload);
+      if(!r.ok){
+        enqueueSnapshot(payload);
+        if(typeof window.showToast === 'function') window.showToast('Snapshot сохранён локально. Дозальём в базу при возврате/сети.');
       } else {
         if(typeof window.showToast === 'function') window.showToast('Snapshot сохранён');
       }
+
+      // Helpful for debugging
+      try{ console.log('SNAPSHOT PAYLOAD:', payload); }catch(_){}
     } finally {
       if(badge) badge.disabled = false;
     }
@@ -6781,7 +6836,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const el = document.getElementById(id);
     if(!el) return;
     el.addEventListener('click', ()=> {
-      // Let existing handler run first and update localStorage/DOM, then save
+      // Let existing handler run first and update localStorage/DOM, then snapshot
       enqueueSave(()=> new Promise((resolve)=> {
         setTimeout(async ()=> {
           await saveSnapshotWithUI();
@@ -6795,6 +6850,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
   hook('sendResultToDeals');
   // Finish-year button (secondary)
   hook('cycleSetEndBtn');
+
+  // Auto-flush when user returns to the tab or connection is restored
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) flushSnapshotQueue(); });
+  window.addEventListener('online', flushSnapshotQueue);
+  window.addEventListener('pageshow', flushSnapshotQueue);
 
 })();
 </script>
