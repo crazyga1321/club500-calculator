@@ -6635,6 +6635,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   // ---------- Local snapshot (never lose RESULT) ----------
   const LAST_KEY  = 'club500_last_snapshot';
+  const FINAL_KEY = 'club500_final_snapshot';
   const QUEUE_KEY = 'club500_snapshot_queue';
 
   function safeJSON(key, fallback){
@@ -6667,7 +6668,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return Number.isFinite(n) ? n : 0;
   }
 
-  function buildSnapshotPayload(){
+  function buildSnapshotPayload(kind){
+    kind = kind || 'result';
     // Make payload STATELESS: read from DOM + localStorage only (no in-memory dependencies)
     const available = parseMoney(document.getElementById('availableCapital')?.textContent);
     const equity = parseMoney(document.getElementById('cycleCurrentCap')?.textContent) || available;
@@ -6772,11 +6774,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
     setQueue(remaining);
   }
 
-  async function saveSnapshotNow(){
-    const payload = buildSnapshotPayload();
+  async function saveSnapshotNow(kind){
+    const payload = buildSnapshotPayload(kind);
 
     // 1) Always store locally (instant snapshot)
     writeLS(LAST_KEY, payload);
+    if(payload.__is_final){
+      writeLS(FINAL_KEY, payload);
+    }
 
     // 2) Queue for remote (guaranteed delivery attempt)
     enqueue(payload);
@@ -6785,14 +6790,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
     enqueueRemote(async ()=>{ await flushQueue(); });
 
     if(typeof window.showToast === 'function'){
-      window.showToast('Snapshot зафиксирован');
+      window.showToast(payload.__is_final ? 'Финальный итог зафиксирован' : 'Snapshot зафиксирован');
     }
 
     // For debugging (can be removed later)
     console.log("SNAPSHOT PAYLOAD:", payload);
   }
 
-  function hook(id){
+  function hook(id, kind){
     const el = document.getElementById(id);
     if(!el) return;
 
@@ -6807,15 +6812,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
       // Let existing handler run first (it updates DOM/localStorage),
       // then snapshot reads from DOM/localStorage (stateless).
       setTimeout(async ()=>{
-        try { await saveSnapshotNow(); }
+        try { await saveSnapshotNow(kind); }
         finally { clearTimeout(wd); el.dataset.saving = '0'; }
       }, 0);
     }, false);
   }
 
   // Hook buttons
-  hook('sendResultToDeals'); // RESULT
-  hook('cycleSetEndBtn');    // Finish
+  hook('sendResultToDeals', 'result'); // RESULT snapshot
+  hook('cycleSetEndBtn', 'final');    // ФИНАЛЬНЫЙ snapshot
 
   // Flush queue when returning to tab / network comes back
   document.addEventListener('visibilitychange', ()=>{
