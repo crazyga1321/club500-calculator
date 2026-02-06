@@ -3361,6 +3361,35 @@ input, select, textarea, button{
   }
 }
 
+
+
+/* ===== Commission highlight (Stats tab) ===== */
+.commissionLine{ margin-top:8px; }
+.commissionPill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:14px;
+  font-weight:800;
+  letter-spacing:0.2px;
+  border:1px solid rgba(255,255,255,0.10);
+  box-shadow:0 10px 26px rgba(0,0,0,0.30);
+}
+.commissionPill .lbl{ font-weight:700; opacity:0.85; }
+.commissionPill .val{ font-weight:900; }
+.commissionPill .tag{
+  font-size:12px;
+  font-weight:900;
+  padding:3px 8px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.14);
+  opacity:0.95;
+}
+.commissionPill.neu{ background:linear-gradient(135deg, rgba(59,130,246,0.20), rgba(148,163,184,0.10)); }
+.commissionPill.neg{ background:linear-gradient(135deg, rgba(148,163,184,0.18), rgba(15,23,42,0.20)); }
+.commissionPill.cap{ background:linear-gradient(135deg, rgba(244,63,94,0.22), rgba(245,158,11,0.10)); }
+.commissionPill.ok{ background:linear-gradient(135deg, rgba(16,185,129,0.18), rgba(34,197,94,0.10)); }
 </style>
 
 
@@ -3763,7 +3792,7 @@ input, select, textarea, button{
         <div class="muted"><span class="tooltip">Итог (зафиксировано)<i>i</i><span>Фиксация результата на выходе с рынка (по кнопке «Зафиксировать итог»)</span></span></div>
         <div id="cycleEndCap" style="font-size:20px;font-weight:900">—</div>
         <div class="muted small-muted" id="cycleGrowthPct">Рост: —</div>
-        <div class="muted small-muted" id="cycleCommissionInfo">Комиссия: —</div>
+        <div id="cycleCommissionInfo" class="commissionLine">—</div>
       </div>
     </div>
 
@@ -4931,7 +4960,7 @@ function updateCycleUI(){
   }
 
 
-// Комиссия (10% после порога $5000, но не больше $5000)
+// Комиссия (10% после порога $5000, но не больше $5000) — визуально выделяем
 const commEl = document.getElementById('cycleCommissionInfo');
 if(commEl){
   const COMMISSION_THRESHOLD = 5000;
@@ -4939,14 +4968,29 @@ if(commEl){
   const COMMISSION_CAP = 5000;
 
   const baseCap = (endCap > 0 ? endCap : currentCap);
+
+  const fmt = (x)=> money(Number(x||0));
+  const pill = (cls, label, value, tagText)=> {
+    const tag = tagText ? `<span class="tag">${tagText}</span>` : '';
+    return `<div class="commissionPill ${cls}">
+      <span class="lbl">${label}</span>
+      <span class="val">${value}</span>
+      ${tag}
+    </div>`;
+  };
+
   if(!(baseCap > 0)){
-    commEl.textContent = 'Комиссия: —';
+    commEl.innerHTML = pill('neu','Комиссия','—','');
   }else if(baseCap < COMMISSION_THRESHOLD){
-    commEl.textContent = 'Комиссия: ' + money(0) + ' (ниже порога)';
+    commEl.innerHTML = pill('neg','Комиссия', fmt(0), 'ниже порога');
   }else{
     const raw = baseCap * COMMISSION_RATE;
     const fee = Math.min(raw, COMMISSION_CAP);
-    commEl.textContent = 'Комиссия: ' + money(fee) + (raw > COMMISSION_CAP ? ' (cap)' : '');
+    if(raw > COMMISSION_CAP){
+      commEl.innerHTML = pill('cap','Комиссия', fmt(fee), 'cap $5k');
+    }else{
+      commEl.innerHTML = pill('ok','Комиссия', fmt(fee), '10%');
+    }
   }
 }
 
@@ -6701,14 +6745,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const statsScope = localStorage.getItem('club500_stats_scope') || 'fact';
     const statsFilter = localStorage.getItem('club500_stats_filter') || 'usd';
     const COMMISSION_THRESHOLD = 5000;
-    const COMMISSION_RATE = 0.10;
-    const COMMISSION_CAP = 5000;
+    const COMMISSION_RATE_NOMINAL = 0.10; // 10% базовая ставка
+    const COMMISSION_CAP = 5000;          // максимум комиссии
 
-    const base = (Number.isFinite(equity) ? equity : 0);
-    const commission_raw = base * COMMISSION_RATE;
+    // Для финального snapshot берём за базу итог цикла, иначе текущий капитал (equity)
+    let base = (Number.isFinite(equity) ? equity : 0);
+    if(kind === 'final'){
+      const cycleEnd = Number(localStorage.getItem('club500_cycle_end_capital') || 0) || 0;
+      base = cycleEnd > 0 ? cycleEnd : base;
+    }
 
     const commission_applied = base >= COMMISSION_THRESHOLD;
+    const commission_raw = commission_applied ? (base * COMMISSION_RATE_NOMINAL) : 0;
     const commission = commission_applied ? Math.min(commission_raw, COMMISSION_CAP) : 0;
+
+    // ВАЖНО: если админка где-то считает комиссию как base * commission_rate,
+    // то commission_rate должен быть эффективным (с учётом cap), чтобы всё совпадало без правок админки.
+    const commission_rate = (commission_applied && base > 0) ? (commission / base) : 0;
+    const commission_rate_nominal = COMMISSION_RATE_NOMINAL;
 
     const commission_limited = commission_applied && commission_raw > COMMISSION_CAP;
     const capital_after_commission = Math.max(0, base - commission);
@@ -6723,8 +6777,11 @@ return {
       commission_applied,
       commission_limited,
       commission_threshold: COMMISSION_THRESHOLD,
-      commission_rate: COMMISSION_RATE,
+      commission_rate: commission_rate,
+      commission_rate_nominal: commission_rate_nominal,
       commission_cap: COMMISSION_CAP,
+      commission_base: base,
+      commission_rule: 'if base>=5000 then min(base*0.10,5000) else 0',
       capital_after_commission,
       financial_goal,
       stats: { scope: statsScope, filter: statsFilter },
