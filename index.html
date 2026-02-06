@@ -3763,6 +3763,7 @@ input, select, textarea, button{
         <div class="muted"><span class="tooltip">Итог (зафиксировано)<i>i</i><span>Фиксация результата на выходе с рынка (по кнопке «Зафиксировать итог»)</span></span></div>
         <div id="cycleEndCap" style="font-size:20px;font-weight:900">—</div>
         <div class="muted small-muted" id="cycleGrowthPct">Рост: —</div>
+        <div class="muted small-muted" id="cycleCommissionInfo">Комиссия: —</div>
       </div>
     </div>
 
@@ -4929,6 +4930,25 @@ function updateCycleUI(){
     }
   }
 
+
+// Комиссия (10% после порога $5000, но не больше $5000)
+const commEl = document.getElementById('cycleCommissionInfo');
+if(commEl){
+  const COMMISSION_THRESHOLD = 5000;
+  const COMMISSION_RATE = 0.10;
+  const COMMISSION_CAP = 5000;
+
+  const baseCap = (endCap > 0 ? endCap : currentCap);
+  if(!(baseCap > 0)){
+    commEl.textContent = 'Комиссия: —';
+  }else if(baseCap < COMMISSION_THRESHOLD){
+    commEl.textContent = 'Комиссия: ' + money(0) + ' (ниже порога)';
+  }else{
+    const raw = baseCap * COMMISSION_RATE;
+    const fee = Math.min(raw, COMMISSION_CAP);
+    commEl.textContent = 'Комиссия: ' + money(fee) + (raw > COMMISSION_CAP ? ' (cap)' : '');
+  }
+}
 
   // Прогресс к 200%
   const target = 200;
@@ -6680,22 +6700,32 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const financial_goal = Number(localStorage.getItem('club500_pd_goal') || 0) || 0;
     const statsScope = localStorage.getItem('club500_stats_scope') || 'fact';
     const statsFilter = localStorage.getItem('club500_stats_filter') || 'usd';
-
+    const COMMISSION_THRESHOLD = 5000;
     const COMMISSION_RATE = 0.10;
     const COMMISSION_CAP = 5000;
-    const commission_raw = (Number.isFinite(equity) ? equity : 0) * COMMISSION_RATE;
-    const commission = Math.min(commission_raw, COMMISSION_CAP);
 
-    return {
+    const base = (Number.isFinite(equity) ? equity : 0);
+    const commission_raw = base * COMMISSION_RATE;
+
+    const commission_applied = base >= COMMISSION_THRESHOLD;
+    const commission = commission_applied ? Math.min(commission_raw, COMMISSION_CAP) : 0;
+
+    const commission_limited = commission_applied && commission_raw > COMMISSION_CAP;
+    const capital_after_commission = Math.max(0, base - commission);
+
+return {
       equity,
       available,
       ui_final_capital: final_capital_ui,
       ui_total_fees: total_fees_ui,
-
       commission,
+      commission_raw,
+      commission_applied,
+      commission_limited,
+      commission_threshold: COMMISSION_THRESHOLD,
       commission_rate: COMMISSION_RATE,
       commission_cap: COMMISSION_CAP,
-
+      capital_after_commission,
       financial_goal,
       stats: { scope: statsScope, filter: statsFilter },
 
