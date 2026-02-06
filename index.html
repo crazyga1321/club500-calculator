@@ -6737,14 +6737,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const op = sbSnap
       .from('deal_stats_snapshot')
       .upsert(
-        { user_id: user.id, payload: payload, updated_at: new Date().toISOString() },
+        { user_id: user.id, payload: payload, updated_at: new Date().toISOString(), created_at: new Date().toISOString(), snapshot_ts: Date.now() },
         { onConflict: 'user_id' }
       );
+
+    console.log('SUPABASE UPLOAD → deal_stats_snapshot', { user_id: user.id, kind: payload?.__snapshot_kind, is_final: !!payload?.__is_final });
 
     const timeout = new Promise((_, reject)=> setTimeout(()=> reject(new Error('timeout')), 8000));
 
     try{
-      const { error } = await Promise.race([op, timeout]);
+      const { data, error, status } = await Promise.race([op, timeout]);
+      console.log('SUPABASE RESPONSE', { status, error: error?.message || null, data: data ? (Array.isArray(data) ? ('rows:'+data.length) : 'object') : null });
       if(error) return { ok:false, reason: error.message || 'db_error' };
       return { ok:true };
     } catch(e){
