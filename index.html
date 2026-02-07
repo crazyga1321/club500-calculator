@@ -3361,35 +3361,6 @@ input, select, textarea, button{
   }
 }
 
-
-
-/* ===== Commission highlight (Stats tab) ===== */
-.commissionLine{ margin-top:8px; }
-.commissionPill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 12px;
-  border-radius:14px;
-  font-weight:800;
-  letter-spacing:0.2px;
-  border:1px solid rgba(255,255,255,0.10);
-  box-shadow:0 10px 26px rgba(0,0,0,0.30);
-}
-.commissionPill .lbl{ font-weight:700; opacity:0.85; }
-.commissionPill .val{ font-weight:900; }
-.commissionPill .tag{
-  font-size:12px;
-  font-weight:900;
-  padding:3px 8px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,0.14);
-  opacity:0.95;
-}
-.commissionPill.neu{ background:linear-gradient(135deg, rgba(59,130,246,0.20), rgba(148,163,184,0.10)); }
-.commissionPill.neg{ background:linear-gradient(135deg, rgba(148,163,184,0.18), rgba(15,23,42,0.20)); }
-.commissionPill.cap{ background:linear-gradient(135deg, rgba(244,63,94,0.22), rgba(245,158,11,0.10)); }
-.commissionPill.ok{ background:linear-gradient(135deg, rgba(16,185,129,0.18), rgba(34,197,94,0.10)); }
 </style>
 
 
@@ -3792,7 +3763,6 @@ input, select, textarea, button{
         <div class="muted"><span class="tooltip">Итог (зафиксировано)<i>i</i><span>Фиксация результата на выходе с рынка (по кнопке «Зафиксировать итог»)</span></span></div>
         <div id="cycleEndCap" style="font-size:20px;font-weight:900">—</div>
         <div class="muted small-muted" id="cycleGrowthPct">Рост: —</div>
-        <div id="cycleCommissionInfo" class="commissionLine">—</div>
       </div>
     </div>
 
@@ -4959,40 +4929,6 @@ function updateCycleUI(){
     }
   }
 
-
-// Комиссия (10% после порога $5000, но не больше $5000) — визуально выделяем
-const commEl = document.getElementById('cycleCommissionInfo');
-if(commEl){
-  const COMMISSION_THRESHOLD = 5000;
-  const COMMISSION_RATE = 0.10;
-  const COMMISSION_CAP = 5000;
-
-  const baseCap = (endCap > 0 ? endCap : currentCap);
-
-  const fmt = (x)=> money(Number(x||0));
-  const pill = (cls, label, value, tagText)=> {
-    const tag = tagText ? `<span class="tag">${tagText}</span>` : '';
-    return `<div class="commissionPill ${cls}">
-      <span class="lbl">${label}</span>
-      <span class="val">${value}</span>
-      ${tag}
-    </div>`;
-  };
-
-  if(!(baseCap > 0)){
-    commEl.innerHTML = pill('neu','Комиссия','—','');
-  }else if(baseCap < COMMISSION_THRESHOLD){
-    commEl.innerHTML = pill('neg','Комиссия', fmt(0), 'ниже порога');
-  }else{
-    const raw = baseCap * COMMISSION_RATE;
-    const fee = Math.min(raw, COMMISSION_CAP);
-    if(raw > COMMISSION_CAP){
-      commEl.innerHTML = pill('cap','Комиссия', fmt(fee), 'cap $5k');
-    }else{
-      commEl.innerHTML = pill('ok','Комиссия', fmt(fee), '10%');
-    }
-  }
-}
 
   // Прогресс к 200%
   const target = 200;
@@ -6569,10 +6505,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Expose Supabase client for other modules (snapshot)
-  window.sb = sb;
-  window.__club500Sb = sb;
-
   const overlay = document.getElementById('authOverlay');
   const emailEl = document.getElementById('authEmail');
   const passEl  = document.getElementById('authPass');
@@ -6684,254 +6616,167 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <!-- ===== CLUB500 SNAPSHOT STABLE SAVE (writes after RESULT/Finish) ===== -->
 <script>
 (function(){
-  // Requires supabase-js already loaded + Auth client created as window.sb
-  if(!window.supabase){
-    console.error('supabase-js not loaded (snapshot)');
-    return;
-  }
-  const sb = window.sb || window.__club500Sb;
-  if(!sb){
-    console.error('Auth client window.sb not found (snapshot)');
+  if(!window.supabase) {
+    console.error("supabase-js not loaded (snapshot)");
     return;
   }
 
-  // ---------- Local snapshot keys ----------
-  const LAST_KEY  = 'club500_last_snapshot';
-  const FINAL_KEY = 'club500_final_snapshot';
-  const QUEUE_KEY = 'club500_snapshot_queue';
+  const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
+  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
+  const sbSnap = window.supabase.createClient(SB_URL, SB_ANON, {
+    auth: { persistSession: true }
+  });
 
-  // ---------- Helpers ----------
-  function safeJSON(key, fallback){
-    try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
-    catch(_){ return fallback; }
+  // Serialize saves to avoid race conditions
+  let saveChain = Promise.resolve();
+  function enqueueSave(fn){
+    saveChain = saveChain.then(fn, fn);
+    return saveChain;
   }
-  function writeLS(key, val){
-    try{ localStorage.setItem(key, JSON.stringify(val)); return true; }
-    catch(_){ return false; }
-  }
-  function readQueue(){ return safeJSON(QUEUE_KEY, []); }
-  function setQueue(arr){ writeLS(QUEUE_KEY, arr); }
 
   function parseMoney(text){
     if(text == null) return 0;
     let t = String(text).trim();
     if(!t) return 0;
+
+    // remove currency signs/spaces, keep digits dot/comma/minus
     t = t.replace(/\s/g,'').replace(/[^0-9.,-]/g,'');
+
+    // Support both:
+    // - "12,000.00" (comma thousands, dot decimal)
+    // - "12 000,00" or "12000,00" (comma decimal)
     const hasDot = t.includes('.');
     const hasComma = t.includes(',');
-    if(hasDot && hasComma) t = t.replace(/,/g,'');     // 12,000.50 -> 12000.50
-    else if(hasComma && !hasDot) t = t.replace(/,/g,'.'); // 12000,50 -> 12000.50
+
+    if(hasDot && hasComma){
+      // assume commas are thousands separators
+      t = t.replace(/,/g,'');
+    } else if(hasComma && !hasDot){
+      // assume comma is decimal separator
+      t = t.replace(/,/g,'.');
+    }
+
     const n = parseFloat(t);
     return Number.isFinite(n) ? n : 0;
   }
 
-  function buildSnapshotPayload(kind){
-    kind = kind || 'result';
 
-    // Read from DOM + localStorage only (stateless)
+  function safeJSON(key, fallback){
+    try {
+      const raw = localStorage.getItem(key);
+      if(!raw) return fallback;
+      return JSON.parse(raw);
+    } catch(e) { return fallback; }
+  }
+
+  function buildSnapshotPayload(){
+    // available capital from Deals tab
     const available = parseMoney(document.getElementById('availableCapital')?.textContent);
+    // equity/current capital for cycle card (display only)
     const equity = parseMoney(document.getElementById('cycleCurrentCap')?.textContent) || available;
 
-    const final_capital_ui = parseMoney(document.getElementById('final')?.textContent);
-    const total_fees_ui = parseMoney(document.getElementById('totalFees')?.textContent);
-
     const financial_goal = Number(localStorage.getItem('club500_pd_goal') || 0) || 0;
+
     const statsScope = localStorage.getItem('club500_stats_scope') || 'fact';
     const statsFilter = localStorage.getItem('club500_stats_filter') || 'usd';
 
-    // Commission: starts at >= $5000, 10% of base, but not more than $5000
-    const COMMISSION_THRESHOLD = 5000;
-    const COMMISSION_RATE_NOMINAL = 0.10;
+    // Commission: 10% of equity, but not more than $5000
+    const COMMISSION_RATE = 0.10;
     const COMMISSION_CAP = 5000;
-
-    // Base for commission:
-    // - for final snapshot: end-of-cycle if exists
-    // - otherwise: equity
-    let base = (Number.isFinite(equity) ? equity : 0);
-    if(kind === 'final'){
-      const cycleEnd = Number(localStorage.getItem('club500_cycle_end_capital') || 0) || 0;
-      if(cycleEnd > 0) base = cycleEnd;
-    }
-
-    const commission_applied = base >= COMMISSION_THRESHOLD;
-    const commission_raw = commission_applied ? (base * COMMISSION_RATE_NOMINAL) : 0;
-    const commission = commission_applied ? Math.min(commission_raw, COMMISSION_CAP) : 0;
-
-    // Effective rate so admin can do base * commission_rate and still get capped value
-    const commission_rate = (commission_applied && base > 0) ? (commission / base) : 0;
+    const commission_raw = (Number.isFinite(equity) ? equity : 0) * COMMISSION_RATE;
+    const commission = Math.min(commission_raw, COMMISSION_CAP);
 
     const payload = {
       equity,
       available,
-      ui_final_capital: final_capital_ui,
-      ui_total_fees: total_fees_ui,
-
       commission,
-      commission_raw,
-      commission_applied,
-      commission_limited: (commission_applied && commission_raw > COMMISSION_CAP),
-      commission_threshold: COMMISSION_THRESHOLD,
-      commission_rate,
-      commission_rate_nominal: COMMISSION_RATE_NOMINAL,
+      commission_rate: COMMISSION_RATE,
       commission_cap: COMMISSION_CAP,
-      commission_base: base,
-      commission_rule: 'if base>=5000 then min(base*0.10,5000) else 0',
-      capital_after_commission: Math.max(0, base - commission),
 
       financial_goal,
-      stats: { scope: statsScope, filter: statsFilter },
 
-      // Partner states (for admin)
+      stats: {
+        scope: statsScope,
+        filter: statsFilter
+      },
+
+      // Partner local states (for admin)
       deals_state: safeJSON('club500_deals', null),
       assets: safeJSON('club500_deals_history', []),
       passive_objects: safeJSON('club500_pd_assets', []),
 
       pd_current_capital: Number(localStorage.getItem('club500_pd_current_capital') || 0) || 0,
       last_result_capital: Number(localStorage.getItem('club500_last_result_capital') || 0) || 0,
-
-      page_visibility: document.visibilityState,
-      user_agent: navigator.userAgent,
-
-      __snapshot_kind: kind,
-      __is_final: (kind === 'final'),
-      __snapshot_ts: Date.now(),
-      __snapshot_iso: new Date().toISOString()
+      __snapshot_ts: Date.now()
     };
 
     return payload;
   }
 
-  // ---------- Auth/session (robust) ----------
-  async function getLiveSession(){
-    try{
-      let { data: { session } } = await sb.auth.getSession();
-      if(session?.user) return session;
 
-      // Try refresh (tab could sleep -> token stale)
-      const r = await sb.auth.refreshSession();
-      if(r?.data?.session?.user) return r.data.session;
-
-      ({ data: { session } } = await sb.auth.getSession());
-      return session?.user ? session : null;
-    }catch(_){
-      return null;
+  async function writeSnapshot(){
+    const { data: { user } } = await sbSnap.auth.getUser();
+    if(!user) {
+      console.warn("Snapshot skipped: no auth user");
+      return false;
     }
-  }
+    const payload = buildSnapshotPayload();
 
-  // ---------- Remote write with timeout ----------
-  async function writeSnapshotRemote(payload){
-    const session = await getLiveSession();
-    const user = session?.user;
-    if(!user) return { ok:false, reason:'no_session' };
-
-    // Force a real HTTP request and avoid “hanging” forever
-    const op = sb
+    // Upsert and force server-side updated_at using explicit field too
+    const { error } = await sbSnap
       .from('deal_stats_snapshot')
       .upsert(
         {
           user_id: user.id,
           payload: payload,
-          updated_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          snapshot_ts: Date.now()
+          updated_at: new Date().toISOString()
         },
         { onConflict: 'user_id' }
-      )
-      .select('user_id'); // ensures request is executed + small response
+      );
 
-    console.log('SUPABASE UPLOAD → deal_stats_snapshot', { user_id: user.id, kind: payload?.__snapshot_kind });
-
-    const timeout = new Promise((_, reject)=> setTimeout(()=> reject(new Error('supabase_upsert_timeout')), 9000));
-
-    try{
-      const { data, error, status } = await Promise.race([op, timeout]);
-      console.log('SUPABASE RESPONSE', { status, error: error?.message || null, rows: Array.isArray(data) ? data.length : (data ? 1 : 0) });
-      if(error) return { ok:false, reason: error.message || 'db_error' };
-      return { ok:true };
-    }catch(e){
-      return { ok:false, reason: (e && (e.message || e.name)) ? (e.message || e.name) : 'net_error' };
+    if(error) {
+      console.error("Snapshot write error:", error);
+      return false;
     }
+    return true;
   }
 
-  // ---------- Queue + serialization ----------
-  let saveChain = Promise.resolve();
-  function enqueueRemote(fn){
-    saveChain = saveChain.then(fn, fn);
-    return saveChain;
-  }
+  async function saveSnapshotWithUI(){
+    // Optional tiny UX: pulse the RESULT badge while saving
+    const badge = document.getElementById('sendResultToDeals');
+    if(badge) badge.disabled = true;
 
-  function enqueue(payload){
-    const q = readQueue();
-    q.push(payload);
-    setQueue(q);
-  }
-
-  async function flushQueue(){
-    const q = readQueue();
-    if(!q.length) return;
-
-    const remaining = [];
-    for(let i=0;i<q.length;i++){
-      const payload = q[i];
-      const r = await writeSnapshotRemote(payload);
-      if(!r.ok){
-        // keep this and everything after it
-        remaining.push(...q.slice(i));
-        break;
+    try {
+      const ok = await writeSnapshot();
+      if(!ok) {
+        // Do not silently fail: show toast if available
+        if(typeof window.showToast === 'function') window.showToast('Не удалось сохранить snapshot. Повтори ещё раз.');
+      } else {
+        if(typeof window.showToast === 'function') window.showToast('Snapshot сохранён');
       }
+    } finally {
+      if(badge) badge.disabled = false;
     }
-    setQueue(remaining);
   }
 
-  // ---------- Main save ----------
-  async function saveSnapshotNow(kind){
-    const payload = buildSnapshotPayload(kind);
-
-    // 1) Always store locally
-    writeLS(LAST_KEY, payload);
-    if(payload.__is_final) writeLS(FINAL_KEY, payload);
-
-    // 2) Queue for remote
-    enqueue(payload);
-
-    // 3) Attempt immediate flush (serialized, non-blocking)
-    enqueueRemote(async ()=>{ await flushQueue(); });
-
-    if(typeof window.showToast === 'function'){
-      window.showToast(payload.__is_final ? 'Финальный итог зафиксирован' : 'Snapshot зафиксирован');
-    }
-    console.log('SNAPSHOT PAYLOAD:', payload);
-  }
-
-  // ---------- Hook buttons (run AFTER their own handlers) ----------
-  function hook(id, kind){
+  function hook(id){
     const el = document.getElementById(id);
     if(!el) return;
-
-    el.addEventListener('click', ()=>{
-      // soft lock (prevents double fire)
-      if(el.dataset.saving === '1') return;
-      el.dataset.saving = '1';
-
-      const wd = setTimeout(()=>{ el.dataset.saving = '0'; }, 2000);
-
-      // Allow existing click handler to update DOM/localStorage first
-      setTimeout(async ()=>{
-        try{ await saveSnapshotNow(kind); }
-        finally{ clearTimeout(wd); el.dataset.saving = '0'; }
-      }, 0);
-    }, false);
+    el.addEventListener('click', ()=> {
+      // Let existing handler run first and update localStorage/DOM, then save
+      enqueueSave(()=> new Promise((resolve)=> {
+        setTimeout(async ()=> {
+          await saveSnapshotWithUI();
+          resolve();
+        }, 0);
+      }));
+    });
   }
 
-  hook('sendResultToDeals', 'result'); // RESULT snapshot
-  hook('cycleSetEndBtn', 'final');     // «Завершить итог» snapshot
-
-  // Flush when returning to tab / BFCache / network back
-  document.addEventListener('visibilitychange', ()=>{
-    if(!document.hidden) enqueueRemote(async ()=>{ await flushQueue(); });
-  });
-  window.addEventListener('pageshow', ()=> enqueueRemote(async ()=>{ await flushQueue(); }));
-  window.addEventListener('online', ()=> enqueueRemote(async ()=>{ await flushQueue(); }));
+  // RESULT badge in Calculator tab (primary)
+  hook('sendResultToDeals');
+  // Finish-year button (secondary)
+  hook('cycleSetEndBtn');
 
 })();
 </script>
