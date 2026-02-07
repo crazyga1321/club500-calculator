@@ -6862,6 +6862,17 @@ const payload = buildSnapshotPayload();
 
   // initial
   setTimeout(wake, 250);
+
+  // Event delegation: even if button listeners are lost after tab-switch/bfcache, we still capture clicks.
+  document.addEventListener("click", (ev) => {
+    const t = ev.target && ev.target.closest ? ev.target.closest("#sendResultToDeals, #cycleSetEndBtn") : null;
+    if(!t) return;
+    // Let existing handlers run; then attempt flush (payload is already created by app logic).
+    setTimeout(() => {
+      try{ if(typeof window.__club500_snapshot_tryFlush === "function") window.__club500_snapshot_tryFlush(); }catch(e){}
+    }, 0);
+  }, true);
+
 })();
 </script>
 <!-- ===== END CLUB500 SNAPSHOT WAKE PATCH ===== -->
