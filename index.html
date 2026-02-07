@@ -6613,55 +6613,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 
 
-<!-- ===== CLUB500 SNAPSHOT STABLE SAVE (writes after RESULT/Finish) ===== -->
+<!-- ===== CLUB500 SNAPSHOT STABLE SAVE (shared sb only) ===== -->
 <script>
 (function(){
-  // CLUB500 SNAPSHOT v3 — tab-stable + immediate Supabase send
-  // Key ideas:
-  // 1) Use the SAME Supabase client as auth (window.sb / window.__club500Sb)
-  // 2) Use getSession()+refreshSession() (NOT getUser()) for tab-switch stability
-  // 3) Always enqueue locally, then try flush immediately; also flush on focus/pageshow/online
-
-  if(!window.supabase) {
-    console.error("supabase-js not loaded (snapshot)");
-    return;
-  }
-
-  const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
-  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
-
-  // Reuse the auth client if present; otherwise create a single shared client.
-  const sb = window.sb || window.__club500Sb || window.supabase.createClient(SB_URL, SB_ANON, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-  });
-  window.sb = sb;
-  window.__club500Sb = sb;
+  // CLUB500 SNAPSHOT v4 — tab-stable + immediate send, WITHOUT creating a second Supabase client.
+  // Fixes:
+  // - Avoid "Multiple GoTrueClient instances" by reusing window.sb/window.__club500Sb ONLY.
+  // - Never throw on upsert timeout; keep queued and retry on focus/online/pageshow.
+  // - Catch all async flush calls to avoid "Uncaught (in promise)".
 
   const QUEUE_KEY = "club500_snapshot_queue";
   const LAST_LOCAL_KEY = "club500_last_snapshot";
   const FINAL_LOCAL_KEY = "club500_final_snapshot";
 
-  // Serialize saves to avoid race conditions
   let saveChain = Promise.resolve();
   function enqueueSave(fn){
     saveChain = saveChain.then(fn, fn);
     return saveChain;
-  }
-
-  function parseMoney(text){
-    if(text == null) return 0;
-    let t = String(text).trim();
-    if(!t) return 0;
-    t = t.replace(/\s/g,'').replace(/[^0-9.,-]/g,'');
-    const hasDot = t.includes('.');
-    const hasComma = t.includes(',');
-    if(hasDot && hasComma){
-      t = t.replace(/,/g,'');
-    } else if(hasComma && !hasDot){
-      t = t.replace(/,/g,'.');
-    }
-    const n = parseFloat(t);
-    return Number.isFinite(n) ? n : 0;
   }
 
   function safeJSON(key, fallback){
@@ -6684,25 +6652,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
     setQueue(q);
   }
 
-  function withTimeout(promise, ms, label){
-    let to;
-    const t = new Promise((_, rej) => {
-      to = setTimeout(() => rej(new Error(label || ("timeout " + ms))), ms);
-    });
-    return Promise.race([promise.finally(()=>clearTimeout(to)), t]);
-  }
-
-  async function getLiveSession(){
-    const s1 = await sb.auth.getSession();
-    if(s1?.data?.session?.user?.id) return s1.data.session;
-
-    // try refresh once (important after tab-switch)
-    try{
-      await sb.auth.refreshSession();
-    }catch(e){ /* ignore */ }
-
-    const s2 = await sb.auth.getSession();
-    return s2?.data?.session || null;
+  function parseMoney(text){
+    if(text == null) return 0;
+    let t = String(text).trim();
+    if(!t) return 0;
+    t = t.replace(/\s/g,'').replace(/[^0-9.,-]/g,'');
+    const hasDot = t.includes('.');
+    const hasComma = t.includes(',');
+    if(hasDot && hasComma){
+      t = t.replace(/,/g,'');
+    } else if(hasComma && !hasDot){
+      t = t.replace(/,/g,'.');
+    }
+    const n = parseFloat(t);
+    return Number.isFinite(n) ? n : 0;
   }
 
   function computeCommission(equity){
@@ -6714,6 +6677,30 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const raw = eq * RATE;
     const final = Math.min(raw, CAP);
     return { commission: final, commission_raw: raw, applied:true, limited: raw > CAP };
+  }
+
+  function getSharedSb(){
+    return window.sb || window.__club500Sb || null;
+  }
+
+  async function withTimeout(promise, ms){
+    let to;
+    const t = new Promise((_, rej) => {
+      to = setTimeout(() => rej(new Error("supabase_upsert_timeout")), ms);
+    });
+    try{
+      return await Promise.race([promise, t]);
+    } finally {
+      clearTimeout(to);
+    }
+  }
+
+  async function getLiveSession(sb){
+    const s1 = await sb.auth.getSession();
+    if(s1?.data?.session?.user?.id) return s1.data.session;
+    try{ await sb.auth.refreshSession(); }catch(e){}
+    const s2 = await sb.auth.getSession();
+    return s2?.data?.session || null;
   }
 
   function buildSnapshotPayload(kind){
@@ -6740,7 +6727,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
       commission_cap: 5000,
 
       financial_goal,
-
       stats: { scope: statsScope, filter: statsFilter },
 
       deals_state: safeJSON('club500_deals', null),
@@ -6755,7 +6741,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
       __snapshot_ts: Date.now()
     };
 
-    // Persist locally for safety
     try{
       if(kind === "final") localStorage.setItem(FINAL_LOCAL_KEY, JSON.stringify(payload));
       else localStorage.setItem(LAST_LOCAL_KEY, JSON.stringify(payload));
@@ -6764,7 +6749,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return payload;
   }
 
-  async function upsertSnapshot(session, payload){
+  async function upsertSnapshot(sb, session, payload){
     const row = {
       user_id: session.user.id,
       payload,
@@ -6775,24 +6760,27 @@ document.addEventListener('DOMContentLoaded', ()=>{
       updated_at: new Date().toISOString()
     };
 
+    // Note: do not select() here to keep request small/fast
     const p = sb.from('deal_stats_snapshot').upsert(row, { onConflict: 'user_id' });
-    const { error } = await withTimeout(p, 8000, "supabase_upsert_timeout");
-    if(error) throw error;
+    await withTimeout(p, 15000);
   }
 
   async function flushQueue(){
+    const sb = getSharedSb();
+    if(!sb) return false;
+
     const q = getQueue();
     if(!q.length) return true;
 
-    const session = await getLiveSession();
+    const session = await getLiveSession(sb);
     if(!session?.user?.id) return false;
 
-    // Try send in order; keep remaining if a send fails
     const remain = [];
     for(const item of q){
       try{
-        await upsertSnapshot(session, item.payload);
+        await upsertSnapshot(sb, session, item.payload);
       }catch(e){
+        // keep everything from this item onward queued; no uncaught errors
         remain.push(item, ...q.slice(q.indexOf(item)+1));
         break;
       }
@@ -6805,43 +6793,45 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const payload = buildSnapshotPayload(kind);
     pushQueue({ payload, queued_at: Date.now() });
 
-    // Try immediate flush; if it fails — it will retry on focus/pageshow/online
-    try{
-      await flushQueue();
-    }catch(e){
-      // keep queued
-    }
+    // Try immediate flush; ignore errors (stay queued)
+    try{ await flushQueue(); } catch(e){}
   }
 
   function hook(id, kind){
     const el = document.getElementById(id);
     if(!el) return;
-
     el.addEventListener('click', ()=>{
-      // Let existing handler update DOM/localStorage, then snapshot+flush
       enqueueSave(()=> new Promise((resolve)=>{
+        // Give existing handlers a tick to update DOM/localStorage
         setTimeout(async ()=>{
-          try{
-            await saveNow(kind);
-          } finally {
-            resolve();
-          }
+          try{ await saveNow(kind); } finally { resolve(); }
         }, 0);
       }));
     });
   }
 
-  // Primary actions
+  // Hooks
   hook('sendResultToDeals', 'result');
   hook('cycleSetEndBtn', 'final');
 
-  // Retry points (without page refresh)
-  window.addEventListener('online', ()=> enqueueSave(()=>flushQueue()));
-  document.addEventListener('visibilitychange', ()=>{
-    if(!document.hidden) enqueueSave(()=>flushQueue());
-  });
-  window.addEventListener('focus', ()=> enqueueSave(()=>flushQueue()));
-  window.addEventListener('pageshow', ()=> enqueueSave(()=>flushQueue()));
+  // Retry points
+  function scheduleFlush(){
+    enqueueSave(()=> flushQueue().catch(()=>false));
+  }
+  window.addEventListener('online', scheduleFlush);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) scheduleFlush(); });
+  window.addEventListener('focus', scheduleFlush);
+  window.addEventListener('pageshow', scheduleFlush);
+
+  // Also: wait for shared sb to appear, then flush any queued snapshots.
+  (function waitSb(attempt){
+    if(getSharedSb()){
+      scheduleFlush();
+      return;
+    }
+    if(attempt > 60) return; // ~6s max
+    setTimeout(()=>waitSb(attempt+1), 100);
+  })(0);
 
 })();
 </script>
