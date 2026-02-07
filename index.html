@@ -5510,6 +5510,51 @@ $('cycleSetEndBtn')?.addEventListener('click', ()=>{
   renderStats();
   flashYearRow(stats.length-1);
 
+
+  // === FINAL -> отправить итог в админку (Supabase) сразу по нажатию ===
+  // Snapshot-очередь остаётся страховкой, но здесь пробуем мгновенную доставку.
+  (async ()=>{
+    try{
+      const sb = window.sb || window.__club500Sb || window.supabase;
+      if(!sb?.auth || !sb?.from) return;
+
+      let { data: { session } } = await sb.auth.getSession();
+      if(!session?.user){
+        const r = await sb.auth.refreshSession();
+        session = r?.data?.session || session;
+      }
+      if(!session?.user) return;
+
+      const userId = session.user.id;
+      const payload = {
+        __snapshot_kind: 'final',
+        __is_final: true,
+        cycle_start_capital: meta.startCap || 0,
+        cycle_end_capital: endCap || 0,
+        cycle_pct: pct || 0,
+        cycle_days: days || 0,
+        __snapshot_ts: Date.now(),
+        __snapshot_iso: new Date().toISOString()
+      };
+
+      await sb
+        .from('deal_stats_snapshot')
+        .upsert(
+          {
+            user_id: userId,
+            payload: payload,
+            updated_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            snapshot_ts: Date.now()
+          },
+          { onConflict: 'user_id' }
+        );
+      console.log('FINAL → supabase upsert ok', { user_id: userId, endCap });
+    }catch(e){
+      console.log('FINAL → supabase upsert failed', e?.message || e);
+    }
+  })();
+
   showToast('Итог года добавлен в статистику');
   updateCycleUI();
 });
@@ -6877,7 +6922,7 @@ return {
     enqueue(payload);
 
     // 3) Attempt immediate flush (non-blocking chain)
-    enqueueRemote(async ()=>{ await flushQueue(); });
+    enqueueRemote(async ()=>{ await getLiveSession(); await flushQueue(); });
 
     if(typeof window.showToast === 'function'){
       window.showToast(payload.__is_final ? 'Финальный итог зафиксирован' : 'Snapshot зафиксирован');
@@ -6914,10 +6959,10 @@ return {
 
   // Flush queue when returning to tab / network comes back
   document.addEventListener('visibilitychange', ()=>{
-    if(!document.hidden) enqueueRemote(async ()=>{ await flushQueue(); });
+    if(!document.hidden) enqueueRemote(async ()=>{ await getLiveSession(); await flushQueue(); });
   });
-  window.addEventListener('pageshow', ()=> enqueueRemote(async ()=>{ await flushQueue(); }));
-  window.addEventListener('online', ()=> enqueueRemote(async ()=>{ await flushQueue(); }));
+  window.addEventListener('pageshow', ()=> enqueueRemote(async ()=>{ await getLiveSession(); await flushQueue(); }));
+  window.addEventListener('online', ()=> enqueueRemote(async ()=>{ await getLiveSession(); await flushQueue(); }));
 
 })();
 </script>
