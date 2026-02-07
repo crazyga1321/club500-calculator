@@ -6504,8 +6504,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const SUPABASE_URL = "https://jztydqlfaeopzjnuinlt.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  // Expose client globally so other modules (snapshot/admin tools) can reuse the same auth session
-  window.sb = sb;
 
   const overlay = document.getElementById('authOverlay');
   const emailEl = document.getElementById('authEmail');
@@ -6625,27 +6623,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
   const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
-    // Reuse the *same* Supabase client/session as the auth overlay (prevents "send only after refresh")
-  const sbSnap = window.sb || window.supabase.createClient(SB_URL, SB_ANON, {
+  const sbSnap = window.sb || window.__club500Sb || window.supabase.createClient(SB_URL, SB_ANON, {
     auth: { persistSession: true }
   });
-
-  async function ensureSession(){
-    try {
-      const { data: { session } } = await sbSnap.auth.getSession();
-      if(!session) return null;
-      // If the access token is close to expiry, refresh it
-      const expiresAtMs = (session.expires_at || 0) * 1000;
-      if(expiresAtMs && (expiresAtMs - Date.now()) < 60_000){
-        const { data: refreshed, error } = await sbSnap.auth.refreshSession();
-        if(!error && refreshed?.session) return refreshed.session;
-      }
-      return session;
-    } catch(e){
-      return null;
-    }
-  }
-
+  // expose for other modules
+  window.sb = sbSnap;
+  window.__club500Sb = sbSnap;
 
   // Serialize saves to avoid race conditions
   let saveChain = Promise.resolve();
@@ -6734,77 +6717,118 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 
 
+  async function getLiveSession(){
+    try{
+      // Prefer session-based auth (more robust after tab switching)
+      let { data: { session } } = await sbSnap.auth.getSession();
+      if(session?.user) return session;
+
+      // Try refresh
+      const r = await sbSnap.auth.refreshSession();
+      if(r?.data?.session?.user) return r.data.session;
+
+      ({ data: { session } } = await sbSnap.auth.getSession());
+      return session?.user ? session : null;
+    }catch(e){
+      return null;
+    }
+  }
+
   async function writeSnapshot(){
-    const { data: { user } } = await sbSnap.auth.getUser();
+    const session = await getLiveSession();
+    const user = session?.user;
     if(!user) {
-      console.warn("Snapshot skipped: no auth user");
+      console.warn("Snapshot skipped: no auth session/user");
       return false;
     }
+
     const payload = buildSnapshotPayload();
 
-    // Upsert and force server-side updated_at using explicit field too
-    const { error } = await sbSnap
+    // upsert with explicit timestamps for admin sorting
+    const op = sbSnap
       .from('deal_stats_snapshot')
       .upsert(
         {
           user_id: user.id,
           payload: payload,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          snapshot_ts: Date.now()
         },
         { onConflict: 'user_id' }
       );
 
-    if(error) {
-      console.error("Snapshot write error:", error);
+    // timeout guard so UI doesn't get stuck
+    const timeout = new Promise((_, reject)=> setTimeout(()=> reject(new Error('timeout')), 8000));
+
+    try{
+      const { error } = await Promise.race([op, timeout]);
+      if(error){
+        console.error("Snapshot write error:", error);
+        return false;
+      }
+      return true;
+    }catch(e){
+      console.warn("Snapshot write timeout/error:", e?.message || e);
       return false;
     }
-    return true;
   }
 
-  async function saveSnapshotWithUI(){
-    // Optional tiny UX: pulse the RESULT badge while saving
+
+  async function saveSnapshotWithUI(kind){
     const badge = document.getElementById('sendResultToDeals');
-    if(badge) badge.disabled = true;
+    if(badge && badge.dataset.saving === '1') return false;
+    if(badge) badge.dataset.saving = '1';
+
+    // watchdog unlock
+    const wd = setTimeout(()=>{ if(badge) badge.dataset.saving = '0'; }, 2000);
 
     try {
       const ok = await writeSnapshot();
       if(!ok) {
-        // Do not silently fail: show toast if available
-        if(typeof window.showToast === 'function') window.showToast('Не удалось сохранить snapshot. Повтори ещё раз.');
+        if(typeof window.showToast === 'function') window.showToast('Не удалось отправить snapshot в Supabase. Повтори ещё раз.');
       } else {
-        if(typeof window.showToast === 'function') window.showToast('Snapshot сохранён');
+        if(typeof window.showToast === 'function') window.showToast('Snapshot отправлен');
       }
+      return ok;
     } finally {
-      if(badge) badge.disabled = false;
+      clearTimeout(wd);
+      if(badge) badge.dataset.saving = '0';
     }
   }
 
   function hook(id){
     const el = document.getElementById(id);
     if(!el) return;
+
     el.addEventListener('click', ()=> {
-      // Let existing handler run first and update localStorage/DOM, then save
+      if(el.dataset.saving === '1') return;
+      el.dataset.saving = '1';
+      const wd = setTimeout(()=>{ el.dataset.saving = '0'; }, 2000);
+
+      // Let existing handler run first, then save (give DOM a tick)
       enqueueSave(()=> new Promise((resolve)=> {
         setTimeout(async ()=> {
-          await saveSnapshotWithUI();
-          resolve();
-        }, 0);
+          try{ await saveSnapshotWithUI(); }
+          finally{
+            clearTimeout(wd);
+            el.dataset.saving = '0';
+            resolve();
+          }
+        }, 150);
       }));
     });
   }
+
+  // Keep auth session warm when returning to tab (prevents "zombie UI" after long idle)
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) getLiveSession(); });
+  window.addEventListener('focus', ()=> getLiveSession());
+  window.addEventListener('pageshow', ()=> getLiveSession());
 
   // RESULT badge in Calculator tab (primary)
   hook('sendResultToDeals');
   // Finish-year button (secondary)
   hook('cycleSetEndBtn');
-
-  // Keep auth session warm when user returns to the tab (Chrome may suspend timers in background)
-  async function warmSession(){
-    await ensureSession(); // refresh if needed
-  }
-  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) warmSession(); });
-  window.addEventListener('focus', warmSession);
-
 
 })();
 </script>
