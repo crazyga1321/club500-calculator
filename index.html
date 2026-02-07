@@ -6684,40 +6684,33 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <!-- ===== CLUB500 SNAPSHOT STABLE SAVE (writes after RESULT/Finish) ===== -->
 <script>
 (function(){
-  if(!window.supabase) {
-    console.error("supabase-js not loaded (snapshot)");
+  // Requires supabase-js already loaded + Auth client created as window.sb
+  if(!window.supabase){
+    console.error('supabase-js not loaded (snapshot)');
+    return;
+  }
+  const sb = window.sb || window.__club500Sb;
+  if(!sb){
+    console.error('Auth client window.sb not found (snapshot)');
     return;
   }
 
-  const SB_URL = 'https://jztydqlfaeopzjnuinlt.supabase.co';
-  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6dHlkcWxmYWVvcHpqbnVpbmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjkyNDksImV4cCI6MjA4NTIwNTI0OX0.saTBShE9daWjq3pR_aFG--fK7z1T5naWOTrQg4YHir8';
-
-  // Always reuse the SAME client/session as Auth module whenever possible.
-  const sbSnap = window.sb || window.__club500Sb || window.supabase.createClient(SB_URL, SB_ANON, {
-    auth: { persistSession: true }
-  });
-
-  // ---------- Local snapshot (never lose RESULT) ----------
+  // ---------- Local snapshot keys ----------
   const LAST_KEY  = 'club500_last_snapshot';
   const FINAL_KEY = 'club500_final_snapshot';
   const QUEUE_KEY = 'club500_snapshot_queue';
 
+  // ---------- Helpers ----------
   function safeJSON(key, fallback){
-    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
-    catch(e){ return fallback; }
+    try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch(_){ return fallback; }
   }
   function writeLS(key, val){
-    try { localStorage.setItem(key, JSON.stringify(val)); return true; }
-    catch(e){ return false; }
+    try{ localStorage.setItem(key, JSON.stringify(val)); return true; }
+    catch(_){ return false; }
   }
   function readQueue(){ return safeJSON(QUEUE_KEY, []); }
   function setQueue(arr){ writeLS(QUEUE_KEY, arr); }
-
-  function enqueue(payload){
-    const q = readQueue();
-    q.push(payload);
-    setQueue(q);
-  }
 
   function parseMoney(text){
     if(text == null) return 0;
@@ -6726,15 +6719,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
     t = t.replace(/\s/g,'').replace(/[^0-9.,-]/g,'');
     const hasDot = t.includes('.');
     const hasComma = t.includes(',');
-    if(hasDot && hasComma) t = t.replace(/,/g,'');
-    else if(hasComma && !hasDot) t = t.replace(/,/g,'.');
+    if(hasDot && hasComma) t = t.replace(/,/g,'');     // 12,000.50 -> 12000.50
+    else if(hasComma && !hasDot) t = t.replace(/,/g,'.'); // 12000,50 -> 12000.50
     const n = parseFloat(t);
     return Number.isFinite(n) ? n : 0;
   }
 
   function buildSnapshotPayload(kind){
     kind = kind || 'result';
-    // Make payload STATELESS: read from DOM + localStorage only (no in-memory dependencies)
+
+    // Read from DOM + localStorage only (stateless)
     const available = parseMoney(document.getElementById('availableCapital')?.textContent);
     const equity = parseMoney(document.getElementById('cycleCurrentCap')?.textContent) || available;
 
@@ -6744,48 +6738,50 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const financial_goal = Number(localStorage.getItem('club500_pd_goal') || 0) || 0;
     const statsScope = localStorage.getItem('club500_stats_scope') || 'fact';
     const statsFilter = localStorage.getItem('club500_stats_filter') || 'usd';
-    const COMMISSION_THRESHOLD = 5000;
-    const COMMISSION_RATE_NOMINAL = 0.10; // 10% базовая ставка
-    const COMMISSION_CAP = 5000;          // максимум комиссии
 
-    // Для финального snapshot берём за базу итог цикла, иначе текущий капитал (equity)
+    // Commission: starts at >= $5000, 10% of base, but not more than $5000
+    const COMMISSION_THRESHOLD = 5000;
+    const COMMISSION_RATE_NOMINAL = 0.10;
+    const COMMISSION_CAP = 5000;
+
+    // Base for commission:
+    // - for final snapshot: end-of-cycle if exists
+    // - otherwise: equity
     let base = (Number.isFinite(equity) ? equity : 0);
     if(kind === 'final'){
       const cycleEnd = Number(localStorage.getItem('club500_cycle_end_capital') || 0) || 0;
-      base = cycleEnd > 0 ? cycleEnd : base;
+      if(cycleEnd > 0) base = cycleEnd;
     }
 
     const commission_applied = base >= COMMISSION_THRESHOLD;
     const commission_raw = commission_applied ? (base * COMMISSION_RATE_NOMINAL) : 0;
     const commission = commission_applied ? Math.min(commission_raw, COMMISSION_CAP) : 0;
 
-    // ВАЖНО: если админка где-то считает комиссию как base * commission_rate,
-    // то commission_rate должен быть эффективным (с учётом cap), чтобы всё совпадало без правок админки.
+    // Effective rate so admin can do base * commission_rate and still get capped value
     const commission_rate = (commission_applied && base > 0) ? (commission / base) : 0;
-    const commission_rate_nominal = COMMISSION_RATE_NOMINAL;
 
-    const commission_limited = commission_applied && commission_raw > COMMISSION_CAP;
-    const capital_after_commission = Math.max(0, base - commission);
-
-return {
+    const payload = {
       equity,
       available,
       ui_final_capital: final_capital_ui,
       ui_total_fees: total_fees_ui,
+
       commission,
       commission_raw,
       commission_applied,
-      commission_limited,
+      commission_limited: (commission_applied && commission_raw > COMMISSION_CAP),
       commission_threshold: COMMISSION_THRESHOLD,
-      commission_rate: commission_rate,
-      commission_rate_nominal: commission_rate_nominal,
+      commission_rate,
+      commission_rate_nominal: COMMISSION_RATE_NOMINAL,
       commission_cap: COMMISSION_CAP,
       commission_base: base,
       commission_rule: 'if base>=5000 then min(base*0.10,5000) else 0',
-      capital_after_commission,
+      capital_after_commission: Math.max(0, base - commission),
+
       financial_goal,
       stats: { scope: statsScope, filter: statsFilter },
 
+      // Partner states (for admin)
       deals_state: safeJSON('club500_deals', null),
       assets: safeJSON('club500_deals_history', []),
       passive_objects: safeJSON('club500_pd_assets', []),
@@ -6795,124 +6791,142 @@ return {
 
       page_visibility: document.visibilityState,
       user_agent: navigator.userAgent,
+
+      __snapshot_kind: kind,
+      __is_final: (kind === 'final'),
       __snapshot_ts: Date.now(),
       __snapshot_iso: new Date().toISOString()
     };
+
+    return payload;
   }
 
+  // ---------- Auth/session (robust) ----------
   async function getLiveSession(){
     try{
-      let { data: { session } } = await sbSnap.auth.getSession();
+      let { data: { session } } = await sb.auth.getSession();
       if(session?.user) return session;
 
-      const r = await sbSnap.auth.refreshSession();
+      // Try refresh (tab could sleep -> token stale)
+      const r = await sb.auth.refreshSession();
       if(r?.data?.session?.user) return r.data.session;
 
-      ({ data: { session } } = await sbSnap.auth.getSession());
+      ({ data: { session } } = await sb.auth.getSession());
       return session?.user ? session : null;
-    }catch(e){
+    }catch(_){
       return null;
     }
   }
 
+  // ---------- Remote write with timeout ----------
   async function writeSnapshotRemote(payload){
     const session = await getLiveSession();
     const user = session?.user;
     if(!user) return { ok:false, reason:'no_session' };
 
-    // Network guard: don't let a hung request lock UI forever
-    const op = sbSnap
+    // Force a real HTTP request and avoid “hanging” forever
+    const op = sb
       .from('deal_stats_snapshot')
       .upsert(
-        { user_id: user.id, payload: payload, updated_at: new Date().toISOString(), created_at: new Date().toISOString(), snapshot_ts: Date.now() },
+        {
+          user_id: user.id,
+          payload: payload,
+          updated_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          snapshot_ts: Date.now()
+        },
         { onConflict: 'user_id' }
-      );
+      )
+      .select('user_id'); // ensures request is executed + small response
 
-    console.log('SUPABASE UPLOAD → deal_stats_snapshot', { user_id: user.id, kind: payload?.__snapshot_kind, is_final: !!payload?.__is_final });
+    console.log('SUPABASE UPLOAD → deal_stats_snapshot', { user_id: user.id, kind: payload?.__snapshot_kind });
 
-    const timeout = new Promise((_, reject)=> setTimeout(()=> reject(new Error('timeout')), 8000));
+    const timeout = new Promise((_, reject)=> setTimeout(()=> reject(new Error('supabase_upsert_timeout')), 9000));
 
     try{
       const { data, error, status } = await Promise.race([op, timeout]);
-      console.log('SUPABASE RESPONSE', { status, error: error?.message || null, data: data ? (Array.isArray(data) ? ('rows:'+data.length) : 'object') : null });
+      console.log('SUPABASE RESPONSE', { status, error: error?.message || null, rows: Array.isArray(data) ? data.length : (data ? 1 : 0) });
       if(error) return { ok:false, reason: error.message || 'db_error' };
       return { ok:true };
-    } catch(e){
+    }catch(e){
       return { ok:false, reason: (e && (e.message || e.name)) ? (e.message || e.name) : 'net_error' };
     }
   }
-// Serialize remote saves to avoid race conditions
+
+  // ---------- Queue + serialization ----------
   let saveChain = Promise.resolve();
   function enqueueRemote(fn){
     saveChain = saveChain.then(fn, fn);
     return saveChain;
   }
 
+  function enqueue(payload){
+    const q = readQueue();
+    q.push(payload);
+    setQueue(q);
+  }
+
   async function flushQueue(){
     const q = readQueue();
     if(!q.length) return;
 
-    // Try to send in FIFO order, stop on first failure (keep remaining)
     const remaining = [];
-    for(const payload of q){
+    for(let i=0;i<q.length;i++){
+      const payload = q[i];
       const r = await writeSnapshotRemote(payload);
       if(!r.ok){
-        remaining.push(payload, ...q.slice(q.indexOf(payload)+1));
+        // keep this and everything after it
+        remaining.push(...q.slice(i));
         break;
       }
     }
     setQueue(remaining);
   }
 
+  // ---------- Main save ----------
   async function saveSnapshotNow(kind){
     const payload = buildSnapshotPayload(kind);
 
-    // 1) Always store locally (instant snapshot)
+    // 1) Always store locally
     writeLS(LAST_KEY, payload);
-    if(payload.__is_final){
-      writeLS(FINAL_KEY, payload);
-    }
+    if(payload.__is_final) writeLS(FINAL_KEY, payload);
 
-    // 2) Queue for remote (guaranteed delivery attempt)
+    // 2) Queue for remote
     enqueue(payload);
 
-    // 3) Attempt immediate flush (non-blocking chain)
+    // 3) Attempt immediate flush (serialized, non-blocking)
     enqueueRemote(async ()=>{ await flushQueue(); });
 
     if(typeof window.showToast === 'function'){
       window.showToast(payload.__is_final ? 'Финальный итог зафиксирован' : 'Snapshot зафиксирован');
     }
-
-    // For debugging (can be removed later)
-    console.log("SNAPSHOT PAYLOAD:", payload);
+    console.log('SNAPSHOT PAYLOAD:', payload);
   }
 
+  // ---------- Hook buttons (run AFTER their own handlers) ----------
   function hook(id, kind){
     const el = document.getElementById(id);
     if(!el) return;
 
-    // Prevent double-fire / stuck locks: soft lock with watchdog
     el.addEventListener('click', ()=>{
+      // soft lock (prevents double fire)
       if(el.dataset.saving === '1') return;
       el.dataset.saving = '1';
 
-      // watchdog unlock in case anything hangs
-      const wd = setTimeout(()=>{ el.dataset.saving = '0'; }, 1500);
+      const wd = setTimeout(()=>{ el.dataset.saving = '0'; }, 2000);
 
-      // Let existing handler run first (it updates DOM/localStorage),
-      // then snapshot reads from DOM/localStorage (stateless).
+      // Allow existing click handler to update DOM/localStorage first
       setTimeout(async ()=>{
-        try { await saveSnapshotNow(kind); }
-        finally { clearTimeout(wd); el.dataset.saving = '0'; }
+        try{ await saveSnapshotNow(kind); }
+        finally{ clearTimeout(wd); el.dataset.saving = '0'; }
       }, 0);
     }, false);
   }
 
-  // Hook buttons
   hook('sendResultToDeals', 'result'); // RESULT snapshot
-  hook('cycleSetEndBtn', 'final');    // ФИНАЛЬНЫЙ snapshot
+  hook('cycleSetEndBtn', 'final');     // «Завершить итог» snapshot
 
-  // Flush queue when returning to tab / network comes back
+  // Flush when returning to tab / BFCache / network back
   document.addEventListener('visibilitychange', ()=>{
     if(!document.hidden) enqueueRemote(async ()=>{ await flushQueue(); });
   });
