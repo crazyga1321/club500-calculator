@@ -6790,7 +6790,81 @@ const payload = buildSnapshotPayload();
 
 })();
 </script>
+
+  // Expose tiny helpers for the wake patch (no UI changes)
+  try{
+    // Re-hook buttons if DOM restored from bfcache
+    window.__club500_snapshot_rehook = window.__club500_snapshot_rehook || function(){
+      // If main script defined a function named initSnapshotHooks in global, call it
+      if(typeof window.initSnapshotHooks === "function") window.initSnapshotHooks();
+    };
+    // Try flush if main script exposes it
+    window.__club500_snapshot_tryFlush = window.__club500_snapshot_tryFlush || function(){
+      if(typeof window.flushSnapshotQueue === "function") window.flushSnapshotQueue();
+    };
+  }catch(e){}
 <!-- ===== END CLUB500 SNAPSHOT STABLE SAVE ===== -->
+
+
+<!-- ===== CLUB500 SNAPSHOT WAKE PATCH (tab-switch stable) ===== -->
+<script>
+(function(){
+  // This patch does NOT change calculations/UI.
+  // It only ensures snapshot hooks + Supabase session are re-warmed after tab switches / bfcache restores.
+
+  function getSb(){
+    return window.sb || window.__club500Sb || null;
+  }
+
+  async function warmSession(){
+    const sb = getSb();
+    if(!sb || !sb.auth) return;
+    try{
+      const s1 = await sb.auth.getSession();
+      if(s1 && s1.data && s1.data.session && s1.data.session.user && s1.data.session.user.id) return;
+      await sb.auth.refreshSession();
+    }catch(e){}
+  }
+
+  function safeCallGlobal(name){
+    try{
+      const fn = window[name];
+      if(typeof fn === "function") fn();
+    }catch(e){}
+  }
+
+  function ensureSnapshotHooks(){
+    // If the main snapshot script exposed a rehook function, call it.
+    safeCallGlobal("__club500_snapshot_rehook");
+    // Also try to click-hook defensively if the page re-rendered (some browsers swap DOM on bfcache).
+    try{
+      const btnResult = document.getElementById("sendResultToDeals");
+      const btnFinal  = document.getElementById("cycleSetEndBtn");
+      // If buttons exist but have lost listeners, the main script's rehook will restore them.
+      // Here we just no-op.
+      void(btnResult); void(btnFinal);
+    }catch(e){}
+  }
+
+  async function wake(){
+    await warmSession();
+    ensureSnapshotHooks();
+    // If there is a queued-flush function, call it.
+    safeCallGlobal("__club500_snapshot_tryFlush");
+  }
+
+  // Run on key lifecycle events
+  window.addEventListener("focus", wake, { passive: true });
+  window.addEventListener("pageshow", wake, { passive: true });
+  document.addEventListener("visibilitychange", () => {
+    if(!document.hidden) wake();
+  }, { passive: true });
+
+  // initial
+  setTimeout(wake, 250);
+})();
+</script>
+<!-- ===== END CLUB500 SNAPSHOT WAKE PATCH ===== -->
 
 </body>
 </html>
