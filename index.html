@@ -6632,9 +6632,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(typeof window.showToast === 'function') window.showToast(msg);
     else alert(msg);
   }
+  // TEMPORARY AUTH BYPASS: keep Supabase auth code intact, but never block site UI.
+  // To restore authorization later, remove the next line and restore the original display expression.
+  const AUTH_BYPASS = true;
   function setOverlay(on, msg){
     if(!overlay) return;
-    overlay.style.display = on ? 'block' : 'none';
+    overlay.style.display = (AUTH_BYPASS ? false : on) ? 'block' : 'none';
     if(hintEl) hintEl.textContent = msg || '';
   }
   function setLoggedUI(user){
